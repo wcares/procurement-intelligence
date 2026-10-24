@@ -532,14 +532,6 @@
    "p90": 329.0,
    "shareOver180": 0.30624465355004277
   },
-  "NC": {
-   "n": 36,
-   "median": 54.0,
-   "p25": 27.75,
-   "p75": 116.5,
-   "p90": 191.0,
-   "shareOver180": 0.1111111111111111
-  },
   "CS": {
    "n": 689,
    "median": 120.0,
@@ -547,14 +539,6 @@
    "p75": 231.0,
    "p90": 355.60000000000014,
    "shareOver180": 0.3468795355587808
-  },
-  "GO": {
-   "n": 243,
-   "median": 77.0,
-   "p25": 43.0,
-   "p75": 145.0,
-   "p90": 224.60000000000002,
-   "shareOver180": 0.16872427983539096
   },
   "CW": {
    "n": 201,
@@ -564,29 +548,21 @@
    "p90": 342.0,
    "shareOver180": 0.3681592039800995
   },
-  "GO/RFQ": {
-   "n": 71,
-   "median": 33.0,
-   "p25": 18.0,
-   "p75": 64.5,
-   "p90": 103.0,
-   "shareOver180": 0.014084507042253521
+  "GO": {
+   "n": 243,
+   "median": 77.0,
+   "p25": 43.0,
+   "p75": 145.0,
+   "p90": 224.60000000000002,
+   "shareOver180": 0.16872427983539096
   },
-  "CW/RFB": {
-   "n": 195,
-   "median": 113.0,
-   "p25": 67.0,
-   "p75": 252.5,
-   "p90": 336.79999999999995,
-   "shareOver180": 0.37435897435897436
-  },
-  "GO/RFB": {
-   "n": 172,
-   "median": 108.0,
-   "p25": 60.0,
-   "p75": 171.25,
-   "p90": 283.0,
-   "shareOver180": 0.23255813953488372
+  "NC": {
+   "n": 36,
+   "median": 54.0,
+   "p25": 27.75,
+   "p75": 116.5,
+   "p90": 191.0,
+   "shareOver180": 0.1111111111111111
   },
   "CS/CQS": {
    "n": 165,
@@ -595,14 +571,6 @@
    "p75": 196.0,
    "p90": 286.2,
    "shareOver180": 0.2787878787878788
-  },
-  "NC/RFB": {
-   "n": 28,
-   "median": 55.0,
-   "p25": 29.0,
-   "p75": 147.0,
-   "p90": 219.90000000000003,
-   "shareOver180": 0.14285714285714285
   },
   "CS/INDV": {
    "n": 345,
@@ -627,29 +595,78 @@
    "p75": 447.5,
    "p90": 562.0,
    "shareOver180": 0.83125
+  },
+  "CW/RFB": {
+   "n": 195,
+   "median": 113.0,
+   "p25": 67.0,
+   "p75": 252.5,
+   "p90": 336.79999999999995,
+   "shareOver180": 0.37435897435897436
+  },
+  "GO/RFB": {
+   "n": 172,
+   "median": 108.0,
+   "p25": 60.0,
+   "p75": 171.25,
+   "p90": 283.0,
+   "shareOver180": 0.23255813953488372
+  },
+  "GO/RFQ": {
+   "n": 71,
+   "median": 33.0,
+   "p25": 18.0,
+   "p75": 64.5,
+   "p90": 103.0,
+   "shareOver180": 0.014084507042253521
+  },
+  "NC/RFB": {
+   "n": 28,
+   "median": 55.0,
+   "p25": 29.0,
+   "p75": 147.0,
+   "p90": 219.90000000000003,
+   "shareOver180": 0.14285714285714285
   }
  },
  "governance": {
-  "AL": [
+  "1W": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.96153846153846
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.12564102564103
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.82051282051282
+   },
    {
     "indicator": "public_administration",
-    "year": 2006,
-    "value": 3.0
+    "year": 2025,
+    "value": 2.78846153846154
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.89871794871795
    },
    {
     "indicator": "transparency_corruption",
-    "year": 2006,
-    "value": 2.5
-   },
+    "year": 2025,
+    "value": 2.75
+   }
+  ],
+  "AL": [
    {
     "indicator": "business_regulatory_env",
     "year": 2006,
     "value": 3.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2006,
-    "value": 3.0
    },
    {
     "indicator": "ida_allocation_index",
@@ -657,26 +674,36 @@
     "value": 3.74166666666667
    },
    {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
     "indicator": "public_sector_mgmt_cluster",
     "year": 2006,
     "value": 3.3
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2006,
+    "value": 2.5
    }
   ],
   "AM": [
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2013,
-    "value": 4.13333333333333
-   },
    {
     "indicator": "business_regulatory_env",
     "year": 2013,
     "value": 4.5
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "ida_allocation_index",
     "year": 2013,
-    "value": 3.7
+    "value": 4.13333333333333
    },
    {
     "indicator": "property_rights_rule_based_gov",
@@ -687,6 +714,11 @@
     "indicator": "public_administration",
     "year": 2013,
     "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2013,
+    "value": 3.7
    },
    {
     "indicator": "transparency_corruption",
@@ -696,24 +728,9 @@
   ],
   "AZ": [
    {
-    "indicator": "public_administration",
-    "year": 2010,
-    "value": 3.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2010,
-    "value": 2.5
-   },
-   {
     "indicator": "business_regulatory_env",
     "year": 2010,
     "value": 4.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2010,
-    "value": 3.0
    },
    {
     "indicator": "ida_allocation_index",
@@ -721,496 +738,31 @@
     "value": 3.68333333333333
    },
    {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2010,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2010,
+    "value": 3.0
+   },
+   {
     "indicator": "public_sector_mgmt_cluster",
     "year": 2010,
     "value": 3.1
-   }
-  ],
-  "CF": [
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.0
    },
    {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.583333
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
+    "indicator": "transparency_corruption",
+    "year": 2010,
     "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.4
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.0
-   }
-  ],
-  "CI": [
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.8
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.95
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 4.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   }
-  ],
-  "GE": [
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2013,
-    "value": 5.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2013,
-    "value": 4.44166666666667
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2013,
-    "value": 4.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2013,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2013,
-    "value": 4.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2013,
-    "value": 3.5
-   }
-  ],
-  "GN": [
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.35
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "HT": [
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.275
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 1.9
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 1.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 1.5
-   }
-  ],
-  "ID": [
-   {
-    "indicator": "public_administration",
-    "year": 2006,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2006,
-    "value": 3.0
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2006,
-    "value": 3.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2006,
-    "value": 2.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2006,
-    "value": 3.675
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2006,
-    "value": 3.2
-   }
-  ],
-  "KH": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.55
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.9
-   }
-  ],
-  "LK": [
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.308333
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.4
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "MH": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.733333
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.7
-   }
-  ],
-  "MV": [
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.1
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.95
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "RW": [
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.9
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 4.225
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 4.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 4.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   }
-  ],
-  "TD": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.933333
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.6
-   }
-  ],
-  "TV": [
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.858333
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.2
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 4.0
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 4.0
-   }
-  ],
-  "UZ": [
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.841667
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.7
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   }
-  ],
-  "XK": [
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.966667
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 4.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.7
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.5
    }
   ],
   "BD": [
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "business_regulatory_env",
     "year": 2025,
-    "value": 2.5
+    "value": 3.0
    },
    {
     "indicator": "ida_allocation_index",
@@ -1228,37 +780,17 @@
     "value": 2.5
    },
    {
-    "indicator": "transparency_corruption",
+    "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
     "value": 2.5
    },
    {
-    "indicator": "business_regulatory_env",
+    "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 3.0
+    "value": 2.5
    }
   ],
   "BI": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.4
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 1.5
-   },
    {
     "indicator": "business_regulatory_env",
     "year": 2025,
@@ -1268,23 +800,43 @@
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 3.125
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.4
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
    }
   ],
   "BJ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.0
+   },
    {
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 3.883333
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "property_rights_rule_based_gov",
     "year": 2025,
-    "value": 3.7
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 4.0
+    "value": 3.5
    },
    {
     "indicator": "public_administration",
@@ -1292,21 +844,53 @@
     "value": 3.5
    },
    {
-    "indicator": "transparency_corruption",
+    "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
-    "value": 3.5
+    "value": 3.7
    },
    {
-    "indicator": "property_rights_rule_based_gov",
+    "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.5
    }
   ],
-  "CG": [
+  "CF": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.583333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
    {
     "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
-    "value": 2.8
+    "value": 2.4
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "CG": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
    },
    {
     "indicator": "ida_allocation_index",
@@ -1324,34 +908,51 @@
     "value": 2.5
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 2.5
-   },
+   }
+  ],
+  "CI": [
    {
     "indicator": "business_regulatory_env",
     "year": 2025,
-    "value": 2.0
-   }
-  ],
-  "CM": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.0
+    "value": 3.5
    },
    {
-    "indicator": "transparency_corruption",
+    "indicator": "ida_allocation_index",
     "year": 2025,
-    "value": 3.0
+    "value": 3.95
    },
    {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
-    "value": 2.5
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
    },
    {
     "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.8
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
+   }
+  ],
+  "CM": [
+   {
+    "indicator": "business_regulatory_env",
     "year": 2025,
     "value": 3.0
    },
@@ -1361,24 +962,76 @@
     "value": 3.325
    },
    {
-    "indicator": "business_regulatory_env",
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
    }
   ],
-  "DM": [
+  "DJ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.058333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
    {
     "indicator": "public_administration",
     "year": 2025,
     "value": 3.5
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 4.0
+    "value": 3.0
+   }
+  ],
+  "DM": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.508333
    },
    {
     "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
     "year": 2025,
     "value": 3.5
    },
@@ -1388,31 +1041,26 @@
     "value": 3.3
    },
    {
-    "indicator": "ida_allocation_index",
+    "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 3.508333
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
+    "value": 4.0
    }
   ],
   "ET": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
    {
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 3.25
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "property_rights_rule_based_gov",
     "year": 2025,
-    "value": 3.1
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
+    "value": 2.0
    },
    {
     "indicator": "public_administration",
@@ -1420,14 +1068,46 @@
     "value": 3.5
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
+   }
+  ],
+  "GE": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2013,
+    "value": 5.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2013,
+    "value": 4.44166666666667
    },
    {
     "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.0
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2013,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2013,
+    "value": 4.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2013,
+    "value": 3.5
    }
   ],
   "GM": [
@@ -1442,11 +1122,6 @@
     "value": 3.3
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.2
-   },
-   {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 3.0
@@ -1455,6 +1130,11 @@
     "indicator": "public_administration",
     "year": 2025,
     "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
    },
    {
     "indicator": "transparency_corruption",
@@ -1462,27 +1142,39 @@
     "value": 3.0
    }
   ],
-  "GW": [
+  "GN": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.35
+   },
    {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
-    "value": 2.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.2
+    "value": 3.0
    },
    {
     "indicator": "public_administration",
     "year": 2025,
-    "value": 2.0
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
    },
    {
     "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 1.5
-   },
+    "value": 2.5
+   }
+  ],
+  "GW": [
    {
     "indicator": "business_regulatory_env",
     "year": 2025,
@@ -1492,21 +1184,46 @@
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 2.658333
-   }
-  ],
-  "GY": [
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
    {
     "indicator": "public_administration",
     "year": 2025,
-    "value": 3.0
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.2
    },
    {
     "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 3.0
+    "value": 1.5
+   }
+  ],
+  "GY": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.458333
    },
    {
     "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
     "year": 2025,
     "value": 3.0
    },
@@ -1516,31 +1233,26 @@
     "value": 3.2
    },
    {
-    "indicator": "ida_allocation_index",
+    "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 3.458333
-   },
+    "value": 3.0
+   }
+  ],
+  "HN": [
    {
     "indicator": "business_regulatory_env",
     "year": 2025,
     "value": 2.5
-   }
-  ],
-  "HN": [
+   },
    {
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 3.258333
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "property_rights_rule_based_gov",
     "year": 2025,
-    "value": 2.9
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.5
+    "value": 2.0
    },
    {
     "indicator": "public_administration",
@@ -1548,37 +1260,81 @@
     "value": 3.0
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.9
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 2.5
+   }
+  ],
+  "HT": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.275
    },
    {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 2.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 1.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 1.9
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
    }
   ],
-  "IN": [
+  "ID": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2006,
+    "value": 3.675
+   },
    {
     "indicator": "property_rights_rule_based_gov",
-    "year": 2013,
+    "year": 2006,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2006,
     "value": 3.5
    },
    {
     "indicator": "public_sector_mgmt_cluster",
-    "year": 2013,
-    "value": 3.6
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2013,
-    "value": 3.5
+    "year": 2006,
+    "value": 3.2
    },
    {
     "indicator": "transparency_corruption",
-    "year": 2013,
-    "value": 3.5
-   },
+    "year": 2006,
+    "value": 3.0
+   }
+  ],
+  "IN": [
    {
     "indicator": "business_regulatory_env",
     "year": 2013,
@@ -1588,6 +1344,26 @@
     "indicator": "ida_allocation_index",
     "year": 2013,
     "value": 3.7
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2013,
+    "value": 3.6
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2013,
+    "value": 3.5
    }
   ],
   "KE": [
@@ -1602,11 +1378,6 @@
     "value": 3.816667
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.7
-   },
-   {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 3.5
@@ -1617,16 +1388,100 @@
     "value": 3.5
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.5
    }
   ],
+  "KG": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.641667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "KH": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.55
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.9
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
   "LA": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
    {
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 3.083333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
    },
    {
     "indicator": "public_sector_mgmt_cluster",
@@ -1634,47 +1489,108 @@
     "value": 2.8
    },
    {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "LK": [
+   {
     "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.308333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.4
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "MD": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2019,
+    "value": 4.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2019,
+    "value": 3.716667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2019,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2019,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2019,
+    "value": 3.3
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2019,
+    "value": 2.5
+   }
+  ],
+  "MH": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.733333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 3.5
    },
    {
     "indicator": "public_administration",
     "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "ML": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
     "value": 2.0
    },
    {
     "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
-    "value": 2.3
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.0
+    "value": 2.7
    },
    {
     "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 2.0
-   },
+    "value": 3.5
+   }
+  ],
+  "ML": [
    {
     "indicator": "business_regulatory_env",
     "year": 2025,
@@ -1684,13 +1600,97 @@
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 3.175
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.3
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
+  "MV": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.95
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "MW": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.875
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
    }
   ],
   "MZ": [
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "business_regulatory_env",
     "year": 2025,
-    "value": 2.8
+    "value": 3.0
    },
    {
     "indicator": "ida_allocation_index",
@@ -1708,12 +1708,44 @@
     "value": 3.0
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 2.0
-   },
+   }
+  ],
+  "NG": [
    {
     "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.25
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.7
+   },
+   {
+    "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
    }
@@ -1730,11 +1762,6 @@
     "value": 3.308333
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.2
-   },
-   {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 2.5
@@ -1745,9 +1772,46 @@
     "value": 3.0
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
+   }
+  ],
+  "RW": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 4.225
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.9
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
    }
   ],
   "SL": [
@@ -1762,17 +1826,17 @@
     "value": 3.066667
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 3.0
    },
    {
     "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
     "value": 3.0
    },
@@ -1782,27 +1846,39 @@
     "value": 3.0
    }
   ],
-  "SO": [
+  "SN": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.508333
+   },
    {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
-    "value": 1.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 1.8
+    "value": 3.5
    },
    {
     "indicator": "public_administration",
     "year": 2025,
-    "value": 2.0
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.5
    },
    {
     "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 1.5
-   },
+    "value": 3.5
+   }
+  ],
+  "SO": [
    {
     "indicator": "business_regulatory_env",
     "year": 2025,
@@ -1812,21 +1888,41 @@
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 2.241667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 1.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 1.8
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
    }
   ],
   "ST": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
    {
     "indicator": "ida_allocation_index",
     "year": 2025,
     "value": 2.941667
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.8
-   },
-   {
-    "indicator": "business_regulatory_env",
+    "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 3.0
    },
@@ -1836,29 +1932,162 @@
     "value": 2.5
    },
    {
-    "indicator": "transparency_corruption",
+    "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
-    "value": 3.0
+    "value": 2.8
    },
    {
-    "indicator": "property_rights_rule_based_gov",
+    "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
    }
   ],
-  "TZ": [
+  "SZ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.133333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
+   }
+  ],
+  "TD": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.933333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.6
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
+  "TJ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.275
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
    {
     "indicator": "public_administration",
     "year": 2025,
     "value": 3.0
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
     "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "TV": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.858333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
+   }
+  ],
+  "TZ": [
+   {
+    "indicator": "business_regulatory_env",
     "year": 2025,
     "value": 3.0
    },
    {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.625
+   },
+   {
     "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
     "year": 2025,
     "value": 3.0
    },
@@ -1868,29 +2097,88 @@
     "value": 3.2
    },
    {
-    "indicator": "ida_allocation_index",
+    "indicator": "transparency_corruption",
     "year": 2025,
-    "value": 3.625
-   },
+    "value": 3.0
+   }
+  ],
+  "UG": [
    {
     "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.466667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.3
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "UZ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.841667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
+    "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
    }
   ],
   "VN": [
    {
+    "indicator": "business_regulatory_env",
+    "year": 2015,
+    "value": 3.5
+   },
+   {
     "indicator": "ida_allocation_index",
     "year": 2015,
     "value": 3.69167
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2015,
-    "value": 3.5
-   },
-   {
-    "indicator": "business_regulatory_env",
+    "indicator": "property_rights_rule_based_gov",
     "year": 2015,
     "value": 3.5
    },
@@ -1900,21 +2188,21 @@
     "value": 3.5
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2015,
+    "value": 3.5
+   },
+   {
     "indicator": "transparency_corruption",
     "year": 2015,
     "value": 3.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2015,
-    "value": 3.5
    }
   ],
   "VU": [
    {
-    "indicator": "public_sector_mgmt_cluster",
+    "indicator": "business_regulatory_env",
     "year": 2025,
-    "value": 3.1
+    "value": 3.0
    },
    {
     "indicator": "ida_allocation_index",
@@ -1932,14 +2220,46 @@
     "value": 2.5
    },
    {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
     "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "XK": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.966667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
     "year": 2025,
     "value": 3.0
    },
    {
-    "indicator": "business_regulatory_env",
+    "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
-    "value": 3.0
+    "value": 3.7
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
    }
   ],
   "ZM": [
@@ -1954,11 +2274,6 @@
     "value": 3.308333
    },
    {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
     "indicator": "property_rights_rule_based_gov",
     "year": 2025,
     "value": 3.0
@@ -1969,329 +2284,14 @@
     "value": 3.0
    },
    {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.5
-   }
-  ],
-  "MW": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 2.875
-   },
-   {
     "indicator": "public_sector_mgmt_cluster",
     "year": 2025,
     "value": 3.0
    },
    {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "SZ": [
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.133333
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 1.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.5
-   }
-  ],
-  "1W": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.78846153846154
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.75
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.82051282051282
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 2.96153846153846
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.89871794871795
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.12564102564103
-   }
-  ],
-  "DJ": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.058333
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "KG": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 2.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.1
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.641667
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   }
-  ],
-  "MD": [
-   {
-    "indicator": "public_administration",
-    "year": 2019,
-    "value": 3.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2019,
-    "value": 2.5
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2019,
-    "value": 3.5
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2019,
-    "value": 4.0
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2019,
-    "value": 3.3
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2019,
-    "value": 3.716667
-   }
-  ],
-  "NG": [
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 2.7
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.25
-   }
-  ],
-  "SN": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.508333
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.5
-   }
-  ],
-  "TJ": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.0
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.1
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.275
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
-   }
-  ],
-  "UG": [
-   {
-    "indicator": "property_rights_rule_based_gov",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "public_administration",
-    "year": 2025,
-    "value": 3.5
-   },
-   {
-    "indicator": "transparency_corruption",
-    "year": 2025,
-    "value": 2.5
-   },
-   {
-    "indicator": "public_sector_mgmt_cluster",
-    "year": 2025,
-    "value": 3.3
-   },
-   {
-    "indicator": "ida_allocation_index",
-    "year": 2025,
-    "value": 3.466667
-   },
-   {
-    "indicator": "business_regulatory_env",
-    "year": 2025,
-    "value": 3.0
    }
   ]
  },

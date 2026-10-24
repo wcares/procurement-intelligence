@@ -51,9 +51,9 @@ def benchmarks(con: duckdb.DuckDBPyConnection) -> dict[str, dict | None]:
         return {"n": r[0], "median": r[1], "p25": r[2], "p75": r[3], "p90": r[4], "shareOver180": r[5]}
 
     out: dict[str, dict | None] = {"all": bench("", [])}
-    for (g,) in q("SELECT DISTINCT proc_group FROM package WHERE proc_group IS NOT NULL"):
+    for (g,) in q("SELECT DISTINCT proc_group FROM package WHERE proc_group IS NOT NULL ORDER BY 1"):
         out[g] = bench("AND proc_group = ?", [g])
-    for (g, m) in q("SELECT DISTINCT proc_group, method_code FROM package WHERE proc_group IS NOT NULL AND method_code IS NOT NULL"):
+    for (g, m) in q("SELECT DISTINCT proc_group, method_code FROM package WHERE proc_group IS NOT NULL AND method_code IS NOT NULL ORDER BY 1, 2"):
         b = bench("AND proc_group = ? AND method_code = ?", [g, m])
         if b and b["n"] >= MIN_BENCH_N:
             out[f"{g}/{m}"] = b
@@ -63,6 +63,7 @@ def benchmarks(con: duckdb.DuckDBPyConnection) -> dict[str, dict | None]:
 def governance(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
     out: dict[str, list[dict]] = {}
     for cc, ind, yr, val in con.execute("""SELECT country_code, indicator, year, value FROM cpia
-            QUALIFY row_number() OVER (PARTITION BY country_code, indicator ORDER BY year DESC) = 1""").fetchall():
+            QUALIFY row_number() OVER (PARTITION BY country_code, indicator ORDER BY year DESC) = 1
+            ORDER BY country_code, indicator""").fetchall():
         out.setdefault(cc, []).append({"indicator": ind, "year": yr, "value": val})
     return out
