@@ -1,0 +1,191 @@
+"""HTTP API for the web app. Response models mirror web/src/lib/api/types.ts; keep the two in step.
+
+    uvicorn procintel.server:app --port 8000        (with PYTHONPATH=src)
+    then run the web app with NEXT_PUBLIC_API_BASE=http://localhost:8000
+"""
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+import duckdb
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from procintel import stats
+from procintel.answer import ask as run_ask, idf
+from procintel.assess import assess as run_assess
+from procintel.retrieve import DB_PATH, Retriever
+
+ProcGroup = Literal["GO", "CW", "CS", "NC"]
+
+
+class Country(BaseModel):
+    code: str
+    name: str
+    region: str
+
+
+class Method(BaseModel):
+    code: str
+    label: str
+    procGroups: list[ProcGroup]
+    n: int
+
+
+class ProcGroupOption(BaseModel):
+    code: ProcGroup
+    label: str
+
+
+class Options(BaseModel):
+    countries: list[Country]
+    sectors: list[str]
+    procGroups: list[ProcGroupOption]
+    methods: list[Method]
+
+
+class Citation(BaseModel):
+    id: str
+    docId: str
+    docType: str
+    title: str
+    section: str
+    quote: str
+    url: str
+    projectId: str
+    projectName: str
+    countryCode: str
+
+
+class AssessRequest(BaseModel):
+    countryCode: str = Field(min_length=2)
+    procGroup: ProcGroup
+    methodCode: str = Field(min_length=1)
+    sector: str | None = None
+    estimatedValueUsd: float | None = None
+    description: str | None = Field(default=None, max_length=2000)
+
+
+class TimelineBenchmark(BaseModel):
+    metric: Literal["tender_to_award_days"]
+    scope: str
+    n: int
+    median: float
+    p25: float
+    p75: float
+    p90: float
+
+
+class RiskFlag(BaseModel):
+    id: str
+    label: str
+    level: Literal["low", "medium", "high"]
+    basis: Literal["statistic", "model"]
+    detail: str
+
+
+class GovernanceScore(BaseModel):
+    indicator: str
+    year: int
+    value: float
+
+
+class Precedent(BaseModel):
+    citation: Citation
+    relevance: float
+    matchedOn: list[str]
+
+
+class ResponseMeta(BaseModel):
+    source: Literal["mock", "live"]
+    generatedAt: str
+    caveats: list[str]
+
+
+class AssessResponse(BaseModel):
+    timeline: TimelineBenchmark | None
+    risks: list[RiskFlag]
+    governance: list[GovernanceScore]
+    precedents: list[Precedent]
+    meta: ResponseMeta
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    countryCode: str | None = None
+    procGroup: ProcGroup | None = None
+
+
+class AnswerSentence(BaseModel):
+    text: str
+    citations: list[int]
+
+
+class AskResponse(BaseModel):
+    answer: list[AnswerSentence]
+    citations: list[Citation]
+    unsupported: bool
+    meta: ResponseMeta
+
+
+class State:
+    """Everything derived from the database, loaded once at startup."""
+
+    def __init__(self, db_path: Path):
+        con = duckdb.connect(str(db_path), read_only=True)
+        self.options = stats.options(con)
+        self.bench = stats.benchmarks(con)
+        self.governance = stats.governance(con)
+        con.close()
+        self.retriever = Retriever(db_path)
+        idf(self.retriever)  # term weights for picking answer sentences
+
+
+@lru_cache(maxsize=1)
+def state(db_path: Path = DB_PATH) -> State:
+    return State(db_path)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    state()  # build the index before the first request rather than during it
+    yield
+
+
+app = FastAPI(title="procintel", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3100", "http://127.0.0.1:3100"],
+                   allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+
+
+@app.exception_handler(RequestValidationError)
+async def bad_request(_: Request, exc: RequestValidationError) -> JSONResponse:
+    # 400 like the mock routes; the client only checks res.ok
+    errors = [{"loc": e["loc"], "msg": e["msg"]} for e in exc.errors()]
+    return JSONResponse({"error": "invalid request", "detail": errors}, status_code=400)
+
+
+@app.get("/options", response_model=Options)
+def get_options() -> dict:
+    return state().options
+
+
+@app.post("/assess", response_model=AssessResponse)
+def post_assess(req: AssessRequest) -> dict:
+    s = state()
+    return run_assess(s.retriever, s.bench, s.governance, req.model_dump())
+
+
+@app.post("/ask", response_model=AskResponse)
+def post_ask(req: AskRequest) -> dict:
+    return run_ask(state().retriever, req.question, req.countryCode, req.procGroup)
+
+
+@app.get("/health")
+def health() -> dict:
+    return {"ok": True}
