@@ -20,7 +20,7 @@ import duckdb
 from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
-from procintel.export_mock import GROUP_TERMS
+from procintel.stats import GROUP_TERMS
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
 
