@@ -114,11 +114,28 @@ def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
+def _split_words(text: str, limit: int) -> list[str]:
+    out, cur = [], ""
+    for w in text.split():
+        if cur and len(cur) + len(w) + 1 > limit:
+            out.append(cur)
+            cur = w
+        else:
+            cur = f"{cur} {w}" if cur else w
+    if cur:
+        out.append(cur)
+    return out
+
+
 def _split_long(text: str, limit: int = MAX_CHARS) -> list[str]:
     if len(text) <= limit:
         return [text]
     out, cur = [], ""
+    pieces = []
     for sent in re.split(r"(?<=[.;])\s+(?=[A-Z0-9])", text):
+        # a table row run or run-on text has no sentence end to cut at; fall back to word boundaries
+        pieces.extend(_split_words(sent, limit) if len(sent) > limit else [sent])
+    for sent in pieces:
         if cur and len(cur) + len(sent) + 1 > limit:
             out.append(cur)
             cur = sent

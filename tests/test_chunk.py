@@ -178,3 +178,12 @@ def test_project_id_in_paragraph_after_header_does_not_extend_the_header():
             "   the MPA (P173789), and on the same day approved the first 25 projects.\n")
     text = " ".join(l.strip() for l in strip_page_furniture(page) if l.strip())
     assert text.startswith("8. On April 2, 2020") and "the MPA (P173789)" in text
+
+
+def test_text_without_sentence_breaks_is_still_capped():
+    # shape of a real table row run (Table 9.1 in a Bangladesh ICR): numbers, no sentence end, 5,000 characters
+    row = "Akhaura 1.00 0.85 0.65 0.50 0.75 0.75 1.00 1.00 0.00 0.50 0.50 1.00 0.40 0.25 0.00 "
+    text = "C. EFFICIENCY\n31. " + row * 60 + "\n"
+    chunks = chunk_document(text)
+    assert len(chunks) > 1 and all(len(c.text) <= 1400 for c in chunks)
+    assert " ".join(c.text for c in chunks).split() == (row * 60).split()  # nothing lost, nothing cut mid-word
