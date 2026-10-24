@@ -41,3 +41,33 @@ def test_procurement_group_filter(retriever):
 
 def test_no_term_overlap_returns_nothing(retriever):
     assert retriever.search("photosynthesis") == []
+
+
+@pytest.fixture
+def hybrid(retriever, monkeypatch):
+    """The same 4-chunk retriever with fake unit vectors: the query vector is closest to d2:0 (no shared terms)."""
+    import numpy as np
+    from procintel import embed
+    vecs = np.array([[1, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)  # d1:0, d1:1, d2:0, d3:0
+    monkeypatch.setattr(retriever, "vectors", vecs)
+    monkeypatch.setattr(embed, "embed", lambda texts: np.array([[0.1, 0.99, 0.0]], dtype=np.float32))
+    return retriever
+
+
+def test_vector_search_finds_a_passage_with_no_shared_terms(hybrid):
+    hits = hybrid.search("slow hiring of advisers")
+    assert hits[0].chunk_id == "d2:0" and hits[0].via == "vector"
+
+
+def test_filters_apply_to_vector_results(hybrid):
+    assert "d2:0" not in [h.chunk_id for h in hybrid.search("slow hiring of advisers", country="IN")]
+
+
+def test_embedding_failure_falls_back_to_bm25(hybrid, monkeypatch):
+    from procintel import embed
+
+    def down(texts):
+        raise ConnectionError("embedding server not running")
+    monkeypatch.setattr(embed, "embed", down)
+    hits = hybrid.search("contract cancelled terminated")
+    assert hits and all(h.via == "bm25" for h in hits)

@@ -1,4 +1,5 @@
-"""BM25 retrieval over the cleaned ICR chunks (table `chunk`, built by procintel.chunk), via LlamaIndex.
+"""Hybrid retrieval over the cleaned ICR chunks (table `chunk`, built by procintel.chunk): BM25 via LlamaIndex,
+plus vector search over EmbeddingGemma passage vectors (table `chunk_vec`, procintel.embed) when configured.
 
 Each chunk becomes a LlamaIndex TextNode carrying its citation metadata (doc, project, country, section,
 paragraph anchor). Only the section heading and the text are indexed; the other metadata is excluded so
@@ -6,6 +7,9 @@ that ids and URLs do not match query terms.
 
 Filters (country, procurement group, chunk kind) are applied per query as a weight mask over one shared
 index rather than by rebuilding the retriever, which is what BM25Retriever's `filters` argument would need.
+The same mask applies to the vector scores. The two rankings are merged by reciprocal rank fusion, so neither
+score scale has to be calibrated against the other; each hit records which of the two found it (`via`).
+Without PROCINTEL_EMBED_MODEL, or when the embedding server does not answer, retrieval is BM25 only.
 
     python -m procintel.retrieve "why were contracts terminated" --country KE
 """
@@ -13,14 +17,21 @@ from __future__ import annotations
 
 import argparse
 import copy
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
+import numpy as np
 from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
+from procintel import embed
 from procintel.stats import GROUP_TERMS
+
+log = logging.getLogger(__name__)
+POOL = 50  # candidates taken from each ranking before fusion
+RRF_K = 60  # reciprocal rank fusion constant (Cormack et al. 2009)
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
 
@@ -55,6 +66,7 @@ class Hit:
     project_name: str
     country_code: str
     score: float
+    via: str = "bm25"  # "bm25", "vector" or "bm25+vector"
 
 
 class Retriever:
@@ -62,9 +74,13 @@ class Retriever:
         con = duckdb.connect(str(db_path), read_only=True)
         rows = con.execute(_QUERY).fetchall()
         cols = [d[0] for d in con.description]
-        con.close()
         if not rows:
+            con.close()
             raise ValueError("no chunks to index; run `python -m procintel.chunk` first")
+        self.vectors = embed.load(con, [r[0] for r in rows]) if embed.available() else None
+        con.close()
+        if embed.available() and self.vectors is None:
+            log.warning("PROCINTEL_EMBED_MODEL is set but chunk_vec is missing or stale; run `python -m procintel.embed`")
 
         self.records = [dict(zip(cols, r)) for r in rows]
         for r in self.records:
@@ -79,35 +95,54 @@ class Retriever:
                 excluded_embed_metadata_keys=["chunk_id", "doc_id", "para"],
                 excluded_llm_metadata_keys=["chunk_id", "doc_id", "para"],
             ))
-        self._by_id = {r["chunk_id"]: r for r in self.records}
+        self._index = {r["chunk_id"]: i for i, r in enumerate(self.records)}
         self._bm25 = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=10)
 
     def search(self, query: str, k: int = 8, country: str | None = None, proc_group: str | None = None,
                kinds: tuple[str, ...] = ("text",)) -> list[Hit]:
-        mask = [int(r["kind"] in kinds
-                    and (country is None or country in r["country_codes"])
-                    and (proc_group is None or proc_group in r["groups"]))
-                for r in self.records]
-        if not any(mask):
+        mask = np.array([r["kind"] in kinds
+                         and (country is None or country in r["country_codes"])
+                         and (proc_group is None or proc_group in r["groups"])
+                         for r in self.records])
+        if not mask.any():
             return []
-        # shallow copy shares the index and corpus; only the mask and k differ per query
-        r = copy.copy(self._bm25)
-        r.corpus_weight_mask = mask
-        r.similarity_top_k = min(k, len(mask))
+        ranked = {"bm25": self._bm25_ranking(query, mask)}
+        if self.vectors is not None:
+            try:
+                ranked["vector"] = self._vector_ranking(query, mask)
+            except Exception as e:  # server down or misconfigured: keyword results are still valid evidence
+                log.warning("vector search failed, using BM25 only: %s", e)
+        fused: dict[int, float] = {}
+        found_by: dict[int, list[str]] = {}
+        for name, idx in ranked.items():
+            for rank, i in enumerate(idx):
+                fused[i] = fused.get(i, 0.0) + 1.0 / (RRF_K + rank + 1)
+                found_by.setdefault(i, []).append(name)
         hits = []
-        for nws in r.retrieve(query):
-            if nws.score <= 0:  # masked-out or no term overlap; bm25s still fills k slots with them
-                continue
-            rec = self._by_id[nws.node.node_id]
-            i = _project_index(rec, country)
+        for i in sorted(fused, key=fused.get, reverse=True)[:k]:
+            rec = self.records[i]
+            j = _project_index(rec, country)
             hits.append(Hit(
                 chunk_id=rec["chunk_id"], doc_id=rec["doc_id"], title=rec["title"], doc_type=rec["doc_type"],
                 url=rec["pdf_url"], section=rec["section"], para=rec["para"], kind=rec["kind"], text=rec["text"],
-                project_id=rec["project_ids"][i], project_name=rec["project_names"][i] or "",
-                country_code=rec["country_codes"][i],
-                score=float(nws.score),
+                project_id=rec["project_ids"][j], project_name=rec["project_names"][j] or "",
+                country_code=rec["country_codes"][j], score=fused[i], via="+".join(found_by[i]),
             ))
         return hits
+
+    def _bm25_ranking(self, query: str, mask: np.ndarray) -> list[int]:
+        # shallow copy shares the index and corpus; only the mask and k differ per query
+        r = copy.copy(self._bm25)
+        r.corpus_weight_mask = mask.astype(int).tolist()
+        r.similarity_top_k = min(POOL, len(mask))
+        # zero score = masked out or no term overlap; bm25s still fills the k slots with them
+        return [self._index[n.node.node_id] for n in r.retrieve(query) if n.score > 0]
+
+    def _vector_ranking(self, query: str, mask: np.ndarray) -> list[int]:
+        q = embed.embed([embed.format_query(query)])[0]
+        scores = np.where(mask, self.vectors @ q, -np.inf)
+        top = np.argpartition(-scores, min(POOL, len(scores) - 1))[:POOL]
+        return [int(i) for i in top[np.argsort(-scores[top])] if np.isfinite(scores[i])]
 
 
 def _project_index(rec: dict, country: str | None) -> int:
@@ -124,7 +159,7 @@ def main() -> None:
     a = ap.parse_args()
     for h in Retriever().search(a.query, k=a.k, country=a.country, proc_group=a.group):
         anchor = f" ¶{h.para}" if h.para else ""
-        print(f"{h.score:6.2f}  {h.project_id} {h.country_code}  {h.section}{anchor}\n        {h.text[:220]}\n")
+        print(f"{h.score:6.4f} {h.via:12s} {h.project_id} {h.country_code}  {h.section}{anchor}\n        {h.text[:220]}\n")
 
 
 if __name__ == "__main__":
