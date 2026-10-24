@@ -1,0 +1,4288 @@
+{
+ "generatedFrom": "data/procintel.duckdb",
+ "options": {
+  "countries": [
+   {
+    "code": "AR",
+    "name": "Argentine Republic",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "CF",
+    "name": "Central African Republic",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "GY",
+    "name": "Co-operative Republic of Guyana",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "DM",
+    "name": "Commonwealth of Dominica",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "ST",
+    "name": "Democratic Republic of Sao Tome and Prin",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "LK",
+    "name": "Democratic Socialist Republic of Sri Lan",
+    "region": "South Asia"
+   },
+   {
+    "code": "3E",
+    "name": "Eastern and Southern Africa",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "ET",
+    "name": "Federal Democratic Republic of Ethiopia",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "NG",
+    "name": "Federal Republic of Nigeria",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "BR",
+    "name": "Federative Republic of Brazil",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "GE",
+    "name": "Georgia",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "PK",
+    "name": "Islamic Republic of Pakistan",
+    "region": "South Asia"
+   },
+   {
+    "code": "KH",
+    "name": "Kingdom of Cambodia",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "SZ",
+    "name": "Kingdom of Eswatini",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "MA",
+    "name": "Kingdom of Morocco",
+    "region": "Middle East and North Africa"
+   },
+   {
+    "code": "KG",
+    "name": "Kyrgyz Republic",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "LA",
+    "name": "Lao People's Democratic Republic",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "LB",
+    "name": "Lebanese Republic",
+    "region": "Middle East and North Africa"
+   },
+   {
+    "code": "UY",
+    "name": "Oriental Republic of Uruguay",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "BD",
+    "name": "People's Republic of Bangladesh",
+    "region": "South Asia"
+   },
+   {
+    "code": "CN",
+    "name": "People's Republic of China",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "AL",
+    "name": "Republic of Albania",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "AM",
+    "name": "Republic of Armenia",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "AZ",
+    "name": "Republic of Azerbaijan",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "BJ",
+    "name": "Republic of Benin",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "BI",
+    "name": "Republic of Burundi",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "CM",
+    "name": "Republic of Cameroon",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "TD",
+    "name": "Republic of Chad",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "CO",
+    "name": "Republic of Colombia",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "CG",
+    "name": "Republic of Congo",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "CR",
+    "name": "Republic of Costa Rica",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "CI",
+    "name": "Republic of Cote d'Ivoire",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "DJ",
+    "name": "Republic of Djibouti",
+    "region": "Middle East and North Africa"
+   },
+   {
+    "code": "GT",
+    "name": "Republic of Guatemala",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "GN",
+    "name": "Republic of Guinea",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "GW",
+    "name": "Republic of Guinea-Bissau",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "HT",
+    "name": "Republic of Haiti",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "HN",
+    "name": "Republic of Honduras",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "IN",
+    "name": "Republic of India",
+    "region": "South Asia"
+   },
+   {
+    "code": "ID",
+    "name": "Republic of Indonesia",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "IQ",
+    "name": "Republic of Iraq",
+    "region": "Middle East and North Africa"
+   },
+   {
+    "code": "KZ",
+    "name": "Republic of Kazakhstan",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "KE",
+    "name": "Republic of Kenya",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "XK",
+    "name": "Republic of Kosovo",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "MW",
+    "name": "Republic of Malawi",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "MV",
+    "name": "Republic of Maldives",
+    "region": "South Asia"
+   },
+   {
+    "code": "ML",
+    "name": "Republic of Mali",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "MD",
+    "name": "Republic of Moldova",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "MZ",
+    "name": "Republic of Mozambique",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "PA",
+    "name": "Republic of Panama",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "PE",
+    "name": "Republic of Peru",
+    "region": "Latin America and Caribbean"
+   },
+   {
+    "code": "RW",
+    "name": "Republic of Rwanda",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "SN",
+    "name": "Republic of Senegal",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "SL",
+    "name": "Republic of Sierra Leone",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "ZA",
+    "name": "Republic of South Africa",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "TJ",
+    "name": "Republic of Tajikistan",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "GM",
+    "name": "Republic of The Gambia",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "TN",
+    "name": "Republic of Tunisia",
+    "region": "Middle East and North Africa"
+   },
+   {
+    "code": "TR",
+    "name": "Republic of Turkiye",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "UG",
+    "name": "Republic of Uganda",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "UZ",
+    "name": "Republic of Uzbekistan",
+    "region": "Europe and Central Asia"
+   },
+   {
+    "code": "VU",
+    "name": "Republic of Vanuatu",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "ZM",
+    "name": "Republic of Zambia",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "MH",
+    "name": "Republic of the Marshall Islands",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "PH",
+    "name": "Republic of the Philippines",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "VN",
+    "name": "Socialist Republic of Vietnam",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "SO",
+    "name": "Somali Democratic Republic",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "TV",
+    "name": "Tuvalu",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "TZ",
+    "name": "United Republic of Tanzania",
+    "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "GZ",
+    "name": "West Bank and Gaza",
+    "region": "Middle East and North Africa"
+   },
+   {
+    "code": "3W",
+    "name": "Western and Central Africa",
+    "region": "Western and Central Africa"
+   },
+   {
+    "code": "1W",
+    "name": "World",
+    "region": "Other"
+   }
+  ],
+  "sectors": [
+   "Agricultural Extension, Research, and Other Support Activities",
+   "Agricultural markets, commercialization and agri-business",
+   "Aviation",
+   "Central Government (Central Agencies)",
+   "Energy Transmission and Distribution",
+   "Fisheries",
+   "Forestry",
+   "Health",
+   "ICT Infrastructure",
+   "ICT Services",
+   "Irrigation and Drainage",
+   "Law and Justice",
+   "Livestock",
+   "Manufacturing",
+   "Mining",
+   "Oil and Gas",
+   "Other Agriculture, Fishing and Forestry",
+   "Other Energy and Extractives",
+   "Other Non-bank Financial Institutions",
+   "Other Public Administration",
+   "Other Water Supply, Sanitation and Waste Management",
+   "Primary Education",
+   "Public Administration - Agriculture, Fishing & Forestry",
+   "Public Administration - Education",
+   "Public Administration - Energy and Extractives",
+   "Public Administration - Financial Sector",
+   "Public Administration - Information and Communications Technologies",
+   "Public Administration - Social Protection",
+   "Public Administration - Transportation",
+   "Renewable Energy Geothermal",
+   "Renewable Energy Solar",
+   "Renewable Energy Wind",
+   "Rural and Inter-Urban Roads",
+   "Sanitation",
+   "Social Protection",
+   "Sub-National Government",
+   "Tertiary Education",
+   "Tourism",
+   "Waste Management",
+   "Water Supply",
+   "Workforce Development and Vocational Education"
+  ],
+  "procGroups": [
+   {
+    "code": "GO",
+    "label": "Goods"
+   },
+   {
+    "code": "CW",
+    "label": "Civil Works"
+   },
+   {
+    "code": "CS",
+    "label": "Consulting Services"
+   },
+   {
+    "code": "NC",
+    "label": "Non-Consulting Services"
+   }
+  ],
+  "methods": [
+   {
+    "code": "RFQ",
+    "label": "Request for Quotations",
+    "procGroups": [
+     "CW",
+     "GO",
+     "NC"
+    ],
+    "n": 1953
+   },
+   {
+    "code": "INDV",
+    "label": "Individual Consultant Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 1846
+   },
+   {
+    "code": "RFB",
+    "label": "Request for Bids",
+    "procGroups": [
+     "CW",
+     "GO",
+     "NC"
+    ],
+    "n": 1395
+   },
+   {
+    "code": "CQS",
+    "label": "Consultant Qualification  Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 485
+   },
+   {
+    "code": "CDS",
+    "label": "Direct Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 398
+   },
+   {
+    "code": "QCBS",
+    "label": "Quality And Cost-Based Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 359
+   },
+   {
+    "code": "DIR",
+    "label": "Direct Selection",
+    "procGroups": [
+     "CW",
+     "GO",
+     "NC"
+    ],
+    "n": 345
+   },
+   {
+    "code": "LCS",
+    "label": "Least Cost Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 43
+   },
+   {
+    "code": "QBS",
+    "label": "Quality Based Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 26
+   },
+   {
+    "code": "FBS",
+    "label": "Fixed Budget Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 21
+   },
+   {
+    "code": "UN",
+    "label": "UN Agencies (Direct)",
+    "procGroups": [
+     "CS",
+     "GO",
+     "NC"
+    ],
+    "n": 17
+   }
+  ]
+ },
+ "benchmarks": {
+  "all": {
+   "n": 1169,
+   "median": 108.0,
+   "p25": 58.0,
+   "p75": 214.0,
+   "p90": 329.0,
+   "shareOver180": 0.30624465355004277
+  },
+  "NC": {
+   "n": 36,
+   "median": 54.0,
+   "p25": 27.75,
+   "p75": 116.5,
+   "p90": 191.0,
+   "shareOver180": 0.1111111111111111
+  },
+  "CS": {
+   "n": 689,
+   "median": 120.0,
+   "p25": 70.0,
+   "p75": 231.0,
+   "p90": 355.60000000000014,
+   "shareOver180": 0.3468795355587808
+  },
+  "GO": {
+   "n": 243,
+   "median": 77.0,
+   "p25": 43.0,
+   "p75": 145.0,
+   "p90": 224.60000000000002,
+   "shareOver180": 0.16872427983539096
+  },
+  "CW": {
+   "n": 201,
+   "median": 112.0,
+   "p25": 64.0,
+   "p75": 252.0,
+   "p90": 342.0,
+   "shareOver180": 0.3681592039800995
+  },
+  "GO/RFQ": {
+   "n": 71,
+   "median": 33.0,
+   "p25": 18.0,
+   "p75": 64.5,
+   "p90": 103.0,
+   "shareOver180": 0.014084507042253521
+  },
+  "CW/RFB": {
+   "n": 195,
+   "median": 113.0,
+   "p25": 67.0,
+   "p75": 252.5,
+   "p90": 336.79999999999995,
+   "shareOver180": 0.37435897435897436
+  },
+  "GO/RFB": {
+   "n": 172,
+   "median": 108.0,
+   "p25": 60.0,
+   "p75": 171.25,
+   "p90": 283.0,
+   "shareOver180": 0.23255813953488372
+  },
+  "CS/CQS": {
+   "n": 165,
+   "median": 136.0,
+   "p25": 78.0,
+   "p75": 196.0,
+   "p90": 286.2,
+   "shareOver180": 0.2787878787878788
+  },
+  "NC/RFB": {
+   "n": 28,
+   "median": 55.0,
+   "p25": 29.0,
+   "p75": 147.0,
+   "p90": 219.90000000000003,
+   "shareOver180": 0.14285714285714285
+  },
+  "CS/INDV": {
+   "n": 345,
+   "median": 83.0,
+   "p25": 48.0,
+   "p75": 124.0,
+   "p90": 210.60000000000002,
+   "shareOver180": 0.14202898550724638
+  },
+  "CS/LCS": {
+   "n": 16,
+   "median": 178.5,
+   "p25": 110.25,
+   "p75": 231.0,
+   "p90": 301.5,
+   "shareOver180": 0.5
+  },
+  "CS/QCBS": {
+   "n": 160,
+   "median": 287.0,
+   "p25": 217.75,
+   "p75": 447.5,
+   "p90": 562.0,
+   "shareOver180": 0.83125
+  }
+ },
+ "governance": {
+  "AL": [
+   {
+    "indicator": "public_administration",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2006,
+    "value": 2.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2006,
+    "value": 3.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2006,
+    "value": 3.74166666666667
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2006,
+    "value": 3.3
+   }
+  ],
+  "AM": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2013,
+    "value": 4.13333333333333
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2013,
+    "value": 4.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2013,
+    "value": 3.7
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2013,
+    "value": 3.5
+   }
+  ],
+  "AZ": [
+   {
+    "indicator": "public_administration",
+    "year": 2010,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2010,
+    "value": 2.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2010,
+    "value": 4.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2010,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2010,
+    "value": 3.68333333333333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2010,
+    "value": 3.1
+   }
+  ],
+  "CF": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.583333
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.4
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
+  "CI": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.8
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.95
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "GE": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2013,
+    "value": 5.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2013,
+    "value": 4.44166666666667
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2013,
+    "value": 4.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2013,
+    "value": 4.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2013,
+    "value": 3.5
+   }
+  ],
+  "GN": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.35
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "HT": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.275
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 1.9
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 1.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
+   }
+  ],
+  "ID": [
+   {
+    "indicator": "public_administration",
+    "year": 2006,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2006,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2006,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2006,
+    "value": 3.675
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2006,
+    "value": 3.2
+   }
+  ],
+  "KH": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.55
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.9
+   }
+  ],
+  "LK": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.308333
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.4
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "MH": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.733333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.7
+   }
+  ],
+  "MV": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.95
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "RW": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.9
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 4.225
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "TD": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.933333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.6
+   }
+  ],
+  "TV": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.858333
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
+   }
+  ],
+  "UZ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.841667
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "XK": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.966667
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "BD": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.041667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "BI": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.4
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.125
+   }
+  ],
+  "BJ": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.883333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "CG": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.841667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
+  "CM": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.325
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "DM": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.3
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.508333
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "ET": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.25
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
+  "GM": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.3
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "GW": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.2
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.658333
+   }
+  ],
+  "GY": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.458333
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "HN": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.258333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.9
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   }
+  ],
+  "IN": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2013,
+    "value": 3.6
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2013,
+    "value": 3.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2013,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2013,
+    "value": 3.7
+   }
+  ],
+  "KE": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.816667
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "LA": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.083333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "ML": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.3
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.175
+   }
+  ],
+  "MZ": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.858333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "PK": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.308333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "SL": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.066667
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "SO": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 1.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 1.8
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.241667
+   }
+  ],
+  "ST": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.941667
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "TZ": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.2
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.625
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "VN": [
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2015,
+    "value": 3.69167
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2015,
+    "value": 3.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2015,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2015,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2015,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2015,
+    "value": 3.5
+   }
+  ],
+  "VU": [
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.241667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "ZM": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.308333
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "MW": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.875
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "SZ": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.133333
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 1.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
+  "1W": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.78846153846154
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.75
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.82051282051282
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.96153846153846
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.89871794871795
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.12564102564103
+   }
+  ],
+  "DJ": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.058333
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "KG": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.641667
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "MD": [
+   {
+    "indicator": "public_administration",
+    "year": 2019,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2019,
+    "value": 2.5
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2019,
+    "value": 3.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2019,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2019,
+    "value": 3.3
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2019,
+    "value": 3.716667
+   }
+  ],
+  "NG": [
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.7
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.25
+   }
+  ],
+  "SN": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.508333
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
+  "TJ": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.275
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
+  "UG": [
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.3
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.466667
+   },
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   }
+  ]
+ },
+ "passages": [
+  {
+   "id": "40130914:252",
+   "docId": "40130914",
+   "projectId": "P169610",
+   "projectName": "Support to Indigenous Peoples and Local Communities for Sustainable Resources Management",
+   "countryCode": "CG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Support to Indigenous Peoples and Local Communities for Sustainable Resources Management - P169610",
+   "section": "V. Lessons And Recommendations",
+   "quote": "74. Lesson: Procurement arrangements must be calibrated to the risk profile of the operation. In FCV contexts with low-capacity executing entities, a higher proportion of prior-review contracts, systematic spot-checks, and in-person verification of physical delivery are required from the outset. The procurement review strategy should explicitly reflect the FCV context and the executing entity's capacity level, and failure to do so should be identified as a quality-at-entry deficiency.",
+   "url": "https://documents.worldbank.org/curated/en/099100126121516098/pdf/P169610-e4670558-0f54-40ff-8664-e8076b1a3972.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40130914:251",
+   "docId": "40130914",
+   "projectId": "P169610",
+   "projectName": "Support to Indigenous Peoples and Local Communities for Sustainable Resources Management",
+   "countryCode": "CG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Support to Indigenous Peoples and Local Communities for Sustainable Resources Management - P169610",
+   "section": "V. Lessons And Recommendations",
+   "quote": "73. A significant quality-at-entry gap was the treatment of procurement in line with standard small-grant RETF processes, with no adaptation for an NGO consortium implementing in an FCV environment. The majority of project contracts were placed under post-review \u2014 a modality that presupposes a functioning procurement system and defers World Bank verification until after commitments are made.",
+   "url": "https://documents.worldbank.org/curated/en/099100126121516098/pdf/P169610-e4670558-0f54-40ff-8664-e8076b1a3972.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40130174:141",
+   "docId": "40130174",
+   "projectId": "P165411",
+   "projectName": "Morocco - Community-Based Rural Roads Maintenance",
+   "countryCode": "MA",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Morocco - Community-Based Rural Roads Maintenance - P165411",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "56. Procurement performance was affected by implementation complexity but remained broadly acceptable throughout the project period. Supervision missions identified weaknesses in procurement monitoring and contract management, including the need to comprehensively update the procurement tracking system, clean up records associated with canceled or unsuccessful activities, and ensure that procurement information accurately reflected actual implementation status. Several maintenance contracts required amendments or termination during implementation due to low contractor capacity, creating additional workload and affecting implementation efficiency. Procurement performance was assessed as Moderately Satisfactory during supervision and generally remained adequate despite delays and contract management challenges.",
+   "url": "https://documents.worldbank.org/curated/en/099092926094517098/pdf/P165411-fe69e1ec-bbe0-41e8-b9b0-bde6bf1a0084.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 10
+  },
+  {
+   "id": "40130174:98",
+   "docId": "40130174",
+   "projectId": "P165411",
+   "projectName": "Morocco - Community-Based Rural Roads Maintenance",
+   "countryCode": "MA",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Morocco - Community-Based Rural Roads Maintenance - P165411",
+   "section": "C. Efficiency",
+   "quote": "27. Project design and implementation efficiency. Design and implementation efficiency were adversely affected by the complexity of the project and substantial implementation delays. The project combined road maintenance, entrepreneurship support, capacity building, monitoring and evaluation, and knowledge dissemination across multiple implementing agencies, creating significant coordination requirements and administrative complexity. Implementation was further disrupted by the COVID-19 pandemic, the institutional challenges associated with Morocco\u2019s regionalization process, procurement and payment delays, and contract management difficulties. Seven maintenance contracts were ultimately terminated due to contractor abandonment, lack of qualified labor, and the expiry of the project implementation period, while several",
+   "url": "https://documents.worldbank.org/curated/en/099092926094517098/pdf/P165411-fe69e1ec-bbe0-41e8-b9b0-bde6bf1a0084.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40130174:115",
+   "docId": "40130174",
+   "projectId": "P165411",
+   "projectName": "Morocco - Community-Based Rural Roads Maintenance",
+   "countryCode": "MA",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Morocco - Community-Based Rural Roads Maintenance - P165411",
+   "section": "B. Key Factors During Implementation",
+   "quote": "40. Overall, differences in institutional readiness and capacities of responsible agencies led to uneven progress across project activities. Following initial delays, implementation of classified road maintenance activities led by the MEE, through the DRETL and provincial directorates (DPETLs), accelerated significantly and resulted in the completion of 33 maintenance contracts covering 798 km of classified roads. In contrast, activities managed by the CRSM experienced more persistent implementation challenges. While the Council eventually completed six maintenance contracts covering 154 km of unclassified roads, the rollout of several activities under its responsibility, including the complementary livelihood support mechanism, was substantially delayed. The entrepreneurship support component became operational only in 2024, resulting in 41 implemented livelihood",
+   "url": "https://documents.worldbank.org/curated/en/099092926094517098/pdf/P165411-fe69e1ec-bbe0-41e8-b9b0-bde6bf1a0084.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40130174:143",
+   "docId": "40130174",
+   "projectId": "P165411",
+   "projectName": "Morocco - Community-Based Rural Roads Maintenance",
+   "countryCode": "MA",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Morocco - Community-Based Rural Roads Maintenance - P165411",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "transfer bottlenecks, contributed to improved fiduciary performance over time. By the final years of implementation, fiduciary performance had stabilized and was generally assessed as Moderately Satisfactory. The relatively low final disbursement rate (around 75 percent by the end of the grace period), reflecting the cumulative effects of implementation delays, contract cancellations, procurement challenges, and the late rollout of certain activities, particularly under the rural entrepreneurship support component, continued to weigh on overall performance. These factors underscore the importance of realistic implementation timelines and strong financial management capacity in pilot operations involving multiple implementing entities.",
+   "url": "https://documents.worldbank.org/curated/en/099092926094517098/pdf/P165411-fe69e1ec-bbe0-41e8-b9b0-bde6bf1a0084.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40130620:43",
+   "docId": "40130620",
+   "projectId": "P173958",
+   "projectName": "Mizoram Health Systems Strengthening Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "India - Mizoram Health Systems Strengthening Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "(STEP) system was kept fully up to date, accurately reflecting procurement progress, contract status, and project activities, demonstrating strengthened procurement management and improved compliance with project procurement requirements toward closure.",
+   "url": "https://documents.worldbank.org/curated/en/099093026120511699/pdf/BOSIB-98fd3645-550d-4771-8fd3-5e6df59733af.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40130620:54",
+   "docId": "40130620",
+   "projectId": "P173958",
+   "projectName": "Mizoram Health Systems Strengthening Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "India - Mizoram Health Systems Strengthening Project",
+   "section": "Annex 3. Project Cost By Component",
+   "quote": "Component Appraised cost Amount at Restructuring (US$M) Actual at Project Closing (US$M)* Component 1. Strengthen management and accountability through Internal Performance Agreements (IPAs) 13.50 9.14 9.14 Component 2: Improve design and management of state health insurance programs. 2.50 1.86 1.86 Component 3: Enhance quality of health services and support innovations. 15.92 15.92 15.10 Component 4: Contingent Emergency Response Component. 0.00 0.00 0.00 Front End Fee 0.08 0.08 0.08 *Note: In addition to the US$5 million cancelled at restructuring (November 2025), a further US$0.82 million, also attributable to exchange-rate movements, was cancelled at project closing. Neither cancellation reflected any reduction in project scope, activities or results. The final disbursed amount of US$26.18 million corresponds to 100 percent disbursement of the loan value in INR terms.",
+   "url": "https://documents.worldbank.org/curated/en/099093026120511699/pdf/BOSIB-98fd3645-550d-4771-8fd3-5e6df59733af.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40128714:118",
+   "docId": "40128714",
+   "projectId": "P173249",
+   "projectName": "Indonesia Disaster Risk Finance & Insurance",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Risk Finance and Insurance Project",
+   "section": "C. Efficiency",
+   "quote": "31. Implementation and Administrative Efficiency Administrative efficiency was affected by delays in project effectiveness, regulatory approvals, institutional restructuring, and procurement. World Bank implementation support intensified as project implementation pace picked up and throughout the extended period until closure. Components 1 and 2 fully disbursed, while procurement constraints (including a limited consultant market, delays in TOR preparation, and limited BPDLH procurement capacity) reduced utilization of the GRiF grant under Component 3.",
+   "url": "https://documents.worldbank.org/curated/en/099092226102529366/pdf/BOSIB-7abdeb73-1a7f-4bfa-8344-d0e49b5ddd47.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40128714:135",
+   "docId": "40128714",
+   "projectId": "P173249",
+   "projectName": "Indonesia Disaster Risk Finance & Insurance",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Risk Finance and Insurance Project",
+   "section": "B. Key Factors During Implementation",
+   "quote": "o Regulatory Delays: Regulatory delays were among the most significant factors affecting implementation. In particular, delays in the issuance of PMK No. 28/2025 (see footnote 4) contributed to delays in the operationalization of the PFB and affected achievement of several project milestones. While the World Bank supervision team consistently highlighted these risks, the delays remained largely outside the Bank's direct control and ultimately contributed to project extensions.",
+   "url": "https://documents.worldbank.org/curated/en/099092226102529366/pdf/BOSIB-7abdeb73-1a7f-4bfa-8344-d0e49b5ddd47.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40128714:119",
+   "docId": "40128714",
+   "projectId": "P173249",
+   "projectName": "Indonesia Disaster Risk Finance & Insurance",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Risk Finance and Insurance Project",
+   "section": "C. Efficiency",
+   "quote": "32. Effectiveness Delay and Extended Timelines Despite project approval in early 2021, IndoRISK experienced a nine-month delay before becoming effective due to delays in the issuance of the regulations necessary to legally establish the PFB. In addition, the original 38-month implementation period was extended by approximately 23 months through restructurings, resulting in an implementation period roughly 61 percent longer than originally planned.",
+   "url": "https://documents.worldbank.org/curated/en/099092226102529366/pdf/BOSIB-7abdeb73-1a7f-4bfa-8344-d0e49b5ddd47.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40129024:172",
+   "docId": "40129024",
+   "projectId": "P167350",
+   "projectName": "Green National Highways Corridor Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "India - Green National Highways Corridor Project",
+   "section": "Annex 5. Borrower, Co-Financier And Other Partner/Stakeholder Comments",
+   "quote": "8. Efficiency and economic outcomes The Borrower notes that the revised ICR changes the overall efficiency rating from \u201cSubstantial\ufffd? to \u201cModest\ufffd?, principally citing implementation delays. While the Borrower acknowledges the implementation delays, the final assessment should also consider the strong ex- post economic results reported in the ICR: an EIRR of 30.1 percent, an NPV of INR 43,899 million and a benefit-cost ratio of 4.28. These results demonstrate the strong economic viability of the completed investments, notwithstanding the reduced scope and implementation delays. The Borrower therefore requests that the final report distinguish clearly between implementation efficiency and the economic efficiency/value generated by the completed investments, so that the strong economic performance is appropriately reflected.",
+   "url": "https://documents.worldbank.org/curated/en/099092326161034355/pdf/BOSIB-3538c7aa-432d-4765-8b1e-3be3cf0487aa.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40126939:154",
+   "docId": "40126939",
+   "projectId": "P165542",
+   "projectName": "Strengthening Institutions for Refugee Administration Project",
+   "countryCode": "PK",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Pakistan - Strengthening Institutions for Refugee Administration Project",
+   "section": "B. Significant Changes During Implementation",
+   "quote": "35. The Project also experienced significant implementation delays that further affected the feasibility of achieving the original design as envisaged at appraisal. All operations financed from the IDA18RSW were delayed in becoming effective. SIRA faced further delays in receiving the necessary approval from the Central Development Working Party (CDWP), necessary for the transfer of budget to the Project\u2019s Designated Account. CDWP approval was obtained in March 2023, which marked the start of implementation for the Government. As a result, there was a two-year gap between World Bank Board approval and the commencement of activities on the ground. The delays reflected heightened scrutiny of refugee-related operations and limited cross-government ownership of the refugee agenda, both of which had become more pronounced as the political and policy environment evolved.",
+   "url": "https://documents.worldbank.org/curated/en/099091126053033669/pdf/BOSIB-e9c6bad2-42ca-4b03-811e-7934bbf21360.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40126939:261",
+   "docId": "40126939",
+   "projectId": "P165542",
+   "projectName": "Strengthening Institutions for Refugee Administration Project",
+   "countryCode": "PK",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Pakistan - Strengthening Institutions for Refugee Administration Project",
+   "section": "C. Bank Performance",
+   "quote": "101. Given the significant delays throughout the Project cycle, the Project ratings could be seen as overly optimistic. For example, rating implementation progress (IP) as Moderately Satisfactory despite zero disbursement after almost two years after Board Approval, or rating IP as Moderately Satisfactory with less than six months before closing and only US$16 million out of US$50 million disbursed, could be seen as overly optimistic. Mission outcomes regularly highlighted messages related to need to speed up decision-making and devolve decision-making to the Project Director and delays in the Procurement processes. More realistic ratings may have helped to create the sense of urgency needed to speed up decision-making or to inform an opinion about the cross-government ownership of the Project\u2019s Development Objectives.",
+   "url": "https://documents.worldbank.org/curated/en/099091126053033669/pdf/BOSIB-e9c6bad2-42ca-4b03-811e-7934bbf21360.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40126939:248",
+   "docId": "40126939",
+   "projectId": "P165542",
+   "projectName": "Strengthening Institutions for Refugee Administration Project",
+   "countryCode": "PK",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Pakistan - Strengthening Institutions for Refugee Administration Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "92. Financial management capacity constraints also delayed the preparation and approval of Implementing Operating Cost (IOC) expenditures. In particular, confusion between IOC expenditures and procurement activities resulted in processing delays and additional administrative requirements. Nevertheless, financial reports were generally submitted on time and complied with reporting requirements.",
+   "url": "https://documents.worldbank.org/curated/en/099091126053033669/pdf/BOSIB-e9c6bad2-42ca-4b03-811e-7934bbf21360.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40126939:225",
+   "docId": "40126939",
+   "projectId": "P165542",
+   "projectName": "Strengthening Institutions for Refugee Administration Project",
+   "countryCode": "PK",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Pakistan - Strengthening Institutions for Refugee Administration Project",
+   "section": "C. Efficiency",
+   "quote": "73. Implementation efficiency was adversely affected by several factors. The Project experienced a long delay before effectiveness, delays in receiving government approvals, and high staff turnover in the OSU, particularly in key roles such as M&E, FMS and Procurement Specialist. Based on this assessment, Efficiency is rated Modest.",
+   "url": "https://documents.worldbank.org/curated/en/099091126053033669/pdf/BOSIB-e9c6bad2-42ca-4b03-811e-7934bbf21360.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40129738:294",
+   "docId": "40129738",
+   "projectId": "P132317",
+   "projectName": "Philippine Rural Development Project",
+   "countryCode": "PH",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Philippines - Philippine Rural Development Project",
+   "section": "Annex 4. Efficiency Analysis",
+   "quote": "Table 9. Worst-Case Scenario (at 10percent SDR) for Overall ICR Sensitivity Scenarios EIRR NPV at 10% BCR (PhP million) 1 year delayed + costs +5% + benefits -5% 11.23% 26,132,849,478 1.39 1 year delayed + costs +10% + benefits -10% 9.46% 18,037,152,440 1.26 1 year delayed + costs +15% + benefits -15% 7.72% 9,941,455,402 1.14 1 year delayed + costs +20% + benefits -20% 6.00% 1,845,758,364 1.02 2 years delayed + costs +5% + benefits -5% 2.60% -14,345,635,713 0.83 2 years delayed + costs +10% + benefits -10% 9.55% 18,831,725,771 1.28 2 years delayed + costs +15% + benefits -15% 8.05% 11,120,298,401 1.16 2 years delayed + costs +20% + benefits -20% 6.56% 3,408,871,032 1.05",
+   "url": "https://documents.worldbank.org/curated/en/099092726235014717/pdf/BOSIB-83f11b75-9b95-45e8-a639-aa4443f047cc.pdf",
+   "procGroups": [],
+   "score": 8
+  },
+  {
+   "id": "40120731:133",
+   "docId": "40120731",
+   "projectId": "P177130",
+   "projectName": "Support to Albania Extractive Industries Transparency Initiative Mainstreaming Process",
+   "countryCode": "AL",
+   "region": "Europe and Central Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Support to Albania Extractive Industries Transparency Initiative Mainstreaming Process - P177130",
+   "section": "Annex 4. Supporting Documents",
+   "quote": "\u2022 Disclose contracts and license instruments Partially met - Albania has published new awarding rights as of 1 Jan 2021 hydrocarbon agreements in the Official Gazette of \u2022 Clarify what counts as the \u201cfull text\ufffd? (incl. Albania and all licenses (mining, oil, gas and Requirement 2.4 \u2013 appendices/addenda/riders) hydropower) on the Albeiti website. Mining Contract and license concession contracts are not disclosed to the disclosure \u2022 Maintain and publish a list of fully public, as there is no legal obligation under the disclosed instruments with specific current Mining Law to make such contracts references/links (e.g., through registries on publicly accessible. the website)",
+   "url": "https://documents.worldbank.org/curated/en/099080526123523167/pdf/P177130-b226ba62-da1e-4eb9-b1ae-25164d775e92.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40120020:180",
+   "docId": "40120020",
+   "projectId": "P171976",
+   "projectName": "Haiti Digital Acceleration Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Haiti - Digital Acceleration Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "benefited from an experienced procurement team, performance was consistently undermined by the deteriorating security situation in Haiti, which made it difficult to attract qualified providers, particularly those with the international expertise required for key activities. This challenge most critically affected the selection of the transaction advisory firm responsible for preparing tender documentation for the digital connectivity component, thereby creating cascading delays across the procurement pipeline. Contract execution was equally impacted, as providers faced operational constraints in mobilizing on the ground. In light of the accumulated financial management weaknesses and procurement delays, the fiduciary risk rating was elevated from Substantial to High in the final ISR.",
+   "url": "https://documents.worldbank.org/curated/en/099073126234031182/pdf/BOSIB-26ec6be9-39df-4efb-8c6b-83bf1d2b6588.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 7
+  },
+  {
+   "id": "40120020:151",
+   "docId": "40120020",
+   "projectId": "P171976",
+   "projectName": "Haiti Digital Acceleration Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Haiti - Digital Acceleration Project",
+   "section": "E. Other Outcomes And Impacts",
+   "quote": "52. The project failed to mobilize any private sector investment for the broadband transaction, though the preparatory work reached an advanced stage and increased stakeholders\u2019 capacity in conducting similar transactions in the future, particularly the transaction design documents. With support from an international advisory firm, the project developed the legal, technical, and financial framework, including draft market analyses and bidding documents aligned with international standards. By the time of project closure, the transaction had reached the technical bid evaluation stage, with a proposed investment envelope of US$22.8 million. However, no contract was signed, and no private financing was mobilized, as the operation was closed following the MEF\u2019s decision to cancel the operation in September 2025, leaving private sector investment at zero against the US$20 million target.",
+   "url": "https://documents.worldbank.org/curated/en/099073126234031182/pdf/BOSIB-26ec6be9-39df-4efb-8c6b-83bf1d2b6588.pdf",
+   "procGroups": [
+    "CW",
+    "CS"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40120020:241",
+   "docId": "40120020",
+   "projectId": "P171976",
+   "projectName": "Haiti Digital Acceleration Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Haiti - Digital Acceleration Project",
+   "section": "Efficiency Of Implementation And Resource Use",
+   "quote": "Implementation efficiency was adversely affected by the project's limited progress in translating implementation time into commensurate results and resource utilization. The project became effective 48 days after approval and held its mid-term review on schedule on December 4, 2023, yet ran for 62.7 of the 72.2 months originally envisaged (87 percent of the planned implementation period) to disburse 15.9 percent of the grant equivalent. At the final supervision mission, the procurement plan comprised 72 activities totaling US$43.45 million, of which 21 signed contracts totaled US$5.15 million (12 percent); the advanced closure cancelled contracted activities of approximately US$2 million affecting CIAT,",
+   "url": "https://documents.worldbank.org/curated/en/099073126234031182/pdf/BOSIB-26ec6be9-39df-4efb-8c6b-83bf1d2b6588.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40118674:91",
+   "docId": "40118674",
+   "projectId": "P167886",
+   "projectName": "India  SEWA 2025 Digital Financial Inclusion of Informal Sector",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - India  SEWA 2025 Digital Financial Inclusion of Informal Sector - P167886",
+   "section": "Iv. Bank Performance, Compliance Issues, And Risk To Development Outcome",
+   "quote": "with USD 100,000), there were no complex procurements. Goods were mostly procured using the RFQ method due to small value. In case of consultancies, mainly CQS method was used for hiring of firms, again due to small value and low risk. Individual consultants were also hired to assist the PMU Team. SEWA took appropriate follow-up actions on the findings of procurement post review and did well in minimizing the procedural violations for the subsequent procurements. The project did well on the contract management front. In most of the cases supplies had been made as per the contract and timely release of payment had resulted in effective procurement. Based on overall progress on procurement and contract management, the performance of procurement activities has been assessed as Satisfactory.",
+   "url": "https://documents.worldbank.org/curated/en/099072426014538122/pdf/P167886-b582e4e9-f73a-43cc-9c6b-76a43f891db3.pdf",
+   "procGroups": [
+    "GO",
+    "CS"
+   ],
+   "score": 7
+  },
+  {
+   "id": "40116240:83",
+   "docId": "40116240",
+   "projectId": "P163035",
+   "projectName": "Improved Livelihood Opportunities and Accessibility for underserved urban communities in Meru, Kenya",
+   "countryCode": "KE",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - Improved Livelihood Opportunities and Accessibility for underserved urban communities in Meru Kenya - P163035",
+   "section": "A. Assessment Of Achievement Of Each Pdo Outcome",
+   "quote": "7 One of the SMEs in the project opted to discontinue participation in the program and failed to submit a business proposal by established deadline 8 \ufffd?\ufffd NCA Category 8 refers to the entry-level contractor classification under Kenya's National Construction Authority (NCA) registration framework, which governs eligibility for participation in government-funded construction and civil works procurement. Category 8 is the lowest of eight contractor tiers and is designed for newly established small enterprises with limited prior formal contracting experience. It permits registered firms to bid for roads, water and other civil works contracts valued up to KES 20 million",
+   "url": "https://documents.worldbank.org/curated/en/099070926170012413/pdf/P163035-ee748aae-ac36-46b9-b8ec-24ba1d05d9ea.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40113710:154",
+   "docId": "40113710",
+   "projectId": "P161973",
+   "projectName": "Natural Resources Governance Project in CAR",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Central African Republic - Natural Resources Governance Project\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "61. Disbursement difficulties and suspension of payments. The project encountered many difficulties in disbursing funds, in some cases not approving payments of certain contracts for extended periods of time. This difficulty was partly due to the high turnover of TTLs, where there was a delay with new TTLs coming up to speed in understanding the payment arrangements of certain contracts. C2 and C6 both suffered delays that impacted outcomes related to the slow approval of payment tranches.",
+   "url": "https://documents.worldbank.org/curated/en/099062926175523779/pdf/BOSIB-9917d847-fcc9-4710-9e36-4111de837f2d.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40113710:174",
+   "docId": "40113710",
+   "projectId": "P161973",
+   "projectName": "Natural Resources Governance Project in CAR",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Central African Republic - Natural Resources Governance Project\n",
+   "section": "V. Lessons And Recommendations",
+   "quote": "Lesson 3: Recruiting a limited number of high-capacity consulting firms can compensate for low institutional capacity and difficult field conditions. The GEF AF having two large consulting firms was a key factor in the successful delivery of inputs and training at-scale to rural communities. The capacity of the PIU was much better suited to process fewer contracts and supervise the performance of these firms, while relying on consulting firm\u2019s accounting, procurement and M&E systems to adapt and manage a high quantity of activities. These firms were also capable of bringing international expertise to work in the field. The impressive GEF results on protected area management effectiveness and distribution of livelihood benefits would not have been possible without this direct consultant support.",
+   "url": "https://documents.worldbank.org/curated/en/099062926175523779/pdf/BOSIB-9917d847-fcc9-4710-9e36-4111de837f2d.pdf",
+   "procGroups": [
+    "CW",
+    "CS",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113905:115",
+   "docId": "40113905",
+   "projectId": "P125590",
+   "projectName": "Uganda North-Eastern Road Corridor Asset Management Project (NERAMP)",
+   "countryCode": "UG",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Uganda - North Eastern Road Corridor Asset Management Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "60. Procurement performance was rated modest. All planned procurements were completed, but significant delays, contract management challenges, cost variances and limited OPRC experience affected efficiency. The World Bank supported procurement through STEP training and guidance. Despite delays and capacity gaps, overall procurement performance at completion was modest.",
+   "url": "https://documents.worldbank.org/curated/en/099063026052016266/pdf/BOSIB-e31bfbd5-8af6-4ec4-b55d-e821c050b025.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40113905:147",
+   "docId": "40113905",
+   "projectId": "P125590",
+   "projectName": "Uganda North-Eastern Road Corridor Asset Management Project (NERAMP)",
+   "countryCode": "UG",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Uganda - North Eastern Road Corridor Asset Management Project\n",
+   "section": "B. Key Outputs",
+   "quote": "Institutional Support to MoWT (UNRA) 1. Number of staff trained in asset management and OPRC supervision Intermediate Results Indicators 2. Contract management and monitoring systems strengthened 3. Annual road inventory and asset management systems operational 1. Strengthened institutional capacity in asset management, procurement, and safeguards through targeted training and technical assistance. 2. Deployment of dedicated engineering, environmental, social, and OHS staff to Key Outputs improve contract oversight and compliance. (linked to the achievement of the Component) 3. Operationalization of monitoring systems, including annual road inventory and performance reporting under OPRC. 4. Enhanced contract management practices supporting effective supervision of long-term performance-based contracts.",
+   "url": "https://documents.worldbank.org/curated/en/099063026052016266/pdf/BOSIB-e31bfbd5-8af6-4ec4-b55d-e821c050b025.pdf",
+   "procGroups": [
+    "CW",
+    "CS",
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40113905:103",
+   "docId": "40113905",
+   "projectId": "P125590",
+   "projectName": "Uganda North-Eastern Road Corridor Asset Management Project (NERAMP)",
+   "countryCode": "UG",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Uganda - North Eastern Road Corridor Asset Management Project\n",
+   "section": "A. Key Factors During Preparation",
+   "quote": "47. NERAMP\u2019s design, based on 2013 studies, no longer matched corridor conditions by the 2018 contract signing because of a five-year gap, rapid traffic growth, heavier axle loads and seven years without rehabilitation made the original maintenance plan and cost estimates unrealistic. Limited national experience with OPRC further weakened preparation since both UNRA and the contractor underestimated the effort required for a 20-year pavement design. Strengthened safeguards requirements after the TSDP Inspection Panel case added documentation, higher approval thresholds and stricter monitoring, delaying design approval. Procurement delays of nearly three years worsened pavement deterioration and increased traffic, forcing a shift to full reconstruction. Together, these factors drove multiple restructurings and scope adjustments.",
+   "url": "https://documents.worldbank.org/curated/en/099063026052016266/pdf/BOSIB-e31bfbd5-8af6-4ec4-b55d-e821c050b025.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40113905:146",
+   "docId": "40113905",
+   "projectId": "P125590",
+   "projectName": "Uganda North-Eastern Road Corridor Asset Management Project (NERAMP)",
+   "countryCode": "UG",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Uganda - North Eastern Road Corridor Asset Management Project\n",
+   "section": "B. Key Outputs",
+   "quote": "1. Number of staff trained in asset management Intermediate Results Indicators 2. Contract management systems strengthened 1. Over 25 UNRA staff trained in asset management, OPRC supervision, EHS, road safety, safeguards, procurement, and financial management. 2. Annual network investment plans prepared using established asset Key Outputs by Component(2) management systems. (linked to the achievement of the Objective/Outcome 2) 3. Strengthened UNRA capacity to supervise and manage long\u2011term performance\u2011based contracts. 4. Enhanced institutional capacity for environmental, social, GBV/VAC risk management, and grievance redress mechanisms..",
+   "url": "https://documents.worldbank.org/curated/en/099063026052016266/pdf/BOSIB-e31bfbd5-8af6-4ec4-b55d-e821c050b025.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40114647:126",
+   "docId": "40114647",
+   "projectId": "P166730",
+   "projectName": "Guyana Petroleum Resources Governance and Management Project",
+   "countryCode": "GY",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Guyana - Petroleum Resources Governance and Management Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "Procurement 71. Procurement benefited from a seasoned and responsive PIU specialist throughout implementation, and most planned procurements were completed successfully and in compliance with World Bank Procurement Guidelines. However, following the 2020 elections and during the Government\u2019s subsequent review and realignment of the project with evolving priorities, processing times for some procurement approvals were extended, contributing to implementation delays and a downgrade of the procurement rating to Moderately Unsatisfactory. After the GOG clarified the project\u2019s direction in early 2023, critical activities resumed and the procurement rating improved to Moderately Satisfactory by project closing. Nevertheless, three activities remained pending because of delayed GOG administrative clearance for contract award and could not be completed before closure.",
+   "url": "https://documents.worldbank.org/curated/en/099063026202530811/pdf/BOSIB-8b6ffb0a-f3fc-4eeb-977b-dd57028d0693.pdf",
+   "procGroups": [],
+   "score": 10
+  },
+  {
+   "id": "40115675:182",
+   "docId": "40115675",
+   "projectId": "P164302",
+   "projectName": "Enhancing Government Effectiveness for Improved Public Services",
+   "countryCode": "CI",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Cote d'Ivoire - Enhancing Government Effectiveness for Improved Public Services Project",
+   "section": "A. Results Framework",
+   "quote": "Actual Amount 5,220.00 1,740.00 2:Gradual deployment of the recipient's e- Achievement Level: procurement system for electronic review of bidding documents and award of public procurement contracts (Percentage )",
+   "url": "https://documents.worldbank.org/curated/en/099070726135540740/pdf/BOSIB-289c80fa-e02c-42e1-bf72-61d2ab8370ff.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40115675:119",
+   "docId": "40115675",
+   "projectId": "P164302",
+   "projectName": "Enhancing Government Effectiveness for Improved Public Services",
+   "countryCode": "CI",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Cote d'Ivoire - Enhancing Government Effectiveness for Improved Public Services Project",
+   "section": "A. Relevance",
+   "quote": "19 The Government report attributes the shortfall to a combination of exogenous and operational factors. On the exogenous side: the relocation of underground utility networks \u2014 telephone, electricity, and water supply \u2014 consistently caused construction delays that fell outside AGEROUTE's control; terrain and geographic constraints in certain work zones added complexity; and the technical capacity of some executing contractors was insufficient. On the operational side: a high volume of new works in the same period strained the overall management of timelines; and delays in the payment circuit between the Technical Secretariat, Financial Control, and the accounting agency slowed the disbursement of contractor payments, which in turn affected contractor performance and completion schedules.",
+   "url": "https://documents.worldbank.org/curated/en/099070726135540740/pdf/BOSIB-289c80fa-e02c-42e1-bf72-61d2ab8370ff.pdf",
+   "procGroups": [
+    "CW",
+    "GO"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40113264:356",
+   "docId": "40113264",
+   "projectId": "P164748",
+   "projectName": "Chad - Refugees and Host Communities Support Project",
+   "countryCode": "TD",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Chad - Refugees and Host Communities Support Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "bottlenecks in bid evaluation, contract signature, and Systematic Tracking of Exchanges in Procurement (STEP) archiving, but the PIU addressed them through PPSD mitigation measures. World Bank provided satisfactory procurement supervision through intensive hands-on support\u2014especially after the Procurement Specialist\u2019s 2025 resignation\u2014to complete complex contracts in remote areas without formally requesting Hands-on Expanded Implementation Support.",
+   "url": "https://documents.worldbank.org/curated/en/099062926064021541/pdf/BOSIB-66b265b9-6b00-4515-9cc5-86968a55deed.pdf",
+   "procGroups": [],
+   "score": 6
+  },
+  {
+   "id": "40113264:355",
+   "docId": "40113264",
+   "projectId": "P164748",
+   "projectName": "Chad - Refugees and Host Communities Support Project",
+   "countryCode": "TD",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Chad - Refugees and Host Communities Support Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "Procurement and contract management Rating: Moderately Satisfactory 47. Overall procurement performance is rated Moderately Satisfactory, reflecting the completion of all 97 planned infrastructure facilities despite systemic delays in a challenging procurement environment. The project faced 12",
+   "url": "https://documents.worldbank.org/curated/en/099062926064021541/pdf/BOSIB-66b265b9-6b00-4515-9cc5-86968a55deed.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40113264:347",
+   "docId": "40113264",
+   "projectId": "P164748",
+   "projectName": "Chad - Refugees and Host Communities Support Project",
+   "countryCode": "TD",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Chad - Refugees and Host Communities Support Project\n",
+   "section": "Key Factors During Implementation",
+   "quote": "by third-party operator performance and remote delivery challenges rather than systemic PIU failures. The Government\u2019s new health strategy also required redesigning health infrastructure to meet national standards. The June 2024 decree from the Direction G\u00e9n\u00e9rale du Contr\u00f4le des March\u00e9s Publics (DGCMP), removing the double review requirement, created unforeseen delays for a posteriori contract due to limited familiarity with World Bank procurement procedures.",
+   "url": "https://documents.worldbank.org/curated/en/099062926064021541/pdf/BOSIB-66b265b9-6b00-4515-9cc5-86968a55deed.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40113730:428",
+   "docId": "40113730",
+   "projectId": "P173789",
+   "projectName": "COVID-19 Strategic Preparedness and Response Program (SPRP)",
+   "countryCode": "1W",
+   "region": "Other",
+   "docType": "Implementation Completion and Results Report",
+   "title": "World - COVID-19 Strategic Preparedness and Response Program\n",
+   "section": "A. Environmental & Social (E&S), And Fiduciary Compliance",
+   "quote": "179. Procurement compliance varied widely among the 97 MPA country projects. Implementation delays were the defining challenge for procurement across the portfolio. The causes were varied: complex government bureaucracy, low implementing agency capacity, leadership changes, and global supply chain disruptions, among other factors. The most structurally persistent issue was limited familiarity with World Bank procurement procedures on the part of implementing entities where Bank-financed projects had not been implemented before or in the past years. This often resulted in repeated delays throughout implementation.",
+   "url": "https://documents.worldbank.org/curated/en/099062926220547066/pdf/BOSIB-ab32e078-cb09-4ca1-a66d-0876be7ccf97.pdf",
+   "procGroups": [
+    "GO"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40113730:385",
+   "docId": "40113730",
+   "projectId": "P173789",
+   "projectName": "COVID-19 Strategic Preparedness and Response Program (SPRP)",
+   "countryCode": "1W",
+   "region": "Other",
+   "docType": "Implementation Completion and Results Report",
+   "title": "World - COVID-19 Strategic Preparedness and Response Program\n",
+   "section": "Factors Within The Control Of The Government And/Or Implementing Entities",
+   "quote": "158. Procurement, financial management, and adaptive decision-making affected the ability to respond to changing conditions. Government procurement systems, internal approval processes, and financial management arrangements directly affected implementation speed. Multiple approval layers and centralized decision-making often cause delays even under emergency conditions. At the same time, countries that were able to revise priorities, reallocate resources, and integrate COVID-19 activities into routine systems were generally better able to maintain relevance as the pandemic evolved.",
+   "url": "https://documents.worldbank.org/curated/en/099062926220547066/pdf/BOSIB-ab32e078-cb09-4ca1-a66d-0876be7ccf97.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40113730:377",
+   "docId": "40113730",
+   "projectId": "P173789",
+   "projectName": "COVID-19 Strategic Preparedness and Response Program (SPRP)",
+   "countryCode": "1W",
+   "region": "Other",
+   "docType": "Implementation Completion and Results Report",
+   "title": "World - COVID-19 Strategic Preparedness and Response Program\n",
+   "section": "Factors Within The Control Of The World Bank",
+   "quote": "152. Simplified procurement procedures and Hands-on Expanded Implementation Support in procurement and financial management often reduce transaction times relative to standard processes. Proactive supervision, frequent follow- up by Bank teams, and rapid problem-solving were important in maintaining momentum and supporting continuity under crisis conditions. Internal review and approval processes also mattered: where restructurings, reallocations, and procurement decisions were processed quickly, operations were better able to respond to changing circumstances.",
+   "url": "https://documents.worldbank.org/curated/en/099062926220547066/pdf/BOSIB-ab32e078-cb09-4ca1-a66d-0876be7ccf97.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40113730:316",
+   "docId": "40113730",
+   "projectId": "P173789",
+   "projectName": "COVID-19 Strategic Preparedness and Response Program (SPRP)",
+   "countryCode": "1W",
+   "region": "Other",
+   "docType": "Implementation Completion and Results Report",
+   "title": "World - COVID-19 Strategic Preparedness and Response Program\n",
+   "section": "B. Efficiency",
+   "quote": "118. The retroactive financing was one of the most useful mechanisms in the acute emergency phase because it enabled reimbursement of eligible pre-approval expenditures without procedural delay. According to the MTR and several final Summary Assessments, Bank-Facilitated Procurement appeared to improve purchasing efficiency and reduced transaction costs for critical medical commodities. At the same time, some efficiency losses occurred in fragile and conflict-affected settings, where implementation delays reduced the development value of some investments within the project timeframe, and currency fluctuations created additional challenges in operations using different denominations (Euro/SDR). These factors are relevant, but they do not outweigh the broader evidence of strong administrative and implementation efficiency.",
+   "url": "https://documents.worldbank.org/curated/en/099062926220547066/pdf/BOSIB-ab32e078-cb09-4ca1-a66d-0876be7ccf97.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40121693:163",
+   "docId": "40121693",
+   "projectId": "P167830",
+   "projectName": "Orinoquia Integrated Sustainable Landscapes",
+   "countryCode": "CO",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Colombia - Orinoquia Integrated Sustainable Landscapes Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "value had been executed, with a total of 276 procurement processes registered in STEP. About one-third of these were cancelled, which reflected adaptive management decisions to streamline procurement planning and adjust activities to evolving priorities and market conditions. Structural constraints persisted, particularly limited supplier availability in remote and security-affected areas, coordination challenges among multiple implementing partners, and market analyses that initially did not fully reflect local geographic and contextual realities. These factors contributed to delays. By closure, procurement arrangements were functioning adequately, and risks had been reduced to Moderate, but timelines and efficiency affected procurement over the life of the project.",
+   "url": "https://documents.worldbank.org/curated/en/099081026173533045/pdf/BOSIB-87f0fe9a-9bd6-42d5-aae8-e0f0f3ecb4b5.pdf",
+   "procGroups": [],
+   "score": 7
+  },
+  {
+   "id": "40121693:172",
+   "docId": "40121693",
+   "projectId": "P167830",
+   "projectName": "Orinoquia Integrated Sustainable Landscapes",
+   "countryCode": "CO",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Colombia - Orinoquia Integrated Sustainable Landscapes Project\n",
+   "section": "V. Lessons And Recommendations",
+   "quote": "68. Lesson B \u2013 Complex landscape projects in conflict-affected areas, need adequate operational design including realistic timelines, fit-for-purpose procurement arrangements, and strong security and monitoring protocols. Realistic timelines must account for establishing working arrangements between implementing partners, and for meaningful engagement across diverse stakeholder groups, which is both a critical success factor and a time-intensive process. Careful monitoring against indicator definitions, strengthen accountability and the credibility of results at closing. Procurement arrangements must be calibrated to local market capacity and logistical constraints to prevent early delays that are difficult to recover from. Security management built in early and consistently applied can be a decisive enabler of delivery in conflict-affected territories",
+   "url": "https://documents.worldbank.org/curated/en/099081026173533045/pdf/BOSIB-87f0fe9a-9bd6-42d5-aae8-e0f0f3ecb4b5.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40121693:122",
+   "docId": "40121693",
+   "projectId": "P167830",
+   "projectName": "Orinoquia Integrated Sustainable Landscapes",
+   "countryCode": "CO",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Colombia - Orinoquia Integrated Sustainable Landscapes Project\n",
+   "section": "C. Efficiency",
+   "quote": "Implementation Efficiency 31. Implementation efficiency was affected by delays and transaction costs, particularly in the early stages. Disbursement was significantly back-loaded, with over 65 percent of funds disbursed in the final two years, reducing the effective benefit realization period within the analysis horizon. Procurement challenges, mainly driven by operating conditions in remote and security-affected areas, further constrained early execution. The project also experienced start-up delays related to institutional arrangements, changes in government, and COVID-19 disruptions, leading to extensions. Security constraints in parts of the project area required adjustments to the geographic focus of activities.",
+   "url": "https://documents.worldbank.org/curated/en/099081026173533045/pdf/BOSIB-87f0fe9a-9bd6-42d5-aae8-e0f0f3ecb4b5.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40121693:86",
+   "docId": "40121693",
+   "projectId": "P167830",
+   "projectName": "Orinoquia Integrated Sustainable Landscapes",
+   "countryCode": "CO",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Colombia - Orinoquia Integrated Sustainable Landscapes Project\n",
+   "section": "B. Significant Changes During Implementation (If Applicable)",
+   "quote": "Rationale for Changes and Their Implication on the Original Theory of Change 15. The changes approved through the restructurings were driven by a combination of Mid-Term Review findings on indicator quality and measurability, external factors including security conditions and the COVID-19 pandemic, and implementation challenges including institutional delays and procurement challenges. The June 2023 extension was necessitated by startup delays. The project was implemented by",
+   "url": "https://documents.worldbank.org/curated/en/099081026173533045/pdf/BOSIB-87f0fe9a-9bd6-42d5-aae8-e0f0f3ecb4b5.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40113716:109",
+   "docId": "40113716",
+   "projectId": "P126498",
+   "projectName": "Rwanda Feeder Roads Development Project",
+   "countryCode": "RW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Rwanda - Feeder Roads Development Project\n",
+   "section": "Key Factors During Implementation",
+   "quote": "37. Capacity, contract management, and safeguards performance gaps affected implementation. Understaffing at RTDA and districts (mapped to the SPIU), together with delays in recruiting critical technical and safeguards staff, constrained supervision at several points in the AF period , the OHS incidents arising from these gaps, and the full corrective response, are set out in section IV.B. Procurement record-keeping in the STEP system lagged, and frequent contract amendments and extensions were noted. More recently, the Bank and RTDA observed inadequate levels of service on some completed roads under OPRC maintenance (e.g., edge breaks, drainage deficiencies), prompting calls to strengthen contract management and ensure timely defect rectification to protect asset value.",
+   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40113716:161",
+   "docId": "40113716",
+   "projectId": "P126498",
+   "projectName": "Rwanda Feeder Roads Development Project",
+   "countryCode": "RW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Rwanda - Feeder Roads Development Project\n",
+   "section": "B. Key Outputs",
+   "quote": "Objective 3/outcome : Strenghtened project implementation 2. Roads rehabilitated, Rural 3. Employment generated under rehabilitation contracts Intermediate Results Indicators 5. Rural/feeder roads receiving maintenance 6. Local Community Associations (LCAs) established 8. Employment generated under maintenance contracts 1.4200 km Rural / feeder roads with readily available design and bidding Key Outputs document s (linked to the achievement of the Component) 2.Project emplemented according to planned time and budget",
+   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113716:78",
+   "docId": "40113716",
+   "projectId": "P126498",
+   "projectName": "Rwanda Feeder Roads Development Project",
+   "countryCode": "RW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Rwanda - Feeder Roads Development Project\n",
+   "section": "B. Significant Changes During Implementation",
+   "quote": "resilience technical assistance, with the closing date subsequently extended twice to December 31, 2022, and June 30, 2023, respectively. The second Additional Financing , approved on June 6, 2023, provided targeted resources to complete remaining road works, maintenance, and climate resilience activities, and extended the closing date to December 31, 2025. Rationale for Changes and Their Implication on the Original Theory of Change 14. Overall, the restructurings maintained the project\u2019s original ambition and results chain while addressing key implementation bottlenecks and sustainability risks. Extensions and AFs were used to complete work affected by COVID-19 disruptions, procurement and contract management delays, counterpart funding constraints, District Road class 1(DC1) widening costs, and climate-resilience needs. They did not alter the PDO or reduce ambition.",
+   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
+   "procGroups": [
+    "CW",
+    "CS",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113160:290",
+   "docId": "40113160",
+   "projectId": "P171924",
+   "projectName": "RMI Education and Skills Strengthening Project",
+   "countryCode": "MH",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Marshall Islands - Education and Skills Strengthening Project\u00a0\n",
+   "section": "Annex 4. Efficiency Analysis",
+   "quote": "11. Financial management and procurement arrangements functioned adequately throughout implementation. Interim financial reports were submitted regularly, procurement procedures were followed, and expenditures remained aligned with project objectives. While some delays occurred in audit submissions and payment processing\u2014reflecting broader public financial management constraints rather than project-specific weaknesses\u2014these issues did not materially affect project outputs or outcomes.",
+   "url": "https://documents.worldbank.org/curated/en/099062926012032598/pdf/BOSIB-89788da2-c016-45d0-a662-f64c22d30211.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40115057:134",
+   "docId": "40115057",
+   "projectId": "P155759",
+   "projectName": "Citizen-Centric Judicial Modernization and Justice Service Delivery",
+   "countryCode": "TZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Tanzania - Citizen-Centric Judicial Modernization and Justice Service Delivery Project\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "46. Weak contract and payment management contributed to construction delays. In addition to a late start of construction activities, there were delays in payments to contractors and consultants, combined with weak oversight of contract execution, undermined contractor cash flow and contributed to uneven progress and schedule slippage, particularly under Additional Financing. These issues, together with contractor capacity constraints in the dispersed IJC/SBC program, contributed to uneven progress and delays, with several IJC sites rated high concern in 2024/25 (e.g., Simiyu, Geita, Katavi, Njombe, Songwe) and some facilities not fully operational by closing.",
+   "url": "https://documents.worldbank.org/curated/en/099070226151025928/pdf/BOSIB-d0985f7f-dfe1-423f-9fcb-da4306aabd68.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 7
+  },
+  {
+   "id": "40115057:157",
+   "docId": "40115057",
+   "projectId": "P155759",
+   "projectName": "Citizen-Centric Judicial Modernization and Justice Service Delivery",
+   "countryCode": "TZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Tanzania - Citizen-Centric Judicial Modernization and Justice Service Delivery Project\n",
+   "section": "Iv. Lessons And Recommendations",
+   "quote": "67. For infrastructure-heavy components, front-load procurement readiness and strengthen contract management. Persistent delays in IJC and SBC works (exacerbated by COVID-19 but also linked to contractor capacity and supervision constraints) showed that civil works can become the binding constraint on outcomes and on project closing timelines. Monitoring identified bottlenecks, but timely enforcement of remedies and proactive mitigation were not always sufficient. Recommendation: Strengthen front-end readiness (design completeness, safeguards clearances, site readiness), apply rigorous contractor due diligence, and resource dedicated works supervision and contract management capacity; in parallel, put operations, maintenance and asset management arrangements (including protected budget lines and maintenance schedules) in place before facilities are commissioned.",
+   "url": "https://documents.worldbank.org/curated/en/099070226151025928/pdf/BOSIB-d0985f7f-dfe1-423f-9fcb-da4306aabd68.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40115057:133",
+   "docId": "40115057",
+   "projectId": "P155759",
+   "projectName": "Citizen-Centric Judicial Modernization and Justice Service Delivery",
+   "countryCode": "TZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Tanzania - Citizen-Centric Judicial Modernization and Justice Service Delivery Project\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "45. Government payment approval procedures caused recurrent implementation delays. The introduction of an additional Ministry of Finance approval layer for externally financed payments created persistent delays in releasing funds, which affected the timeliness of contractor and supplier payments and slowed civil works implementation.",
+   "url": "https://documents.worldbank.org/curated/en/099070226151025928/pdf/BOSIB-d0985f7f-dfe1-423f-9fcb-da4306aabd68.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40115057:124",
+   "docId": "40115057",
+   "projectId": "P155759",
+   "projectName": "Citizen-Centric Judicial Modernization and Justice Service Delivery",
+   "countryCode": "TZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Tanzania - Citizen-Centric Judicial Modernization and Justice Service Delivery Project\n",
+   "section": "E. Other Outcomes And Impacts",
+   "quote": "36. The project left behind stronger fiduciary, procurement, and environmental and social management capacity within the Judiciary. Repeated audits and close follow-up on agreed actions contributed to improved financial controls and reporting, while managing large civil works and ICT contracts strengthened contract management and procurement processes. Although capacity gaps remain, these improvements enhanced the Judiciary\u2019s readiness to manage complex, externally financed investments and to apply more robust compliance practices going forward.",
+   "url": "https://documents.worldbank.org/curated/en/099070226151025928/pdf/BOSIB-d0985f7f-dfe1-423f-9fcb-da4306aabd68.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40113409:226",
+   "docId": "40113409",
+   "projectId": "P179095",
+   "projectName": "Scaling-up Shock Responsive Social Protection Project",
+   "countryCode": "ZM",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Zambia - Scaling Up Shock Responsive Social Protection Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "69. Procurement performance was consistently rated Satisfactory. Procurement arrangements at appraisal were deemed adequate, and the project followed the World Bank Procurement Regulations throughout implementation. Project procurement remained low-value and low-complexity, consisting mainly of small consulting assignments and operational support. Further, procurement processes were compliant and timely, with no instances of mis-procurement or procurement-related complaints. The PIU strengthened procurement planning and internal approval processes over time, and procurement activities did not create bottlenecks, even during the rapid scale-up of the drought response. Overall, procurement obligations were met, and performance remained satisfactory throughout the project cycle.",
+   "url": "https://documents.worldbank.org/curated/en/099062926100526324/pdf/BOSIB-0b7ed402-8770-4fc4-81ce-a7b09d266f7e.pdf",
+   "procGroups": [],
+   "score": 10
+  },
+  {
+   "id": "40114037:547",
+   "docId": "40114037",
+   "projectId": "P503036",
+   "projectName": "Gaza Health Emergency Response Project",
+   "countryCode": "GZ",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "West Bank and Gaza - Gaza Health Emergency Response Project \n",
+   "section": "I.Executive Summary",
+   "quote": "Procurement was tracked through a dedicated system that followed each item from supplier release to receipt at the WHO warehouse, with continuous coordination across teams to address delays and verify quantities upon arrival in Gaza. A comprehensive distribution plan was developed to ensure equitable allocation of supplies across facilities, and WHO regularly shared updated monitoring documentation with the World Bank. Due to safety constraints, field visits to facilities were limited during the reporting period. WHO also worked closely with the TPM to conduct field monitoring visits, maintain communication with communities, and incorporate recommendations to strengthen programme implementation.",
+   "url": "https://documents.worldbank.org/curated/en/099063026082068508/pdf/BOSIB-11ad8a90-6859-48ea-926a-6bfca70cd86c.pdf",
+   "procGroups": [
+    "GO"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40114037:508",
+   "docId": "40114037",
+   "projectId": "P503036",
+   "projectName": "Gaza Health Emergency Response Project",
+   "countryCode": "GZ",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "West Bank and Gaza - Gaza Health Emergency Response Project \n",
+   "section": "I.Executive Summary",
+   "quote": "This report covers progress achieved under Component 2: Supporting provision of emergency and non-communicable disease services during the project period from January 30, 2024, to December 31, 2025. A consolidated table summarizing procurement and distribution of medical and non-medical supplies is presented below to provide an overview of all items procured and delivered under Component 2 during the project period. Table 1: Procurement and Distribution Status Item Procurement overview",
+   "url": "https://documents.worldbank.org/curated/en/099063026082068508/pdf/BOSIB-11ad8a90-6859-48ea-926a-6bfca70cd86c.pdf",
+   "procGroups": [
+    "GO",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40125342:59",
+   "docId": "40125342",
+   "projectId": "P172689",
+   "projectName": "BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM",
+   "countryCode": "AR",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Argentina - Buenos Aires Water Supply and Sanitation with a Focus on Vulnerable Areas Program\n",
+   "section": "Buenos Aires Water Supply And Sanitation With A Focus On Vulnerable",
+   "quote": "A1: AySA is able to efficiently implement COVID-19 safety and preventive measures for workers building household connections, so that construction rate keeps a constant pace. A2: Procurement processes for the extension of the WWTPs are successful, with no significant delays in the awarding of the contracts A3: Women staff at AySA respond to the trainings and apply to managerial positions A4: The magnitude of the reduction of government subsidies also depends on the size of tariff increases expected for the years 2022-2025 A5: Other risk factors and exposures that might affect the health conditions in beneficiary communities do not increase",
+   "url": "https://documents.worldbank.org/curated/en/099090226104518266/pdf/BOSIB-3c751656-1012-4137-b95f-ba73b3057d51.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113263:154",
+   "docId": "40113263",
+   "projectId": "P118518",
+   "projectName": "Moldova Agriculture Competitiveness Project",
+   "countryCode": "MD",
+   "region": "Europe and Central Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Moldova - Agriculture Competitiveness Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "Procurement 82. The project\u2019s procurement performance was robust, with no major non-compliance identified. Procurement reviews carried out regularly by the WB team generally acknowledged CAPMU\u2019s sound management of procurement processes. Post review recommendations focused on technical improvements, including stronger document filing and data quality on the Systematic Tracking of Exchanges in Procurement platform, as well as better practice in publishing general procurement notices. Components 2, 3, and 5 were implemented broadly on schedule, with activities completed within the original timeframe. By contrast, civil works under Component 1 experienced some delays, primarily due to cost overruns and limited local contractor capacity.",
+   "url": "https://documents.worldbank.org/curated/en/099062926064034696/pdf/BOSIB-8005871a-7b18-4673-b3cb-135060b5378a.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 8
+  },
+  {
+   "id": "40113082:224",
+   "docId": "40113082",
+   "projectId": "P145482",
+   "projectName": "Accelerating Sustainable Private Investment in Renewable Energy Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Accelerating Sustainable Private Investments in Renewable Energy Project\u00a0\n",
+   "section": "Annex 5. Borrower, Co-Financier And Other Partner/Stakeholder Comments",
+   "quote": "\ufffd? The Bank\u2019s clearance of tender documents was delayed in some instances while the allocation of TBD funds across subprojects was resolved internally. \ufffd? On PPA penalty provisions, the Borrower noted that, during PPA development, the Bank supported a balanced approach intended to preserve contractual discipline while avoiding terms that could unduly deter developers. Private capital mobilized. The Borrower observed that the Bank did not require disclosure of private capital figures during procurement or supervision. Developers treat capital figures as commercially sensitive, and accurate verification is not straightforward. The Borrower suggested that future projects define the measurement approach for this indicator from the outset, and that requiring disclosure in bid submissions, while not optimal, may be worth considering.",
+   "url": "https://documents.worldbank.org/curated/en/099062826202046929/pdf/BOSIB-83cf4f0c-f5c1-484b-95b8-673952a3bb09.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40113082:134",
+   "docId": "40113082",
+   "projectId": "P145482",
+   "projectName": "Accelerating Sustainable Private Investment in Renewable Energy Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Accelerating Sustainable Private Investments in Renewable Energy Project\u00a0\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "64. The COVID-19 pandemic disrupted global supply chains, delayed shipping and equipment delivery, and constrained the deployment of international consultants, which led to significant slippages in Phases 2 and 3. In parallel, shortcomings in the developer\u2019s construction scheduling, resource mobilization, and site-level execution contributed to the failure to commission Phase 3 before Project closing. Additional delays in securing worker permits at the Kulhudhuffushi airport site further affected cabling works and compounded commissioning delays.",
+   "url": "https://documents.worldbank.org/curated/en/099062826202046929/pdf/BOSIB-83cf4f0c-f5c1-484b-95b8-673952a3bb09.pdf",
+   "procGroups": [
+    "CW",
+    "GO"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113082:86",
+   "docId": "40113082",
+   "projectId": "P145482",
+   "projectName": "Accelerating Sustainable Private Investment in Renewable Energy Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Accelerating Sustainable Private Investments in Renewable Energy Project\u00a0\n",
+   "section": "B. Significant Changes During Implementation",
+   "quote": "2nd January 23, 2020 PDO-level targets revised downward; scope reduced to Phases 1 and 2; remaining pipeline transferred to ARISE project 3rd September 27, 2021 Closing date extended from September 30, 2021, to December 15, 2021 4th December 15, 2021 Closing date extended by seven months to July 15, 2022, to allow Phase 3 contract negotiation and signing 5th June 9, 2022 PDO-level targets revised upward following Phase 3 contract signing; grant proceeds reallocated; closing date extended to September 30, 2024 6th September 20, 2022 US$ 13.5 million from the unutilized IDA guarantee envelope cancelled 7th September 20, 2024 Closing date extended to June 30, 2025 8th June 19, 2025 Closing date extended to December 31, 2025",
+   "url": "https://documents.worldbank.org/curated/en/099062826202046929/pdf/BOSIB-83cf4f0c-f5c1-484b-95b8-673952a3bb09.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40113397:673",
+   "docId": "40113397",
+   "projectId": "P151847",
+   "projectName": "Eastern and Southern Africa Higher Education Centers of Excellence",
+   "countryCode": "ET",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Ethiopia, Kenya, Malawi, Mozambique, Rwanda, Tanzania, Uganda, Zambia - Eastern and Southern Africa Higher Education Centers of Excellence Project\n",
+   "section": "Environmental, Social, And Fiduciary Compliance",
+   "quote": "closing, all procurement processes had been completed, contract documentation finalized, and no mis-procurement findings remained, with remaining issues limited to time-bound delays rather than systemic control weaknesses. C.",
+   "url": "https://documents.worldbank.org/curated/en/099062926094539608/pdf/BOSIB-c86b36f8-5177-4109-83ce-694854b8bd0c.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40113645:97",
+   "docId": "40113645",
+   "projectId": "P155201",
+   "projectName": "Municipal Development and Urban Resilience Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Haiti - Municipal Development and Urban Resilience Project\n",
+   "section": "B. Significant Changes During Implementation",
+   "quote": "Revised Components 20. Changes for Component 1 \u2013 The main change at the first restructuring was the cancellation of the Bassin Rhodo\u2019s dredging, sediment treatment and disposal contract (which was transferred to the Cap-Ha\u00eftien Urban Development Project (CHUD, P196851), approved in March 2020, which held US$10 million in unallocated funds under its Component 1). This was followed by the cancellation of the Bassin Rhodo RAP activities and contract as part of the second restructuring. The freed resources led to the prioritization of additional interventions including nonstructural work interventions (i.e., reforestation works and green corridors) and additional flood-risk reduction works in ravines Sonson and Nazon. As part of the third restructuring, some of the additional works in the ravines of Belle-H\u00f4tesse, Sonson and ruelle Nazon, were cancelled and transferred to the CHUD project.",
+   "url": "https://documents.worldbank.org/curated/en/099062926144015367/pdf/BOSIB-9ea7fc27-bb4f-4331-b7c5-e9820132b0f0.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40112622:194",
+   "docId": "40112622",
+   "projectId": "P178332",
+   "projectName": "JSDF-Djibouti: Promoting Women's and Community Resilience in the Fight Against Gender-Based Violence",
+   "countryCode": "DJ",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - JSDF-Djibouti: Promoting Women's and Community Resilience in the Fight Against Gender-Based Violence - P178332",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "75. At closing, the Project\u2019s procurement rating was Moderately Satisfactory. As discussed earlier, procurement was a major challenge for MWF and improved significantly in the last year of project implementation. The Project's procurement scope consisted of small-value consulting services for technical assistance and capacity building. MWF assigned a procurement officer to the PMU who participated in project preparation and received basic World Bank procurement training prior to effectiveness. A part-time procurement consultant was also engaged in the PMU to support the procurement officer.",
+   "url": "https://documents.worldbank.org/curated/en/099062626053510011/pdf/P178332-25f8a902-d00d-42c6-a465-7b23fdfecc3e.pdf",
+   "procGroups": [
+    "CS",
+    "NC"
+   ],
+   "score": 8
+  },
+  {
+   "id": "40112622:195",
+   "docId": "40112622",
+   "projectId": "P178332",
+   "projectName": "JSDF-Djibouti: Promoting Women's and Community Resilience in the Fight Against Gender-Based Violence",
+   "countryCode": "DJ",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - JSDF-Djibouti: Promoting Women's and Community Resilience in the Fight Against Gender-Based Violence - P178332",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "76. MWF encountered difficulties navigating Bank procurement procedures as a first-time implementing agency. Capacity challenges were compounded by the national requirement to submit contracts exceeding five million DJF to the public procurement commission for validation. The contract for Vivo International was also delayed as the organization was required to obtain government accreditation to operate in Djibouti. The World Bank team provided extensive support to resolve contracting issues, and all service provider contracts were issued by November 2024, except for the Vivo International contract, which was issued in April 2025.",
+   "url": "https://documents.worldbank.org/curated/en/099062626053510011/pdf/P178332-25f8a902-d00d-42c6-a465-7b23fdfecc3e.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 7
+  },
+  {
+   "id": "40112622:100",
+   "docId": "40112622",
+   "projectId": "P178332",
+   "projectName": "JSDF-Djibouti: Promoting Women's and Community Resilience in the Fight Against Gender-Based Violence",
+   "countryCode": "DJ",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Implementation Completion and Results Report (ICR) Document - JSDF-Djibouti: Promoting Women's and Community Resilience in the Fight Against Gender-Based Violence - P178332",
+   "section": "A. Context At Appraisal",
+   "quote": "18. Throughout implementation, the project design, PDO, components, and financing remained unchanged; no formal restructurings or revisions were introduced. However, Implementation Progress (IP) of both Components 1 and 2 was significantly delayed and only gained momentum during the last year of the project. This was primarily because of delayed procurement of key implementation contracts (see Sections II.C and III.B).",
+   "url": "https://documents.worldbank.org/curated/en/099062626053510011/pdf/P178332-25f8a902-d00d-42c6-a465-7b23fdfecc3e.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40114468:724",
+   "docId": "40114468",
+   "projectId": "P161928",
+   "projectName": "Operation for Supporting Rural Bridges (SupRB)",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Bangladesh - Operation for Supporting Rural Bridges Project\u00a0\n",
+   "section": "A. Results Framework",
+   "quote": "Actual Amount 7:DLI-7: Contract and fiduciary system management (Percentage ) Original/Revised Value 0.00 Allocated Amount 0.00 Actual Value Actual Amount \u27a2 7.1:DLI-7a. Percentage of national competitive tenders issued using e-contract management module of e-governance procurement (Percentage ) Original/Revised Value 0.00 Allocated Amount 0.00 Actual Value Actual Amount \u27a2 7.2:DLI-7b. Percentage of work contracts completed within the original contractual timeline (Percentage ) Original/Revised Value 30.00 Allocated Amount 0.00 Actual Value Actual Amount \u27a2 7.3:DLI-7c. Effective and efficient Fiduciary System Management (Text ) Original/Revised Value No committee for audit observation resolution,",
+   "url": "https://documents.worldbank.org/curated/en/099063026154025077/pdf/BOSIB-7f278283-92ee-45df-b302-51b8c75000af.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40114468:833",
+   "docId": "40114468",
+   "projectId": "P161928",
+   "projectName": "Operation for Supporting Rural Bridges (SupRB)",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Bangladesh - Operation for Supporting Rural Bridges Project\u00a0\n",
+   "section": "A. Program Action Plan",
+   "quote": "procurement related grievances are processed through centralized e-procurement system, while other/non-procurement type of program related grievances are processed through the established centralized GRS. Administrative order issued in this Due Date 31-Oct-2023 regard; Internal Audit Unit is fully staffed and supported by Consultants regular meetings twice a year to discuss the audit observations of the Operation is yet to happen",
+   "url": "https://documents.worldbank.org/curated/en/099063026154025077/pdf/BOSIB-7f278283-92ee-45df-b302-51b8c75000af.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40112691:297",
+   "docId": "40112691",
+   "projectId": "P179849",
+   "projectName": "Second Green, Resilient and Inclusive Development Policy Operation",
+   "countryCode": "AM",
+   "region": "Europe and Central Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Armenia - Second Green, Resilient, and Inclusive Development Policy Operation\u00a0\n",
+   "section": "C. Overall Outcome Rating And Justification",
+   "quote": "The DPO program was consistently implemented, with deviations from targeted results mostly reflecting procurement delays and some shortcomings in the design of the results framework. The targets of 10 out of the 13 RIs were achieved while one additional RI was partly achieved. The roll out of the new VAS was delayed due to events unforeseen at DPO approval, which shifted the authorities\u2019 priorities to the protection of refugees. The targets for 2 out of the 13 RIs of the program, the measurement and disclosure of main atmospheric pollutants, and the screening of EIA applications\u2014were missed. The deviations from targets in these two cases mostly reflect procurement delays 59.",
+   "url": "https://documents.worldbank.org/curated/en/099062626085510339/pdf/BOSIB-a1e45d39-3aa6-4525-a439-eb3a8b981e38.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40112941:183",
+   "docId": "40112941",
+   "projectId": "P164225",
+   "projectName": "Guinea Electricity Access Scale Up Project",
+   "countryCode": "GN",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Guinea - Electricity Access Scale Up Project\u00a0\n",
+   "section": "B. Recommendations",
+   "quote": "100. Future operations should adopt integrated contracting approaches that align meter procurement with network rehabilitation, expansion, and connection activities under unified oversight and clear end-to-end accountability. Procurement planning should be closely synchronized with installation schedules to minimize delays and avoid prolonged storage of equipment. In parallel, projects should ensure adequate arrangements for secure storage, inventory management, and risk mitigation\u2014including contingency planning\u2014to safeguard assets and prevent losses or implementation disruptions.",
+   "url": "https://documents.worldbank.org/curated/en/099062626175012734/pdf/BOSIB-2be21b2e-34c7-4e27-986a-01ff0c3233a2.pdf",
+   "procGroups": [
+    "CW",
+    "GO"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40114650:903",
+   "docId": "40114650",
+   "projectId": "P164031",
+   "projectName": "Ogun State Economic Transformation Project",
+   "countryCode": "NG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Nigeria - Ogun State Economic Transformation Project\n",
+   "section": "Icr Comments/Concerns Matrix",
+   "quote": "This sentence in the report alleges systemic procurement weakness without interviewing any procurement staff. It comes across as a sweeping impression of the Procurement Unit\u2019s operational capacity, written without the Procurement Unit\u2019s response. Yes, there were challenges, but these were progressively surmounted. The situation may also have been exacerbated by the frequency of changes in the task team too.",
+   "url": "https://documents.worldbank.org/curated/en/099063026203033901/pdf/BOSIB-6f82f0eb-eaaa-4781-a851-d053c7a8a90e.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40114650:721",
+   "docId": "40114650",
+   "projectId": "P164031",
+   "projectName": "Ogun State Economic Transformation Project",
+   "countryCode": "NG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Nigeria - Ogun State Economic Transformation Project\n",
+   "section": "Icr Comments/Concerns Matrix",
+   "quote": "The planned rehabilitation of 150 km of feeder roads could not be completed within the remaining project period due to a combination of factors, including extended procurement timelines, delays in World Bank clearance, unpredictable market price escalation, inflation, scope complexity, and the need to ensure valuefor-money, before contract award.",
+   "url": "https://documents.worldbank.org/curated/en/099063026203033901/pdf/BOSIB-6f82f0eb-eaaa-4781-a851-d053c7a8a90e.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40114650:285",
+   "docId": "40114650",
+   "projectId": "P164031",
+   "projectName": "Ogun State Economic Transformation Project",
+   "countryCode": "NG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Nigeria - Ogun State Economic Transformation Project\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "For example, completing the Feasibility Studies for roads and irrigation was a PBC under Part 1, while the contract for the Feasibility Study was also financed under Part 2. In this case, the Part 2 component was cancelled in Restructuring 1. 38 Rural Access and Agricultural Marketing Project, (P163353). 39 Documented in ISR 4. Two VCDF firms under common ownership won two of four advertised contracts, competing against each other on the same task. The Bank recommended their disqualification on conflict-of-interest grounds. The former Project Coordinator subsequently made a threatening communication to the World Bank Procurement Specialist. 40 This was noted in ISR 4 with the Ogun State Governor personally authorizing all OGSET expenditures, and then later delegating to the PSC Chair. ISR 6 noted this trend persisting, with Commissioners being de facto managers of the Project.",
+   "url": "https://documents.worldbank.org/curated/en/099063026203033901/pdf/BOSIB-6f82f0eb-eaaa-4781-a851-d053c7a8a90e.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40114650:857",
+   "docId": "40114650",
+   "projectId": "P164031",
+   "projectName": "Ogun State Economic Transformation Project",
+   "countryCode": "NG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Nigeria - Ogun State Economic Transformation Project\n",
+   "section": "Icr Comments/Concerns Matrix",
+   "quote": "The project had 4 different E&S staff who resigned at various points. Some missions noted the need for stronger integration of E&S inputs into procurement planning and contract management processes, reflecting the importance of cross-functional coordination within the PIU, which was addressed on the availability of E&S staff. The Task team conducted joint trainings for both procurement and Safeguards teams for better integration.",
+   "url": "https://documents.worldbank.org/curated/en/099063026203033901/pdf/BOSIB-6f82f0eb-eaaa-4781-a851-d053c7a8a90e.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40113637:91",
+   "docId": "40113637",
+   "projectId": "P170874",
+   "projectName": "Indonesia Disaster Resilience Initiatives Project (IDRIP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Resilience Initiatives Project\u00a0\u00a0\n",
+   "section": "B. Significant Changes During Implementation (If Applicable)",
+   "quote": "Rationale for Changes and Their Implication on the Original Theory of Change 17. The first restructuring extended the project by 10 months to enable the full achievement of the PDO, as the loan had experienced late effectiveness and there were significant delays during the first two years of implementation. The partial loan cancellation of US$27.3 million during the second restructuring was partly due to delays in procurement and implementation and the lack of time to implement these activities, as well as to GoI\u2019s Budget Efficiency measures6 announced in early 2025, which led to the contract amendments and cancelation7 of several activities under Component 2. Component 1 was also affected by the budget efficiency policy and had to reduce the number of sirens procured under the project and cancel the development of regulations for MHEWS.",
+   "url": "https://documents.worldbank.org/curated/en/099062926143535833/pdf/BOSIB-294ea0aa-edda-4a18-86d5-65fa8a020a88.pdf",
+   "procGroups": [],
+   "score": 6
+  },
+  {
+   "id": "40113637:136",
+   "docId": "40113637",
+   "projectId": "P170874",
+   "projectName": "Indonesia Disaster Resilience Initiatives Project (IDRIP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Resilience Initiatives Project\u00a0\u00a0\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "47. Project management. Weak oversight and contract management of the consultant hired by the Central Project Management Unit (CPMU) for implementing the EOCs\u2019 works contributed to the overall lack of quality control and delays. The Project Management Consultant (PMC) mobilized only in February 2023, as this was the first",
+   "url": "https://documents.worldbank.org/curated/en/099062926143535833/pdf/BOSIB-294ea0aa-edda-4a18-86d5-65fa8a020a88.pdf",
+   "procGroups": [
+    "CW",
+    "CS"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40113637:165",
+   "docId": "40113637",
+   "projectId": "P170874",
+   "projectName": "Indonesia Disaster Resilience Initiatives Project (IDRIP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Resilience Initiatives Project\u00a0\u00a0\n",
+   "section": "B. Bank Performance",
+   "quote": "69. Technical support and oversight. IDRIP financed the design and development of several complex systems such as MHEWS, tsunami early warning system (InaTEWS), and earthquake early warning system (InaEEWS) through several consulting service contracts that required efficient contract management and technical expertise at the Implementing Agencies (IAs) which relied on the Bank\u2019s technical support. Delays in contracting critical consulting service packages left limited time for review and improvements to the deliverables. These caused a reduction in the coverage of certain systems in terms of numbers of cities, hazards, and/or simulation scenarios, leading to less ideal system design and at least one relevant result indicator not being achieved.",
+   "url": "https://documents.worldbank.org/curated/en/099062926143535833/pdf/BOSIB-294ea0aa-edda-4a18-86d5-65fa8a020a88.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113637:117",
+   "docId": "40113637",
+   "projectId": "P170874",
+   "projectName": "Indonesia Disaster Resilience Initiatives Project (IDRIP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - Disaster Resilience Initiatives Project\u00a0\u00a0\n",
+   "section": "C. Efficiency",
+   "quote": "33. Assessment of aspects of design and implementation. There were changes to the scope and allocation of project funds during implementation, including revisions to component activities and a partial loan cancellation, which required two restructurings and adversely affected implementation efficiency. The cancellation was partly strategic \u2013 avoiding spending on activities that could not be completed in time \u2013 but it reflects ambitious planning at entry and some inefficiencies in procurement and startup. On the positive side, the project was implemented at about 17 percent lower cost and over a slightly longer implementation period (60 months instead of 50 months) than was estimated at appraisal. Administrative costs accounted for about 1.4 percent of the total project cost at completion, in line with the administration costs of other recent Bank-financed projects in Indonesia.",
+   "url": "https://documents.worldbank.org/curated/en/099062926143535833/pdf/BOSIB-294ea0aa-edda-4a18-86d5-65fa8a020a88.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40112137:207",
+   "docId": "40112137",
+   "projectId": "P146830",
+   "projectName": "OMVG Interconnection Project",
+   "countryCode": "3W",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "The Gambia, Guinea, Guinea-Bissau, Senegal - OMVG Interconnection Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "Procurement Plan remained slow and documentation quality required consistent improvement. From October 2020, performance was rated Moderately Satisfactory as contracts were regularized and outstanding claims prioritized, though gaps persisted in the recruitment of O&M operators, documentation archiving, and adherence to payment schedules. At project closing in June 2025, procurement remained Moderately Satisfactory, with the World Bank recommending finalization of outstanding contracts, termination of those that could not be executed, and timely submission of all contract modifications.",
+   "url": "https://documents.worldbank.org/curated/en/099062426204526346/pdf/BOSIB-6b92f372-724e-4687-9ef0-da35498f0056.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40112137:181",
+   "docId": "40112137",
+   "projectId": "P146830",
+   "projectName": "OMVG Interconnection Project",
+   "countryCode": "3W",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "The Gambia, Guinea, Guinea-Bissau, Senegal - OMVG Interconnection Project",
+   "section": "B. Key Factors During Implementation",
+   "quote": "68. The transition from the first to the second phase of commercializing excess fiber-optic capacity experienced significant delays, primarily due to prolonged negotiations between OMVG and the consultant over the terms and budget of the second-phase contract. This disagreement stemmed from a misalignment between the financing initially planned for the second phase and the higher funding requested by the consultant, which involved a proposed change in contract type. OMVG therefore requested the World Bank\u2019s review to resolve the issue, a process that required additional time. By the time of project closure, the activity had reached the evaluation and pre-qualification stage. Moving forward, the World Bank team is coordinating closely with the (WARDIP, P176932) team to take over this activity and implement it in collaboration with the OMVG.",
+   "url": "https://documents.worldbank.org/curated/en/099062426204526346/pdf/BOSIB-6b92f372-724e-4687-9ef0-da35498f0056.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40112137:173",
+   "docId": "40112137",
+   "projectId": "P146830",
+   "projectName": "OMVG Interconnection Project",
+   "countryCode": "3W",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "The Gambia, Guinea, Guinea-Bissau, Senegal - OMVG Interconnection Project",
+   "section": "B. Key Factors During Implementation",
+   "quote": "60. Limited implementation of recommendations and a lack of proactivity by the PIU resulted in significant delays. The 2019 World Bank guidance recommended anticipating amendments to technical specifications and addressing them on an ongoing basis prior to contract awards. As six years elapsed between the completion of feasibility studies and the award of construction contracts, it was anticipated that some technical specifications would become outdated and misaligned with requirements from each country\u2019s Transmission System Operator (TSO). These guidelines were not implemented by the PIU and its OE, requiring design realignment and preventing contractors from commencing work, which in turn led to claims and additional delays.",
+   "url": "https://documents.worldbank.org/curated/en/099062426204526346/pdf/BOSIB-6b92f372-724e-4687-9ef0-da35498f0056.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40112137:205",
+   "docId": "40112137",
+   "projectId": "P146830",
+   "projectName": "OMVG Interconnection Project",
+   "countryCode": "3W",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "The Gambia, Guinea, Guinea-Bissau, Senegal - OMVG Interconnection Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "Procurement 88. Procurement performance evolved gradually over the life of the project, reflecting both improvements in compliance with Bank rules and persistent challenges in executing key contracts. Initial capacity gaps were partially addressed in October 2017 with the recruitment of two procurement specialists, though implementation of the 29 Syst\u00e8me Comptable et de Contr\u00f4le de la Banque Nationale de L\u2019\u00c9tat, SYCEBNL",
+   "url": "https://documents.worldbank.org/curated/en/099062426204526346/pdf/BOSIB-6b92f372-724e-4687-9ef0-da35498f0056.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40114471:432",
+   "docId": "40114471",
+   "projectId": "P162297",
+   "projectName": "Strengthening Foundations for Learning Project",
+   "countryCode": "TN",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Tunisia - Strengthening Foundations for Learning Project\n",
+   "section": "C. Bank Performance",
+   "quote": "centralize school supplies procurement under a single general contract, replacing 26 separate CRE-level procedures with a single consolidated process, as well as a direct agreement with UNOPS (a US$10 million international contract signed in January 2025), which significantly accelerated implementation. While earlier intervention on some bottlenecks could have reduced delays during the initial phases, the Bank's responsiveness and adaptive approach ultimately enabled the project to maintain momentum toward its objectives. Justification of Overall Rating of Bank Performance 75. Based on the analysis presented above, the Bank\u2019s overall performance is rated Moderately Satisfactory.",
+   "url": "https://documents.worldbank.org/curated/en/099063026154510648/pdf/BOSIB-28a98d21-2216-46e5-bea0-17b2ae1f7bda.pdf",
+   "procGroups": [
+    "GO"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40114471:431",
+   "docId": "40114471",
+   "projectId": "P162297",
+   "projectName": "Strengthening Foundations for Learning Project",
+   "countryCode": "TN",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Tunisia - Strengthening Foundations for Learning Project\n",
+   "section": "C. Bank Performance",
+   "quote": "74. The Bank provided strong fiduciary support throughout project implementation, with procurement management remaining a consistent focus of supervision. Recognizing that procurement risk had been flagged as Substantial at appraisal, the team invested in capacity building with implementing agencies while proactively identifying solutions to address project needs as they evolved. This included the aggregation of contracts to",
+   "url": "https://documents.worldbank.org/curated/en/099063026154510648/pdf/BOSIB-28a98d21-2216-46e5-bea0-17b2ae1f7bda.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40111933:132",
+   "docId": "40111933",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lebanon - Lake Qaraoun Pollution Prevention Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "several contractors became insolvent due to Lebanon's financial crisis \u2014 necessitating contract terminations and re-tendering. These issues led to increasing risk rating to High and performance rating of Moderately Unsatisfactory. Despite these difficulties, CDR demonstrated improved commitment over the course of four restructurings, and with improved contract management, and reduced delays in payments, the procurement rating was ultimately upgraded to Substantial and eventually Moderate risk rating and Satisfactory performance rating in the final ISR, by which point all major works contracts were awarded and most consultancy contracts delivered.",
+   "url": "https://documents.worldbank.org/curated/en/099062426121555045/pdf/BOSIB-f73d40d2-8802-410b-acf5-f61b31cd783c.pdf",
+   "procGroups": [
+    "CW",
+    "CS"
+   ],
+   "score": 7
+  },
+  {
+   "id": "40111933:140",
+   "docId": "40111933",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lebanon - Lake Qaraoun Pollution Prevention Project",
+   "section": "V. Lessons And Recommendations",
+   "quote": "64) In FCV context, flexibility in implementation and procurement arrangements is crucial. Lebanon's financial crisis, COVID-19, the Beirut port explosion, and sever security disruptions collectively tested every aspect of the project's implementation arrangements. The project went through mid-course adjustments to the original design via inclusion of facility refurbishment under Component 3 and the extension of support to cover O&M of WWTPs, based on the demand from the GoL. The most effective procurement adaptation was the split of large works packages into smaller, more manageable contracts. Future projects in FCV environments can build similar procurement approach into project design from the outset, including provisions for contract splitting, alternative procurement methods, and advance payment arrangements that accommodate cash- constrained contractors.",
+   "url": "https://documents.worldbank.org/curated/en/099062426121555045/pdf/BOSIB-f73d40d2-8802-410b-acf5-f61b31cd783c.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40111933:130",
+   "docId": "40111933",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lebanon - Lake Qaraoun Pollution Prevention Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "55) Procurement. Procurement was managed by CDR with support from the Bank's Procurement Specialist in the Beirut country office. At appraisal, the risk rating was assessed as Moderate. However, performance proved to be a persistent challenge throughout implementation: CDR's internal administrative processes were slow, contract amendments and extensions were often handled retroactively, the STEP system was not consistently updated, and",
+   "url": "https://documents.worldbank.org/curated/en/099062426121555045/pdf/BOSIB-f73d40d2-8802-410b-acf5-f61b31cd783c.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40111933:206",
+   "docId": "40111933",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lebanon - Lake Qaraoun Pollution Prevention Project",
+   "section": "Annex 6. Borrower, Co-Financier And Other Partner/Stakeholder Comments",
+   "quote": "On implementation delays, the LRA recommended a more balanced assessment in the ICR, recognizing that while external shocks played a role, a significant portion of early delays stemmed from procurement, coordination, and project management factors. More broadly, it observed that some expenditures \u2014 particularly consultancies and studies \u2014 delivered limited practical value relative to their cost, and that institutional strengthening was underweighted in the budget. Future operations would benefit from greater focus on implementation efficiency, value for money in technical assistance, and directing resources toward interventions with measurable and sustainable outcomes.",
+   "url": "https://documents.worldbank.org/curated/en/099062426121555045/pdf/BOSIB-f73d40d2-8802-410b-acf5-f61b31cd783c.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40114321:123",
+   "docId": "40114321",
+   "projectId": "P170850",
+   "projectName": "Energy and Mineral Sectors Strengthening Project II",
+   "countryCode": "BR",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Brazil - Second Energy and Mineral Sectors Strengthening Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "procurement approaches, and capacity-building activities among implementing agencies. As a result, procurement performance improved, with agencies demonstrating greater familiarity with Bank procedures, better procurement planning aligned with available budgets, and more effective contract management practices. In May 2024, the Borrower requested the partial cancellation of the Loan, in the amount of US$ 31,014,125. This resulted in the cancellation of 16 ongoing processes at that time (ANM - 06, CCEE - 02, CPRM - 01, EPE - 02, ONS - 04 and MME - 01) and the termination of one contract.",
+   "url": "https://documents.worldbank.org/curated/en/099063026130533555/pdf/BOSIB-f5a67ec1-3f77-4e41-9edf-afdbccaee274.pdf",
+   "procGroups": [],
+   "score": 7
+  },
+  {
+   "id": "40114321:187",
+   "docId": "40114321",
+   "projectId": "P170850",
+   "projectName": "Energy and Mineral Sectors Strengthening Project II",
+   "countryCode": "BR",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Brazil - Second Energy and Mineral Sectors Strengthening Project\n",
+   "section": "Annex 4. Efficiency Analysis",
+   "quote": "Disbursement Performance The low disbursement rate reflects the combined effect of: (i) a 15-month delay between Board Approval (May 2020) and project effectiveness (August 2021), due in part to the COVID-19 pandemic, which also dismantled the original high- capacity Project Implementation Unit; (ii) Brazil's fiscal consolidation framework, which severely constrained the implementing agencies' ability to hire consultants and contract studies under the project; and (iii) the complete cancellation of planned activities under four of the eight participating institutions \u2014 EPE, ANM, ANP, ANEEL - leaving only CCEE, ONS, CPRM/SGB, and SPOA/MME as active executors. Of the 34 cancelled subprojects, 25 had fully elaborated ToRs at the time of cancellation, confirming that the failure was one of institutional and fiscal follow-through rather than technical preparation.",
+   "url": "https://documents.worldbank.org/curated/en/099063026130533555/pdf/BOSIB-f5a67ec1-3f77-4e41-9edf-afdbccaee274.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40111448:169",
+   "docId": "40111448",
+   "projectId": "P160930",
+   "projectName": "Lao PDR Southeast Asia Disaster Risk Management Project",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lao People\u2019s Democratic Republic - Southeast Asia Disaster Risk Management Project ",
+   "section": "Environmental, Social, And Fiduciary Compliance",
+   "quote": "Procurement 72. Procurement performance is rated Moderately Satisfactory. A total of 120 procurement activities were carried out over the course of the project, with all contracts successfully signed and closed by project\u2019s financial closing. Procurement represented the most persistent fiduciary challenge throughout implementation, particularly under Component 2 managed by the DMH. The Neo platform contract with CSF was marked by recurring contract management challenges: the contractor consistently failed to meet deliverable requirements and provide adequate technical advisory support, while DMH exercised insufficient oversight and due diligence. These weaknesses contributed to a downgrade of the procurement rating to",
+   "url": "https://documents.worldbank.org/curated/en/099062326100041537/pdf/BOSIB-26894a63-15bb-4a41-86f7-8cc930a19333.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 9
+  },
+  {
+   "id": "40111448:352",
+   "docId": "40111448",
+   "projectId": "P160930",
+   "projectName": "Lao PDR Southeast Asia Disaster Risk Management Project",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lao People\u2019s Democratic Republic - Southeast Asia Disaster Risk Management Project ",
+   "section": "Lao People'S Democratic Republic",
+   "quote": "Technical Note The PMU confirms the procurement challenges. The Neo platform contract difficulties were compounded by ToR ambiguity (deliverable specifications were not sufficiently precise to support enforcement and payment milestones were not tied to measurable functional acceptance criteria). DMH lacked dedicated contract management capacity and no contract supervision support was built into the implementation structure. The ICR should recommend that SEADRM-II include: (i) enforceable milestone-based payment structures in all major technical contracts; (ii) functional acceptance criteria for all ICT/software deliverables; and (iii) dedicated contract management support for agencies with limited procurement capacity.",
+   "url": "https://documents.worldbank.org/curated/en/099062326100041537/pdf/BOSIB-26894a63-15bb-4a41-86f7-8cc930a19333.pdf",
+   "procGroups": [],
+   "score": 7
+  },
+  {
+   "id": "40111448:350",
+   "docId": "40111448",
+   "projectId": "P160930",
+   "projectName": "Lao PDR Southeast Asia Disaster Risk Management Project",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lao People\u2019s Democratic Republic - Southeast Asia Disaster Risk Management Project ",
+   "section": "Lao People'S Democratic Republic",
+   "quote": "3.3 Procurement and Contract Management ICR Reference Section IV, Compliance \u2014 Procurement: 'Procurement represented the most persistent fiduciary challenge throughout implementation, particularly under Component 2 managed by the DMH. The contract for the Neo platform with CSF presented recurring contract management difficulties, characterized by the contractor's failure to meet deliverable requirements and insufficient oversight exercised by DMH.'",
+   "url": "https://documents.worldbank.org/curated/en/099062326100041537/pdf/BOSIB-26894a63-15bb-4a41-86f7-8cc930a19333.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 7
+  },
+  {
+   "id": "40111448:367",
+   "docId": "40111448",
+   "projectId": "P160930",
+   "projectName": "Lao PDR Southeast Asia Disaster Risk Management Project",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Lao People\u2019s Democratic Republic - Southeast Asia Disaster Risk Management Project ",
+   "section": "Lao People'S Democratic Republic",
+   "quote": "Technical Note The PMU confirms that the delay in detailed design (which did not begin until the design and supervision consultant was procured in late 2019) had cascading effects on the entire Component 1 implementation timeline. The PMU adds that this delay was compounded by DOW's limited capacity to prepare the procurement documentation for the design consultancy, which the Bank's supervision team was slow to identify as requiring urgent support. The ICR should acknowledge that early supervision missions under- prioritized procurement readiness for Component 1 relative to the component's share of total project financing.",
+   "url": "https://documents.worldbank.org/curated/en/099062326100041537/pdf/BOSIB-26894a63-15bb-4a41-86f7-8cc930a19333.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40114103:323",
+   "docId": "40114103",
+   "projectId": "P159974",
+   "projectName": "Enhancement and Strengthening of Power Transmission Network in Eastern Region",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Bangladesh - Enhancement and Strengthening of Power Transmission Network in Eastern Region Project : Additional Financing\n",
+   "section": "A. Context At Appraisal",
+   "quote": "assets; deployment of a computerized financial management system (GOB US$0.63 million), including software configuration and ERP interfacing; and enhanced project supervision and bid evaluation (IDA SUF US$3.42 million), notably through the recruitment of an Owner\u2019s Engineer for 400 kV substations and an independent procurement consultant to support internationally competitive procurement, contract management, and field supervision. 17.",
+   "url": "https://documents.worldbank.org/curated/en/099063026095538943/pdf/BOSIB-f2e9e825-340f-4183-bd30-7da65cad6b44.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40114103:327",
+   "docId": "40114103",
+   "projectId": "P159974",
+   "projectName": "Enhancement and Strengthening of Power Transmission Network in Eastern Region",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Bangladesh - Enhancement and Strengthening of Power Transmission Network in Eastern Region Project : Additional Financing\n",
+   "section": "A. Context At Appraisal",
+   "quote": "Five Services contracts with five different consultants/contractors from: Italy, denominated in Euro for a total amount of EUR 906,322; Korea, denominated in USD, for a total amount of USD 3.11 million; and Bangladesh denominated in Bangladeshi Taka, for a total amount of BDT 189.90 million (including both a contract denominated in BDT and other foreign currency-denominated contracts price adjustment in BDT). One of these service contracts was paid by PGCB\u2019s own funds (for E&S surveys, and other E&S plans and assessments).",
+   "url": "https://documents.worldbank.org/curated/en/099063026095538943/pdf/BOSIB-f2e9e825-340f-4183-bd30-7da65cad6b44.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40114103:325",
+   "docId": "40114103",
+   "projectId": "P159974",
+   "projectName": "Enhancement and Strengthening of Power Transmission Network in Eastern Region",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Bangladesh - Enhancement and Strengthening of Power Transmission Network in Eastern Region Project : Additional Financing\n",
+   "section": "A. Context At Appraisal",
+   "quote": "Seven Engineering-Procurement-Construction (EPC) packages with six different contractors from: Italy with a contract denominated in Euro, for an original amount of EUR 7.12 million; Korea, Malaysia and China, all denominated in USD, for an original amount of USD 302.79 million. All contract values were amended to reflect an increase in cost throughout Project implementation for a total amount of BDT 3.93 billion.",
+   "url": "https://documents.worldbank.org/curated/en/099063026095538943/pdf/BOSIB-f2e9e825-340f-4183-bd30-7da65cad6b44.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40111124:190",
+   "docId": "40111124",
+   "projectId": "P160739",
+   "projectName": "Maldives Clean Environment Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Clean Environment Project\u00a0\n",
+   "section": "Environmental, Social, And Fiduciary Compliance",
+   "quote": "72. Procurement. Procurement risks were experienced throughout the project, reflecting market constraints, contract management challenges, and delays in Central Tender Board reviews. Overall, procurement performance was rated either Satisfactory or Moderately Satisfactory in all ISMs, except for one period that was affected by delays and gaps in STEP reporting. Procurement post-reviews indicated variability in bid pricing relative to estimates, underscoring the need to strengthen cost estimation and market analysis in small-island contexts.",
+   "url": "https://documents.worldbank.org/curated/en/099062226103542177/pdf/BOSIB-de1bbff4-6ecd-4745-98fe-8231c63394d8.pdf",
+   "procGroups": [],
+   "score": 9
+  },
+  {
+   "id": "40111124:308",
+   "docId": "40111124",
+   "projectId": "P160739",
+   "projectName": "Maldives Clean Environment Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Clean Environment Project\u00a0\n",
+   "section": "Annex 7. Vandhoo Regional Waste Management Center (Rwmc)",
+   "quote": "\u2022 The WtE boiler suffered repeated serious failures including water leakage, requiring a manual bypass to enable limited commissioning. Continuous 24/7 operation was never sustained. \u2022 WAMCO operated the incinerator only on single shifts due to staffing constraints, causing repeated heating-cooling cycles that accelerated refractory wear and increased fuel costs. \u2022 Critical spare parts procurement \u2014 routed through INTEC (the equipment supplier) was delayed due to NTB (National Tender Board) procurement processes, thin supplier interest, and delayed negotiations. \u2022 The waste sorting line and automated fire safety system \u2014 financed by the Abu Dhabi Fund for Development (ADFD) were delayed under NTB processes and remained pending at closure.",
+   "url": "https://documents.worldbank.org/curated/en/099062226103542177/pdf/BOSIB-de1bbff4-6ecd-4745-98fe-8231c63394d8.pdf",
+   "procGroups": [
+    "GO"
+   ],
+   "score": 8
+  },
+  {
+   "id": "40111124:172",
+   "docId": "40111124",
+   "projectId": "P160739",
+   "projectName": "Maldives Clean Environment Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Clean Environment Project\u00a0\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "60. External shocks and macro-fiscal challenges, particularly the COVID-19 pandemic, impacted project implementation, disrupted supervision, limited travel, and weakened the contractor market, leading to bid failures and repeated retendering. Inflation during 2021\u20132023 increased bid prices and caused cost overruns, requiring scope reductions and shifting some contracts to Government financing outside the project. Parallel macro-economic",
+   "url": "https://documents.worldbank.org/curated/en/099062226103542177/pdf/BOSIB-de1bbff4-6ecd-4745-98fe-8231c63394d8.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40111124:165",
+   "docId": "40111124",
+   "projectId": "P160739",
+   "projectName": "Maldives Clean Environment Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Maldives - Clean Environment Project\u00a0\n",
+   "section": "B. Key Factors During Implementation",
+   "quote": "55. Government commitment remained strong, reflected in policy reforms (single-use plastics phase-out, waste legislation and reforms), budget allocations for SWM sector, and timely restructuring requests and approvals. Constraints included multi-layer procurement processes leading to repeated retendering, disbursement slumps, regulatory capacity gaps - following the establishment of the URA, and delays in updating policy instruments. A significant constraint was weak contract management for Vandhoo. WAMCO contract lacked enforceable Key Performance Indicators and the Vandhoo operations and repair works were adversely impacted due to its low staff capacities and coordination challenges. These challenges persisted until a change in WAMCO leadership in 2022, following which more focused efforts were initiated to advance the operationalization of the Vandhoo RWMC.",
+   "url": "https://documents.worldbank.org/curated/en/099062226103542177/pdf/BOSIB-de1bbff4-6ecd-4745-98fe-8231c63394d8.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40111934:93",
+   "docId": "40111934",
+   "projectId": "P128050",
+   "projectName": "East-West Roads Project (Almaty-Korgos Section): Western Europe - Western China International Transit Corridor (CAREC - 1b)",
+   "countryCode": "KZ",
+   "region": "Europe and Central Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Kazakhstan - East-West Roads Project (Almaty-Korgos Section) : Western Europe - Western China International",
+   "section": "B. Significant Changes During Implementation (If Applicable)",
+   "quote": "16 The savings resulted due to competitive procurement for several reasons: (i) large-sized lots increased project attractiveness and significant competition by international bidders during procurement led to large discounts over the blue-book estimated value of the project; (ii) World Bank transparent and competitive procurement process, and a reduced risk of non-payment. 17 In 2014, MoTC was merged into Ministry of Investments and Development (MoID). Subsequently, Ministry of Transport (MoT) was re-established in 2023.",
+   "url": "https://documents.worldbank.org/curated/en/099062426122046479/pdf/BOSIB-e95b8c20-73d9-4d95-b7b1-dc2a48328df6.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40109792:811",
+   "docId": "40109792",
+   "projectId": "P163896",
+   "projectName": "National Urban Development Project (NUDP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - National Urban Development Project (NUDP) ",
+   "section": "Economic Analysis",
+   "quote": "Cost savings from bundling small procurement packages and reduction in repeated tenders (NUDP-relevant procurement). The appraisal CBA assumed that NUDP's integrated planning and capital investment prioritization would improve the quality of the city's procurement practices by encouraging the bundling of small construction contracts and reducing the frequency of repeated tenders. It was assumed that NUDP would increase the average construction contract value by 15 percent through bundling of contracts below the IDR 1 billion threshold, and reduce the repeated tender rate by 5 percent points from a baseline of 20.7 percent. These improvements were assumed to generate cost savings through more competitive bidding on larger contracts and reduced administrative costs of repeated tendering.",
+   "url": "https://documents.worldbank.org/curated/en/099061626203031881/pdf/BOSIB-ea740120-2988-4c45-a122-a6fa1b935dc1.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 9
+  },
+  {
+   "id": "40109792:855",
+   "docId": "40109792",
+   "projectId": "P163896",
+   "projectName": "National Urban Development Project (NUDP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - National Urban Development Project (NUDP) ",
+   "section": "Economic Analysis",
+   "quote": "No evidence of benefits from cost savings from improved procurement. The CBA appraisal assumed that NUDP would cause an increase in the average contract value and a reduction in the repeated tender rate in the participating cities from 2022 onwards. The project monitoring system did not measure improvements in the indicators, and there is no other evidence available that suggests that procurement in participating cities resulted in the expected cost savings. LPSE procurement records for the representative city show that the average contract value did not increase from 2022 to 2025, and that the repeat tender rate did not decrease during the same period (see Box A3.1 for details).",
+   "url": "https://documents.worldbank.org/curated/en/099061626203031881/pdf/BOSIB-ea740120-2988-4c45-a122-a6fa1b935dc1.pdf",
+   "procGroups": [],
+   "score": 7
+  },
+  {
+   "id": "40109792:840",
+   "docId": "40109792",
+   "projectId": "P163896",
+   "projectName": "National Urban Development Project (NUDP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - National Urban Development Project (NUDP) ",
+   "section": "Economic Analysis",
+   "quote": "No justification for key assumptions about cost savings from improved tendering. The appraisal document cites no evidence for the assumed increase in average contract values (15 percent) or reduction in the repeated tender rate (a 5 percent point reduction from a baseline of 20.7 percent, which implies a decrease of 24 percent). There is no evidence from comparable projects in Indonesia that integrated planning alone produces reductions of this magnitude in procurement failure rates. More importantly, even if NUDP would have supported all participating cities with the production perfect integrated spatial plans and capital investment priorities, there was no mechanism in the project design that would cause those plans to change how the city's procurement unit packages its construction contracts or reduces re-tendering.",
+   "url": "https://documents.worldbank.org/curated/en/099061626203031881/pdf/BOSIB-ea740120-2988-4c45-a122-a6fa1b935dc1.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40109792:886",
+   "docId": "40109792",
+   "projectId": "P163896",
+   "projectName": "National Urban Development Project (NUDP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Indonesia - National Urban Development Project (NUDP) ",
+   "section": "Conclusion",
+   "quote": "11. Rating and justification. At completion, the EIRR of the project was estimated at 14%, based on benefits estimated for all 23 participating cities. This was substantially lower than the EIRR at appraisal, which was estimated at 41% for a single representative city. The main reasons for the substantial decrease in the EIRR were: (i) no benefits from upfront financing and multi-year tendering and cost savings from procurement (for which there was no evidence, and which were unlikely to materialize given the project\u2019s design), and (ii) a four-year delay in the realization of benefits from improved access to clean water and improved zoning and land-use for housing. Because the \u201cat completion\u201d EIRR remained well above the social discount rate of 6%, and because the project was implemented within budget and only experienced a modest delay, its efficiency was rated \u201csubstantial\u201d.",
+   "url": "https://documents.worldbank.org/curated/en/099061626203031881/pdf/BOSIB-ea740120-2988-4c45-a122-a6fa1b935dc1.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40109568:161",
+   "docId": "40109568",
+   "projectId": "P160463",
+   "projectName": "AP Integrated Irrigation & Agriculture Transformation Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "India - Andhra Pradesh Integrated Irrigation and Agriculture Transformation Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "62. In the first year, competitive bidding was conducted for 221 work packages across all 12 project districts, with an estimated total value of Rs. 321.61 crore (US$38.59m). Contracts were finalized for 210 civil works, totaling Rs. 326.19 crore (US$39.14m). However, from late 2021 through project closing, implementation of contracted works slowed significantly because of non-allocation of funds. This caused delays in contractor payments and became a major implementation bottleneck from 2022 to 2023. Persistent delays in clearing pending contractor bills have continued to impede project implementation.",
+   "url": "https://documents.worldbank.org/curated/en/099061626071527619/pdf/BOSIB-9af9b9b5-a1da-4a83-bd6d-7f54b1f3158c.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40109568:160",
+   "docId": "40109568",
+   "projectId": "P160463",
+   "projectName": "AP Integrated Irrigation & Agriculture Transformation Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "India - Andhra Pradesh Integrated Irrigation and Agriculture Transformation Project\n",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "61. The Project complied with procurement requirements, however, state level fiscal delays, have hindered the progress of work. In response, the project rightsized packages and adjusted timelines while maintaining compliance with procurement procedures. The WRD, through its Project Management Unit (PMU), led implementation of in close coordination with the Departments of Ground Water, Agriculture, Horticulture, and Fisheries. The procurement strategy prioritized civil works for tank rehabilitation. It was complemented by acquiring essential services and low-value goods and equipment. This collaborative approach helped align procurement activities with the project\u2019s multi-sectoral objectives.",
+   "url": "https://documents.worldbank.org/curated/en/099061626071527619/pdf/BOSIB-9af9b9b5-a1da-4a83-bd6d-7f54b1f3158c.pdf",
+   "procGroups": [
+    "CW",
+    "GO",
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40109568:175",
+   "docId": "40109568",
+   "projectId": "P160463",
+   "projectName": "AP Integrated Irrigation & Agriculture Transformation Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "India - Andhra Pradesh Integrated Irrigation and Agriculture Transformation Project\n",
+   "section": "D. Risk To Development Outcome",
+   "quote": "70. Progress in coastal districts was affected by insufficient WUA maintenance, prolonged legal disputes, and low contractor confidence. Delays stemmed from weak payment mechanisms and limited contractor engagement. On-Farm Development (OFD) works, and water-saving technologies are critical for irrigation efficiency. However, scale up was uneven, and flow-measurement devices were not fully installed, limiting effective water management. WUA involvement in component execution and post-handover maintenance was insufficient, weakening ownership and sustainability. In addition, the absence of robust contingency planning constrained implementation during monsoon-related disruptions.",
+   "url": "https://documents.worldbank.org/curated/en/099061626071527619/pdf/BOSIB-9af9b9b5-a1da-4a83-bd6d-7f54b1f3158c.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40110561:105",
+   "docId": "40110561",
+   "projectId": "P168564",
+   "projectName": "Health System Strengthening for Human Capital Development in Eswatini",
+   "countryCode": "SZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Eswatini - Health System Strengthening for Human Capital Development Project",
+   "section": "A. Key Factors During Preparation",
+   "quote": "54. PIU. The PIU was housed within the MOH and was responsible for managing and supporting the MOH technical units that developed technical specifications and terms of reference. This setup responded to the previous experience with the Swaziland Health, HIV/AIDS and Tuberculosis Project (P110156), where the PIU operated (too) independently and lacked sufficient coordination with the MoH. There were two important difficulties in this new setup: First, PIU staff retained their MOH appointments and served dual functions at the PIU and in their original appointments. This resulted in increased job responsibilities and suboptimal allocation of time and effort to Project activities. Second, the MOH technical units had uneven experience and capacity in developing technical specifications and terms of reference for Project-supported activities, resulting in substantial delays in implementation.",
+   "url": "https://documents.worldbank.org/curated/en/099061826174040803/pdf/BOSIB-0d543f36-fec4-4071-9b99-ccb9c3d95cc6.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40109084:80",
+   "docId": "40109084",
+   "projectId": "P162623",
+   "projectName": "Shaanxi Sustainable Towns Development Project",
+   "countryCode": "CN",
+   "region": "East Asia and Pacific",
+   "docType": "Implementation Completion and Results Report",
+   "title": "China - Shaanxi Sustainable Towns Development Project",
+   "section": "I. Project Context And Development Objectives",
+   "quote": "14. Component 4: Project Management (estimated cost at appraisal: US$2.7 million, of which US$1.8 million from IBRD financing; actual cost: US$3.18 million, of which US$2.11 million from IBRD financing): This component supported overall project implementation and management. Planned activities included: (a) procurement and contract management, financial management, and project reporting, (b) design and bid document review; (c) independent monitoring of safeguards implementation; (d) developing a Monitoring and Evaluation (M&E) system; (e) training and workshops for strengthening the capacity of key stakeholders; (f) consulting services and professional staffing support for the regional Collaboration Platform Office.",
+   "url": "https://documents.worldbank.org/curated/en/099061526023038639/pdf/BOSIB-40cdf6ab-7b1d-4f6d-91e6-9f7c40f5018b.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40109389:212",
+   "docId": "40109389",
+   "projectId": "P173103",
+   "projectName": "Central African Republic - Education Sector Plan Support Project",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Central African Republic - Education Sector Plan Support Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "85. Procurement Performance. Based on implementation experience and supervision findings at project closing, the Project\u2019s overall procurement performance was rated Moderately Satisfactory, while the residual procurement risk was assessed as Moderate, reflecting the fragile and conflict\u2011affected operating context. During the early stages of implementation, procurement faced challenges related to limited institutional capacity, difficulties in preparing",
+   "url": "https://documents.worldbank.org/curated/en/099061526153018839/pdf/BOSIB-a5df712a-2126-49ab-8538-d2e23c305751.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40109389:177",
+   "docId": "40109389",
+   "projectId": "P173103",
+   "projectName": "Central African Republic - Education Sector Plan Support Project",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Central African Republic - Education Sector Plan Support Project",
+   "section": "C. Efficiency",
+   "quote": "61. Implementation efficiency was constrained by a combination of contextual and operational factors. Insecurity, access limitations, limited contractor capacity in remote areas, procurement processing delays, and difficult logistical led to end-loaded disbursements, with a disproportionate share of high-value infrastructure and quality-intervention contracts executed in the final stages of implementation. This compressed the time available for completed outputs to translate into measurable PDO-level outcomes by Project closing. While these dynamics are typical of education operations in FCV environments and were anticipated at appraisal, they represent the primary efficiency constraints for this Project.",
+   "url": "https://documents.worldbank.org/curated/en/099061526153018839/pdf/BOSIB-a5df712a-2126-49ab-8538-d2e23c305751.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40109389:223",
+   "docId": "40109389",
+   "projectId": "P173103",
+   "projectName": "Central African Republic - Education Sector Plan Support Project",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Central African Republic - Education Sector Plan Support Project",
+   "section": "C. Bank Performance",
+   "quote": "92. The World Bank\u2019s continuous engagement and adaptive supervision approach were instrumental in supporting implementation and mitigating risks in a fragile and capacity constrained environment. The task team worked closely with the Government to identify and address implementation bottlenecks, including procurement delays, contractor performance issues, fiduciary risks, safeguards compliance, and access constraints affecting work and service delivery. Supervision supported pragmatic adjustments in sequencing and implementation modalities, strengthened PIU capacity, and reinforced fiduciary and safeguards oversight. The decision not to formally",
+   "url": "https://documents.worldbank.org/curated/en/099061526153018839/pdf/BOSIB-a5df712a-2126-49ab-8538-d2e23c305751.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40109389:170",
+   "docId": "40109389",
+   "projectId": "P173103",
+   "projectName": "Central African Republic - Education Sector Plan Support Project",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Central African Republic - Education Sector Plan Support Project",
+   "section": "C. Efficiency",
+   "quote": "56. The Project converted the large majority of available resources into tangible service-delivery outputs and critical system-strengthening investments in a profoundly fragile and conflict-affected environment. Elevated transaction and operating costs associated with insecurity, logistical constraints, and limited contractor capacity, combined with implementation delays and the late execution of major activities, limited the extent to which measurable economic returns could materialize before Project closing. These dynamics are consistent with\u2014and indeed expected in\u2014 education operations implemented in FCV contexts, where procurement, logistics, and supervision are inherently more complex and costly.",
+   "url": "https://documents.worldbank.org/curated/en/099061526153018839/pdf/BOSIB-a5df712a-2126-49ab-8538-d2e23c305751.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40110735:197",
+   "docId": "40110735",
+   "projectId": "P163361",
+   "projectName": "Emission Reductions Program in Sangha and Likouala",
+   "countryCode": "CG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Republic of Congo - Emission Reductions Program in Sangha and Likouala Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "70. Procurement. At closing, the Procurement performance was rated Unsatisfactory. No planning or procurement procedures have been initiated over time. The Terms of Reference for the contracts of the experts to be recruited (environmental safeguards specialist, social safeguards specialist, MRV specialist) remained pending and were never finalized.",
+   "url": "https://documents.worldbank.org/curated/en/099061926093519922/pdf/BOSIB-2e11497e-c451-4c2a-9a93-327f5cb62b82.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40110735:173",
+   "docId": "40110735",
+   "projectId": "P163361",
+   "projectName": "Emission Reductions Program in Sangha and Likouala",
+   "countryCode": "CG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Republic of Congo - Emission Reductions Program in Sangha and Likouala Project",
+   "section": "B. Key Factors During Implementation",
+   "quote": "55. PCU demobilization. All PCU consultant contracts expired in October 2023, and the PRISP project, which had co- financed PCU operations, closed in December 2023. The Coordinator\u2019s contract was not signed until July 2025 and was backdated only to cover November 2023 to October 2024. This was insufficient to restart operations, as no active PCU contracts were in place from November 2024 to December 2025. As a result, the program operated without a functional PCU for about 14 months during what should have been its most intensive phase of MRV reporting. Although the Bank identified key issues early, including the funding gap for PCU staff,",
+   "url": "https://documents.worldbank.org/curated/en/099061926093519922/pdf/BOSIB-2e11497e-c451-4c2a-9a93-327f5cb62b82.pdf",
+   "procGroups": [
+    "CS"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40110735:174",
+   "docId": "40110735",
+   "projectId": "P163361",
+   "projectName": "Emission Reductions Program in Sangha and Likouala",
+   "countryCode": "CG",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Republic of Congo - Emission Reductions Program in Sangha and Likouala Project",
+   "section": "B. Key Factors During Implementation",
+   "quote": "supervision was constrained by the non-renewal of contracts and the loss of essential personnel, particularly MRV and safeguards specialists. These constraints delayed the actions needed to unlock the first ER payment, including updating and consulting on the BSP and completing, consulting on, and disclosing the required safeguards documents. The non-renewal of PCU contracts was the primary bottleneck that led to the Program\u2019s failure.",
+   "url": "https://documents.worldbank.org/curated/en/099061926093519922/pdf/BOSIB-2e11497e-c451-4c2a-9a93-327f5cb62b82.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40109765:98",
+   "docId": "40109765",
+   "projectId": "P161568",
+   "projectName": "Bangladesh Sustainable Coastal and Marine Fisheries",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Bangladesh - Sustainable Coastal and Marine Fisheries Project",
+   "section": "A. Key Factors During Preparation",
+   "quote": "16 Their cancellation during restructuring reflected a strategic reprioritization of resources toward activities with more direct and measurable impact on the PDO indicator. 17 The details of the procurement delay is explained in \u201cKEY FACTORS DURING IMPLEMENTATION\ufffd?.",
+   "url": "https://documents.worldbank.org/curated/en/099061626153516313/pdf/BOSIB-b4ce8af6-c2cb-4dd2-bf54-2fd7568c6b08.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40112358:151",
+   "docId": "40112358",
+   "projectId": "P162042",
+   "projectName": "Investing in Maternal, Child and Adolescent Health",
+   "countryCode": "SN",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Senegal - Investing in Maternal, Child, and Adolescent Health Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "54. Fiduciary Compliance. The project consistently demonstrated moderately satisfactory financial management. The financial arrangements were deemed sufficient and remained the same through various restructurings. Procurement was carried out under World Bank Procurement Regulations, with several significant contracts completed. The main challenge was not non-compliance, but a government-imposed limit on IDA disbursements starting in October 2024, which caused temporary payment suspensions. To address this, the project was restructured to extend the closing date to December 31, 2025, anticipating that an Interim Budget Law (LFR) would soon be approved to allow withdrawals of up to XOF 7.8 billion (about US$13 million), enabling full payments and reaching 100% disbursement.",
+   "url": "https://documents.worldbank.org/curated/en/099062526103014010/pdf/BOSIB-af0beab7-6e7d-4ed6-a450-e6b3a2fb8495.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40108254:180",
+   "docId": "40108254",
+   "projectId": "P160613",
+   "projectName": "Burundi Landscape Restoration and Resilience Project",
+   "countryCode": "BI",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Burundi - Landscape Restoration and Resilience Project\u00a0\n",
+   "section": "Annex 8. Environmental And Social Safeguards, And Fiduciary Compliance",
+   "quote": "Corrective measures included: \u2022 Procurement oversight strengthened from 2022 onward, with accelerated contract approvals and streamlined bidding processes. \u2022 World Bank fiduciary supervision teams provided additional procurement training, ensuring compliance with international standards. \u2022 By 2023, most outstanding contracts were successfully executed, and procurement efficiency significantly improved.",
+   "url": "https://documents.worldbank.org/curated/en/099061026113523883/pdf/BOSIB-2da0cda9-e0b7-4f24-abe1-c7f2e2432a5a.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40108254:179",
+   "docId": "40108254",
+   "projectId": "P160613",
+   "projectName": "Burundi Landscape Restoration and Resilience Project",
+   "countryCode": "BI",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Burundi - Landscape Restoration and Resilience Project\u00a0\n",
+   "section": "Annex 8. Environmental And Social Safeguards, And Fiduciary Compliance",
+   "quote": "\u2022 Delays in contract approvals and misalignment with World Bank guidelines, particularly in 2019\u20132021. \u2022 A contract with the University of Florence was flagged for non-compliance, requiring renegotiation. \u2022 Low procurement capacity in the PIU, leading to slow processing of service agreements and procurements. \u2022 High turnover in procurement staff (2020\u20132022) impacted continuity, delaying key activities.",
+   "url": "https://documents.worldbank.org/curated/en/099061026113523883/pdf/BOSIB-2da0cda9-e0b7-4f24-abe1-c7f2e2432a5a.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40108254:181",
+   "docId": "40108254",
+   "projectId": "P160613",
+   "projectName": "Burundi Landscape Restoration and Resilience Project",
+   "countryCode": "BI",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Burundi - Landscape Restoration and Resilience Project\u00a0\n",
+   "section": "Annex 8. Environmental And Social Safeguards, And Fiduciary Compliance",
+   "quote": "4. Compliance Monitoring and Supervision 4.1 World Bank Supervision and Safeguard Assessments \u2022 Conducted regular supervision missions, ensuring adherence to ESF policies. \u2022 The Mid-Term Review (2022) flagged key implementation gaps, leading to corrective actions on procurement and financial disbursement timelines. \u2022 Environmental and social safeguard compliance was rated moderately satisfactory to satisfactory throughout the project duration. 4.2 Independent Audits and Corrective Actions \u2022 Annual financial and procurement audits identified early bottlenecks in fund utilization. \u2022 Audit recommendations were implemented, particularly regarding contracting processes and financial documentation. \u2022 Strengthened financial controls and procurement mechanisms ensured full compliance by project closure.",
+   "url": "https://documents.worldbank.org/curated/en/099061026113523883/pdf/BOSIB-2da0cda9-e0b7-4f24-abe1-c7f2e2432a5a.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40108298:103",
+   "docId": "40108298",
+   "projectId": "P149952",
+   "projectName": "East-West Highway Corridor Improvement",
+   "countryCode": "GE",
+   "region": "Europe and Central Asia",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Georgia - East-West Highway Corridor Improvement Project",
+   "section": "B. Environmental, Social, And Fiduciary Compliance",
+   "quote": "and complaints were handled through established mechanisms and resolved in a timely manner. Delays in a few packages (mainly due to bid evaluation and supplier performance) were mitigated through time-bound actions. 53. Overall, the project complied with the Bank\u2019s environmental, social, and fiduciary requirements, despite facing significant challenges. The project\u2019s experience underscores the importance of strong institutional capacity, and adaptive, participatory approaches to ensure efficient and effective implementation.",
+   "url": "https://documents.worldbank.org/curated/en/099061026133015873/pdf/BOSIB-a15a6c29-823c-4c02-ad53-82b3cd27a0e5.pdf",
+   "procGroups": [],
+   "score": 3
+  }
+ ]
+}

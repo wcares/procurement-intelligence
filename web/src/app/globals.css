@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f7f5;
+  --foreground: #1c1c1a;
+  --surface: #ffffff;
+  --subtle: #efefec;
+  --line: #e2e2dd;
+  --muted: #6b6b66;
+  --accent: #1f5fbf;
+  --accent-soft: #e6eefa;
+  --risk-high: #b42318;
+  --risk-high-soft: #fdecea;
+  --risk-medium: #a15c07;
+  --risk-medium-soft: #fdf3e2;
+  --risk-low: #1e7a46;
+  --risk-low-soft: #e7f5ec;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111110;
+    --foreground: #ececea;
+    --surface: #1a1a19;
+    --subtle: #242422;
+    --line: #2e2e2c;
+    --muted: #9a9a94;
+    --accent: #7aa7ec;
+    --accent-soft: #1d2a3d;
+    --risk-high: #f38b80;
+    --risk-high-soft: #3a1d1a;
+    --risk-medium: #f0b45c;
+    --risk-medium-soft: #36290f;
+    --risk-low: #6fcf97;
+    --risk-low-soft: #16301f;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-risk-high: var(--risk-high);
+  --color-risk-high-soft: var(--risk-high-soft);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-medium-soft: var(--risk-medium-soft);
+  --color-risk-low: var(--risk-low);
+  --color-risk-low-soft: var(--risk-low-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}

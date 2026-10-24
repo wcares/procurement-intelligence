@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data: regenerate with `python -m procintel.ingest && python -m procintel.model`
+data/cache/
+data/*.duckdb
+data/*.duckdb.wal
+data/raw/
+
+# Next.js (web/ also has its own .gitignore)
+web/node_modules/
+web/.next/
+web/next-env.d.ts
+
+# OS / env
+.DS_Store
+.env
+.env.*
