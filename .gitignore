@@ -19,3 +19,4 @@ web/next-env.d.ts
 .DS_Store
 .env
 .env.*
+.venv-py39

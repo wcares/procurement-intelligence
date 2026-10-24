@@ -11,3 +11,7 @@ beautifulsoup4>=4.12
 rank-bm25>=0.2.2
 litellm>=1.50
 pytest
+# RAG layer; needs Python >= 3.11 (llama-index-llms-litellm)
+llama-index-core>=0.14.25
+llama-index-llms-litellm>=0.8.0
+llama-index-retrievers-bm25>=0.8.0
