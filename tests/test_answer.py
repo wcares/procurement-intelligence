@@ -14,8 +14,9 @@ HITS = [
 
 
 def test_question_words_are_not_evidence():
-    assert answer.supporting("why were what", HITS) == []
-    assert [h.chunk_id for h in answer.supporting("why were contracts terminated", HITS)] == ["d:1"]
+    assert answer.supporting("why were what", HITS) == ([], "terms")
+    hits, how = answer.supporting("why were contracts terminated", HITS)
+    assert [h.chunk_id for h in hits] == ["d:1"] and how == "terms"
 
 
 def test_extractive_quotes_a_source_sentence_verbatim():
@@ -31,13 +32,14 @@ def test_generated_sentences_without_valid_grounded_citations_are_dropped(monkey
         {"text": "Selection of the consultant was slow.", "citations": []}
     ]}"""
     monkeypatch.setattr(answer.llm, "complete", lambda system, user: reply)
-    out = answer.generative("why were contracts terminated", HITS)
+    out, dropped = answer.generative("why were contracts terminated", HITS)
+    assert dropped == 3
     assert out == [{"text": "Contracts were terminated after the contractor abandoned the site.", "citations": [0]}]
 
 
 def test_unparseable_model_output_returns_none(monkeypatch):
     monkeypatch.setattr(answer.llm, "complete", lambda system, user: "I think the contracts failed.")
-    assert answer.generative("why were contracts terminated", HITS) is None
+    assert answer.generative("why were contracts terminated", HITS) == (None, 0)
 
 
 def test_extractive_skips_pointers_fragments_and_weak_sentences():
@@ -71,3 +73,37 @@ def test_cut_model_output_is_an_error_not_an_answer(monkeypatch):
     import pytest
     with pytest.raises(RuntimeError, match="max_tokens"):
         llm.complete("s", "u")
+
+
+def fake_decider(monkeypatch, rule):
+    """Route decide.yes to rule(state) -> probability, and mark the decision model as configured."""
+    from procintel import decide
+    monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
+    monkeypatch.setattr(decide, "yes", lambda state, question, **kw: rule(state))
+
+
+def test_decision_model_selects_evidence_without_shared_words(monkeypatch):
+    # "firms stopped bidding" shares no content word with the consultant passage; the decision model decides
+    fake_decider(monkeypatch, lambda state: 0.9 if "eleven months" in state else 0.1)
+    hits, how = answer.supporting("why did firms stop bidding", HITS)
+    assert how == "decision" and [h.chunk_id for h in hits] == ["d:2"]
+
+
+def test_decision_model_drops_unsupported_generated_sentences(monkeypatch):
+    fake_decider(monkeypatch, lambda state: 0.95 if "abandoned" in state.split("Claim:")[1] else 0.05)
+    reply = '{"sentences": [{"text": "The contractor abandoned the site.", "citations": [1]}, ' \
+            '{"text": "Contracts were terminated after a corruption probe.", "citations": [1]}]}'
+    monkeypatch.setattr(answer.llm, "complete", lambda system, user: reply)
+    out, dropped = answer.generative("why were contracts terminated", HITS, use_decide=True)
+    assert [s["text"] for s in out] == ["The contractor abandoned the site."] and dropped == 1
+
+
+def test_decision_server_failure_falls_back_to_word_overlap(monkeypatch):
+    from procintel import decide
+    monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
+
+    def down(*a, **kw):
+        raise ConnectionError("decision server not running")
+    monkeypatch.setattr(decide, "yes", down)
+    hits, how = answer.supporting("why were contracts terminated", HITS)
+    assert how == "terms" and [h.chunk_id for h in hits] == ["d:1"]

@@ -5,8 +5,12 @@ support returns `unsupported: true` instead of a guess. Two modes:
 
   extractive (no LLM configured)  each sentence is the best-matching sentence of a passage, quoted verbatim;
   generative (procintel.llm)      the model writes sentences as JSON with passage numbers; any sentence
-                                  without a valid citation, or sharing too few words with the passage it
-                                  cites, is dropped. Unparseable output falls back to extractive.
+                                  without a valid citation, or not supported by the passage it cites, is
+                                  dropped. Unparseable output falls back to extractive.
+
+Three checks use a decision model (procintel.decide) when one is configured, and word overlap otherwise or when
+the decision server fails: which retrieved passages count as evidence, which generated sentences their cited
+passages support, and which sentence of a passage best answers the question.
 """
 from __future__ import annotations
 
@@ -19,7 +23,7 @@ from datetime import datetime, timezone
 import Stemmer
 from bm25s.stopwords import STOPWORDS_EN
 
-from procintel import embed, llm
+from procintel import decide, embed, llm
 from procintel.retrieve import Hit, Retriever
 
 _STEM = Stemmer.Stemmer("english")
@@ -32,7 +36,8 @@ _STOP = set(STOPWORDS_EN) | set(
 _ABBREV = r"(?<!\bRs\.)(?<!\bNo\.)(?<!\bUS\.)(?<!\bvs\.)(?<!\bMr\.)(?<!\bDr\.)(?<!\bSt\.)(?<!\be\.g\.)(?<!\bi\.e\.)"
 _SENT = re.compile(r"(?<=[.;])" + _ABBREV + r"\s+(?=[A-Z0-9])")
 MAX_PASSAGES = 5
-GROUNDING_MIN = 0.3  # share of a generated sentence's content stems that must appear in the cited passage
+GROUNDING_MIN = 0.3  # word-overlap fallback: share of a sentence's content stems that must appear in the cited passage
+DECIDE_MIN = 0.5  # decision-model probability needed for "relevant" and "supported"
 
 
 def terms(text: str) -> set[str]:
@@ -50,13 +55,21 @@ def citation(h: Hit) -> dict:
             "countryCode": h.country_code}
 
 
-def supporting(question: str, hits: list[Hit]) -> list[Hit]:
-    """Hits sharing enough of the question's content terms to count as evidence."""
+def supporting(question: str, hits: list[Hit]) -> tuple[list[Hit], str]:
+    """(hits that count as evidence, how that was decided). The decision model judges each passage against the
+    question; without it, a passage must share min(2, |question terms|) content terms with the question."""
+    if decide.available():
+        try:
+            keep = [h for h in hits if decide.yes(f"Question: {question}\nPassage: {h.text}",
+                                                  "Does the passage contain information that helps answer the question?") >= DECIDE_MIN]
+            return keep[:MAX_PASSAGES], "decision"
+        except Exception:  # decision server down: the word-overlap rule still gives a usable evidence set
+            pass
     q = terms(question)
     need = min(2, len(q))
     if need == 0:
-        return []
-    return [h for h in hits if len(q & terms(h.text)) >= need][:MAX_PASSAGES]
+        return [], "terms"
+    return [h for h in hits if len(q & terms(h.text)) >= need][:MAX_PASSAGES], "terms"
 
 
 _IDF: dict[int, dict[str, float]] = {}
@@ -75,23 +88,38 @@ def idf(retriever: Retriever) -> dict[str, float]:
 _POINTER = re.compile(r"\b(?:discussed|described|presented|detailed|see)\b.{0,40}\b(?:section|annex|paragraph|below|above)\b", re.I)
 
 
-def extractive(question: str, hits: list[Hit], weights: dict[str, float] | None = None, n: int = 3) -> list[dict]:
+def _candidates(text: str) -> list[str]:
+    """Sentences of a passage that could stand as a quote: long enough, starting like a sentence, not a pointer."""
+    out = []
+    for sent in _SENT.split(text):
+        sent = sent.strip()
+        if len(sent) >= 40 and (sent[0].isupper() or sent[0].isdigit()) and not _POINTER.search(sent):
+            out.append(sent)
+    return out
+
+
+def extractive(question: str, hits: list[Hit], weights: dict[str, float] | None = None, n: int = 3,
+               use_decide: bool = False) -> list[dict]:
     """The n best sentences across the passages, at most one per passage, each quoted verbatim.
 
-    A sentence must itself share min(2, |question terms|) terms with the question (passage-level overlap is
-    not enough), start like a sentence, and not merely point to another section. Rare terms weigh more."""
+    With use_decide, the decision model scores whether each candidate sentence answers the question (>= DECIDE_MIN).
+    Otherwise a sentence must itself share min(2, |question terms|) terms with the question (passage-level overlap
+    is not enough), and rare terms weigh more."""
     q = terms(question)
     need = min(2, len(q))
     w = weights or {}
     best: dict[int, tuple[float, str]] = {}
     for i, h in enumerate(hits):
-        for sent in _SENT.split(h.text):
-            sent = sent.strip()
-            shared = q & terms(sent)
-            starts_ok = sent[0].isupper() or sent[0].isdigit()
-            if len(shared) < need or len(sent) < 40 or not starts_ok or _POINTER.search(sent):
-                continue
-            score = sum(w.get(t, 1.0) for t in shared)
+        for sent in _candidates(h.text):
+            if use_decide:
+                score = decide.yes(f"Question: {question}\nSentence: {sent}", "Does the sentence answer the question?")
+                if score < DECIDE_MIN:
+                    continue
+            else:
+                shared = q & terms(sent)
+                if len(shared) < need:
+                    continue
+                score = sum(w.get(t, 1.0) for t in shared)
             if score > best.get(i, (0.0, ""))[0]:
                 best[i] = (score, sent)
     top = sorted(best.items(), key=lambda kv: -kv[1][0])[:n]
@@ -106,8 +134,18 @@ Rules:
 - At most 4 sentences."""
 
 
-def generative(question: str, hits: list[Hit]) -> list[dict] | None:
-    """Model-written sentences that survive validation; None when the output is unusable."""
+def _supported(sentence: str, cited: list[Hit], use_decide: bool) -> bool:
+    if use_decide:
+        evidence = "\n\n".join(h.text for h in cited)
+        return decide.yes(f"Passage: {evidence}\nClaim: {sentence}", "Is the claim supported by the passage?") >= DECIDE_MIN
+    st = terms(sentence)
+    cited_terms = set().union(*(terms(h.text) for h in cited))
+    return bool(st) and len(st & cited_terms) / len(st) >= GROUNDING_MIN
+
+
+def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tuple[list[dict] | None, int]:
+    """(model-written sentences that survive validation, number dropped as unsupported); None when the output
+    is unusable. A sentence needs a valid citation and must be supported by what it cites."""
     numbered = "\n\n".join(f"[{i + 1}] ({h.project_id}, {h.section}) {h.text}" for i, h in enumerate(hits))
     raw = llm.complete(_SYSTEM, f"Passages:\n{numbered}\n\nQuestion: {question}")
     m = re.search(r"\{.*\}", raw, re.S)
@@ -116,17 +154,17 @@ def generative(question: str, hits: list[Hit]) -> list[dict] | None:
     except (json.JSONDecodeError, KeyError, TypeError):
         sentences = None
     if not isinstance(sentences, list):
-        return None
-    out = []
+        return None, 0
+    out, dropped = [], 0
     for s in sentences:
         if not isinstance(s, dict) or not isinstance(s.get("text"), str):
             continue
         cites = sorted({c - 1 for c in s.get("citations") or [] if isinstance(c, int) and 1 <= c <= len(hits)})
-        st = terms(s["text"])
-        cited = set().union(*(terms(hits[c].text) for c in cites)) if cites else set()
-        if cites and st and len(st & cited) / len(st) >= GROUNDING_MIN:
+        if cites and _supported(s["text"], [hits[c] for c in cites], use_decide):
             out.append({"text": s["text"].strip(), "citations": cites})
-    return out
+        else:
+            dropped += 1
+    return out, dropped
 
 
 def retrieval_note(hits: list[Hit]) -> str:
@@ -137,29 +175,40 @@ def retrieval_note(hits: list[Hit]) -> str:
 
 
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
-    hits = supporting(question, retriever.search(question, k=12, country=country, proc_group=proc_group))
-    caveats = []
+    hits, judged_by = supporting(question, retriever.search(question, k=12, country=country, proc_group=proc_group))
+    use_decide = judged_by == "decision"
+    checker = f"the decision model {decide.api_base()}" if use_decide else "word overlap"
+    caveats = [] if use_decide or not decide.available() else [
+        "Decision model unavailable; evidence and support were checked by word overlap instead."]
     if not hits:
-        return {"answer": [], "citations": [], "unsupported": True,
-                "meta": meta(["No evaluation passage shares enough terms with the question to count as evidence."])}
+        why = ("The decision model judged none of the retrieved passages relevant to the question." if use_decide
+               else "No evaluation passage shares enough terms with the question to count as evidence.")
+        return {"answer": [], "citations": [], "unsupported": True, "meta": meta(caveats + [why])}
     answer = None
     if llm.available():
         try:
-            answer = generative(question, hits)
+            answer, dropped = generative(question, hits, use_decide)
         except Exception as e:  # model server down, timeout, auth: answer extractively rather than fail
             caveats.append(f"Language model call failed ({type(e).__name__}); showing quoted sentences instead.")
         else:
             if answer is None:
                 caveats.append("Language model output could not be parsed; showing quoted sentences instead.")
             elif not answer:
-                caveats.append(f"{llm.model_name()} found no answer to this question in the retrieved passages.")
+                caveats.append(f"{llm.model_name()} found no supported answer to this question in the retrieved passages.")
             else:
                 caveats.append(f"Sentences written by {llm.model_name()} from the cited passages; each was checked "
-                               "for a valid citation and word overlap with it, which does not prove every detail.")
+                               f"against the passages it cites by {checker}, which does not prove every detail.")
+            if dropped:
+                caveats.append(f"{dropped} generated sentence(s) were dropped because their cited passages did not support them.")
     if answer is None:
-        answer = extractive(question, hits, idf(retriever))
-        caveats.append("Each sentence is quoted verbatim from the cited evaluation passage.")
-    caveats.append(retrieval_note(hits))
+        try:
+            answer = extractive(question, hits, idf(retriever), use_decide=use_decide)
+        except Exception:  # decision server failed mid-request: pick quotes by word overlap
+            answer = extractive(question, hits, idf(retriever))
+            caveats.append("Decision model failed while choosing quotes; quotes were chosen by word overlap.")
+        caveats.append("Each sentence is quoted verbatim from the cited evaluation passage." if answer else
+                       "Related passages were found, but no sentence in them answers the question directly.")
+    caveats.append(retrieval_note(hits) + (" Relevance judged by the decision model." if use_decide else ""))
     used = sorted({c for s in answer for c in s["citations"]})
     remap = {old: new for new, old in enumerate(used)}
     return {
