@@ -96,3 +96,85 @@ def test_list_right_after_a_heading_is_not_a_paragraph():
     )
     chunks = chunk_document(text)
     assert [c.para for c in chunks if c.para] == ["20", "21"]
+
+
+# Header/footer shapes copied from real ICRs (40114321, 40111934, 40130914, 40130423, 40111896)
+def test_wrapped_running_header_is_removed_up_to_the_project_id():
+    page = (
+        "          The World Bank\n"
+        "          East-West Roads project (Almaty-Korgos Section): Western Europe - Western China\n"
+        "          ICR DOCUMENT\n"
+        "          International Transit Corridor (CAREC - 1b) (P128050)\n"
+        "\n"
+        "30.     Two works contracts were re-tendered after the first bids exceeded the cost estimate by a wide margin.\n"
+    )
+    text = " ".join(strip_page_furniture(page))
+    assert "Western China" not in text and "CAREC" not in text
+    assert "re-tendered" in text
+
+
+def test_mixed_case_icr_document_header_and_bare_page_footer_are_removed():
+    page = (
+        "B. FIDUCIARY COMPLIANCE\n"
+        "81. Capacity-building mitigation measures were progressively implemented, including dissemination of appropriate\n"
+        "                                                                                                       Page 19\n"
+    )
+    nxt = (
+        "          The World Bank\n"
+        "          Energy and Mineral Sectors Strengthening Project II (P170850)                                             ICR Document\n"
+        "\n"
+        "procurement approaches, and capacity-building activities among implementing agencies.\n"
+    )
+    chunks = chunk_document(page + "\x0c" + nxt)
+    assert [c.para for c in chunks] == ["81"]
+    assert "Page 19" not in chunks[0].text and "P170850" not in chunks[0].text
+    assert "appropriate procurement approaches" in chunks[0].text
+
+
+def test_page_number_glued_to_body_text_is_stripped_but_references_are_kept():
+    lines = strip_page_furniture(
+        "Page 3 enhanced resilience to climate shocks, as the appraisal document noted (Page 6).\n"
+        "Strictly Confidential                                                        Page 15\n"
+        "Page 1 of 46\n"
+    )
+    assert [l.strip() for l in lines] == ["enhanced resilience to climate shocks, as the appraisal document noted (Page 6)."]
+
+
+def test_project_id_in_body_text_near_page_top_is_not_treated_as_header():
+    page = (
+        "A. CONTEXT AT APPRAISAL\n"
+        "12. The project built on the earlier Rural Roads Project (P112233), whose contractors had the required registration.\n"
+        "13. Procurement of the works followed the same approach and took four months on average for each package.\n"
+    )
+    assert [c.para for c in chunk_document(page)] == ["12", "13"]
+
+
+def test_footer_between_pages_does_not_split_an_unnumbered_block():
+    text = ("C. OUTCOME\nThe roads programme reached all eleven districts and the maintenance contracts were\n"
+            "                    Official Use Only                    Page 8\n\x0c"
+            "awarded through community contracting, which kept unit costs well below the appraisal estimate.\n")
+    chunks = chunk_document(text)
+    assert len(chunks) == 1 and "contracts were awarded through community contracting" in chunks[0].text
+
+
+def test_running_header_without_a_page_break_is_removed():
+    # extraction of 40128492 has no form feed before this header block
+    text = ("A. CONTEXT AT APPRAISAL\n"
+            "5. The city faced recurrent flooding and the drainage works were procured in three large lots.\n"
+            "The World Bank\n"
+            "Benin - Stormwater Management and Urban Resilience Project (P167359) ICR DOCUMENT\n"
+            "Official Use Only\n"
+            "6. Bids for the second lot exceeded the estimate and the lot was re-tendered after a design review.\n")
+    chunks = chunk_document(text)
+    assert [c.para for c in chunks] == ["5", "6"]
+    assert all("P167359" not in c.text and "Stormwater" not in c.text for c in chunks)
+
+
+def test_project_id_in_paragraph_after_header_does_not_extend_the_header():
+    # 40113730: header, blank line, then a numbered paragraph that also mentions the project id
+    page = ("          The World Bank\n"
+            "          COVID-19 Strategic Preparedness and Response Program (SPRP) (P173789)        ICR DOCUMENT\n\n\n"
+            "8. On April 2, 2020, the Board approved the program, utilizing\n"
+            "   the MPA (P173789), and on the same day approved the first 25 projects.\n")
+    text = " ".join(l.strip() for l in strip_page_furniture(page) if l.strip())
+    assert text.startswith("8. On April 2, 2020") and "the MPA (P173789)" in text

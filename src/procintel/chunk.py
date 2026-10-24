@@ -20,9 +20,14 @@ import pandas as pd
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
 MAX_CHARS = 1400
 
-_FOOTER_LINE = re.compile(r"^\s*(?:Official Use Only)?\s*(?:Page \d+)?\s*$")
-_OFFICIAL = re.compile(r"\s*Official Use Only\s*(?:Page \d+)?\s*")
+_FOOTER_LINE = re.compile(r"^\s*(?:Page \d{1,3}(?: of \d{1,3})?)?\s*$")
+_FOOTER_WORDS = re.compile(r"\s*(?:Official Use Only|Strictly Confidential)\s*")
+# pdf-to-text sometimes glues the footer's page number onto the next line: "Page 3 enhanced resilience ..."
+_PAGE_PREFIX = re.compile(r"^\s*Page \d{1,3}(?: of \d{1,3})?\s+(?=\S)")
 _RUNNING_HEADER = re.compile(r"^\s*The World Bank\s*$|ICR DOCUMENT\s*$|\(P\d{6}\)\s*$")
+_HEADER_END = re.compile(r"\(P\d{6}\)|ICR DOCUMENT", re.I)
+_TEMPLATE_MARK = re.compile(r"@#&OPS~")
+HEADER_WINDOW = 5  # the running header (bank name, project title wrapped over 1-3 lines) fits in this many lines
 _FOOTNOTE_MARK = re.compile(r"^\s*\d{1,3}\s*$")
 _PARA_START = re.compile(r"^\s{0,6}(\d{1,3})\.\s+(\S.*)$")
 _HEADING = re.compile(r"^\s*(?:[IVX]+\.|ANNEX\s+\d+\.?|[A-H]\.)?\s*[A-Z][A-Z ,/&()'’:-]{6,90}$")
@@ -42,18 +47,48 @@ class Chunk:
     text: str
 
 
+def _drop_running_header(lines: list[str]) -> list[str]:
+    """Remove each "The World Bank / <project title, possibly wrapped> (P######) ICR Document" block.
+
+    Matched as a block rather than per line, because a wrapped title's first line matches nothing on its own.
+    It usually sits at the top of a page, but some extractions have no form feeds, so it is found anywhere:
+    a line that is exactly "The World Bank", through the last line carrying the project id or "ICR Document"
+    in the unbroken run of lines after it. The run ends at a blank line or a numbered paragraph, so a project
+    id in the body text that follows the header is never taken as the header's end."""
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        if lines[i].strip() == "The World Bank":
+            run = []
+            for j in range(i + 1, min(len(lines), i + HEADER_WINDOW)):
+                if not lines[j].strip() or _PARA_START.match(lines[j]):
+                    break
+                run.append(j)
+            ends = [j for j in run if _HEADER_END.search(lines[j])]
+            i = (ends[-1] if ends else i) + 1
+            continue
+        out.append(lines[i])
+        i += 1
+    return out
+
+
 def strip_page_furniture(page: str) -> list[str]:
     """Lines of one page without running header, footer and the footnote block above the footer.
 
-    "Official Use Only" appears both as the page footer and as a standalone line elsewhere (cover page,
-    top of page), so it is removed line by line; only the footnote cut is positional.
+    Footer words ("Official Use Only", "Strictly Confidential") appear both in the page footer and as
+    standalone lines elsewhere (cover page, top of page), so they are removed line by line; the header block
+    and the footnote cut are positional.
     """
     lines = []
-    for l in page.split("\n"):
-        if "Official Use Only" in l:
-            l = _OFFICIAL.sub(" ", l)
-            if _FOOTER_LINE.match(l):
-                continue
+    for l in _drop_running_header(page.split("\n")):
+        if _TEMPLATE_MARK.search(l):
+            continue
+        had_footer_words = bool(_FOOTER_WORDS.search(l))
+        l = _FOOTER_WORDS.sub(" ", l)
+        # a footer-only line is dropped, not left blank: a blank line would end an unnumbered block mid-passage
+        if _FOOTER_LINE.match(l) and (l.strip() or had_footer_words):
+            continue
+        l = _PAGE_PREFIX.sub("", l)
         if _RUNNING_HEADER.search(l):
             continue
         lines.append(l)
