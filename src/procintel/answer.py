@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 import Stemmer
 from bm25s.stopwords import STOPWORDS_EN
 
-from procintel import llm
+from procintel import embed, llm
 from procintel.retrieve import Hit, Retriever
 
 _STEM = Stemmer.Stemmer("english")
@@ -129,6 +129,13 @@ def generative(question: str, hits: list[Hit]) -> list[dict] | None:
     return out
 
 
+def retrieval_note(hits: list[Hit]) -> str:
+    vias = {v for h in hits for v in h.via.split("+")}
+    if "vector" in vias:
+        return f"Passages found by keyword (BM25) and semantic ({embed.model_name()}) search, merged by rank."
+    return "Passages found by keyword search (BM25)."
+
+
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
     hits = supporting(question, retriever.search(question, k=12, country=country, proc_group=proc_group))
     caveats = []
@@ -144,12 +151,15 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
         else:
             if answer is None:
                 caveats.append("Language model output could not be parsed; showing quoted sentences instead.")
+            elif not answer:
+                caveats.append(f"{llm.model_name()} found no answer to this question in the retrieved passages.")
             else:
                 caveats.append(f"Sentences written by {llm.model_name()} from the cited passages; each was checked "
                                "for a valid citation and word overlap with it, which does not prove every detail.")
     if answer is None:
         answer = extractive(question, hits, idf(retriever))
-        caveats.append("Each sentence is quoted verbatim from the cited evaluation passage (keyword retrieval, BM25).")
+        caveats.append("Each sentence is quoted verbatim from the cited evaluation passage.")
+    caveats.append(retrieval_note(hits))
     used = sorted({c for s in answer for c in s["citations"]})
     remap = {old: new for new, old in enumerate(used)}
     return {

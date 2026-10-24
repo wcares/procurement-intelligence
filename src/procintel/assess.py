@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from procintel.answer import citation, meta, terms
+from procintel.answer import citation, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
 
@@ -44,8 +44,9 @@ def risks(bench: dict, group: str, method: str, t: dict | None, gov: list[dict])
     return out
 
 
-def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str) -> tuple[list[dict], bool]:
-    """(precedents, widened): widened is True when the country had too few passages and all countries were searched."""
+def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str) -> tuple[list[dict], bool, str]:
+    """(precedents, widened, how they were retrieved): widened is True when the country had too few passages and all
+    countries were searched."""
     query = f"{description} {sector} {PROC_GROUP_LABELS.get(group, '')} {_PRECEDENT_TERMS}"
     hits = retriever.search(query, k=5, country=country, proc_group=group)
     widened = len(hits) < 3
@@ -53,7 +54,7 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         seen = {h.chunk_id for h in hits}
         hits += [h for h in retriever.search(query, k=8, proc_group=group) if h.chunk_id not in seen][: 5 - len(hits)]
     if not hits:
-        return [], widened
+        return [], widened, retrieval_note([])
     top = max(h.score for h in hits)
     want = terms(f"{description} {sector}")
     out = []
@@ -64,16 +65,16 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         if shared:
             matched.append("terms: " + ", ".join(shared[:4]))
         out.append({"citation": citation(h), "relevance": round(h.score / top, 3), "matchedOn": matched})
-    return out, widened
+    return out, widened, retrieval_note(hits)
 
 
 def assess(retriever: Retriever, bench: dict, governance: dict, req: dict) -> dict:
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
     t = timeline(bench, group, method)
-    precs, widened = precedents(retriever, country, group, req.get("description") or "", req.get("sector") or "")
+    precs, widened, how = precedents(retriever, country, group, req.get("description") or "", req.get("sector") or "")
     caveats = ["Timeline and risk numbers are statistics over historical World Bank procurement notices in the "
-               "ingested sample; precedents are ICR passages ranked by keyword retrieval (BM25)."]
+               "ingested sample; precedents are ICR evaluation passages.", how]
     if not gov:
         caveats.append("No CPIA governance scores are available for this country.")
     elif (old := min(g["year"] for g in gov)) < date.today().year - STALE_CPIA_YEARS:

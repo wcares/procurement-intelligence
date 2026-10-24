@@ -53,3 +53,21 @@ def test_extractive_prefers_rare_terms_and_one_sentence_per_passage():
                    "Civil works were delayed because the contracts waited for land acquisition.")]
     out = answer.extractive("delays in civil works contracts", hits, {"delay": 5.0})
     assert out == [{"text": "Civil works were delayed because the contracts waited for land acquisition.", "citations": [0]}]
+
+
+def test_retrieval_note_names_the_method_actually_used(monkeypatch):
+    monkeypatch.setenv("PROCINTEL_EMBED_MODEL", "openai/embeddinggemma-2")
+    vec = hit(5, "x"); vec.via = "bm25+vector"
+    assert "semantic (openai/embeddinggemma-2)" in answer.retrieval_note([HITS[0], vec])
+    assert answer.retrieval_note(HITS) == "Passages found by keyword search (BM25)."
+
+
+def test_cut_model_output_is_an_error_not_an_answer(monkeypatch):
+    import types, litellm
+    from procintel import llm
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/x")
+    cut = types.SimpleNamespace(choices=[types.SimpleNamespace(finish_reason="length", message=types.SimpleNamespace(content='{"sente'))])
+    monkeypatch.setattr(litellm, "completion", lambda **kw: cut)
+    import pytest
+    with pytest.raises(RuntimeError, match="max_tokens"):
+        llm.complete("s", "u")
