@@ -67,6 +67,8 @@ class Hit:
     country_code: str
     score: float
     via: str = "bm25"  # "bm25", "vector" or "bm25+vector"
+    tag: str | None = None  # main problem type from procintel.tag, if the passage was tagged
+    tag_confidence: float = 0.0
 
 
 class Retriever:
@@ -78,6 +80,7 @@ class Retriever:
             con.close()
             raise ValueError("no chunks to index; run `python -m procintel.chunk` first")
         self.vectors = embed.load(con, [r[0] for r in rows]) if embed.available() else None
+        tags = _load_tags(con)
         con.close()
         if embed.available() and self.vectors is None:
             log.warning("PROCINTEL_EMBED_MODEL is set but chunk_vec is missing or stale; run `python -m procintel.embed`")
@@ -86,6 +89,7 @@ class Retriever:
         for r in self.records:
             r["country_codes"] = [c or "" for c in r["country_codes"]]  # aligned with project_ids
             r["groups"] = {g for g, rx in GROUP_TERMS.items() if rx.search(r["text"])}
+            r["tag"], r["tag_confidence"] = tags.get(r["chunk_id"], (None, 0.0))
 
         nodes = []
         for r in self.records:
@@ -127,6 +131,7 @@ class Retriever:
                 url=rec["pdf_url"], section=rec["section"], para=rec["para"], kind=rec["kind"], text=rec["text"],
                 project_id=rec["project_ids"][j], project_name=rec["project_names"][j] or "",
                 country_code=rec["country_codes"][j], score=fused[i], via="+".join(found_by[i]),
+                tag=rec["tag"], tag_confidence=rec["tag_confidence"],
             ))
         return hits
 
@@ -143,6 +148,16 @@ class Retriever:
         scores = np.where(mask, self.vectors @ q, -np.inf)
         top = np.argpartition(-scores, min(POOL, len(scores) - 1))[:POOL]
         return [int(i) for i in top[np.argsort(-scores[top])] if np.isfinite(scores[i])]
+
+
+def _load_tags(con: duckdb.DuckDBPyConnection) -> dict[str, tuple[str, float]]:
+    """chunk_id -> (tag, confidence) for tags computed on the passage's current text; {} if never tagged."""
+    if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk_tag'").fetchone():
+        return {}
+    rows = con.execute("""SELECT t.chunk_id, t.tag, t.confidence FROM chunk_tag t JOIN chunk c USING (chunk_id)
+        WHERE t.text_hash = sha256(c.section || chr(0) || c.text)[:16]
+        QUALIFY row_number() OVER (PARTITION BY t.chunk_id ORDER BY t.model) = 1""").fetchall()
+    return {c: (t, conf) for c, t, conf in rows}
 
 
 def _project_index(rec: dict, country: str | None) -> int:

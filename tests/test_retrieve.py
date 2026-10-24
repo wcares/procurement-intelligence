@@ -71,3 +71,18 @@ def test_embedding_failure_falls_back_to_bm25(hybrid, monkeypatch):
     monkeypatch.setattr(embed, "embed", down)
     hits = hybrid.search("contract cancelled terminated")
     assert hits and all(h.via == "bm25" for h in hits)
+
+
+def test_precedents_skip_passages_tagged_as_no_problem(retriever, monkeypatch):
+    from procintel import assess
+    from procintel.tag import NONE
+    tagged = {"d1:0": (NONE, 0.9), "d3:0": ("re-tendering or contract termination", 0.8)}
+    for r in retriever.records:
+        r["tag"], r["tag_confidence"] = tagged.get(r["chunk_id"], (None, 0.0))
+    try:
+        precs, _, _ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+        ids = [p["citation"]["id"] for p in precs]
+        assert "d1:0" not in ids  # confidently "no problem": not a precedent
+    finally:
+        for r in retriever.records:
+            r["tag"], r["tag_confidence"] = None, 0.0

@@ -8,6 +8,12 @@ from datetime import date
 from procintel.answer import citation, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
+from procintel.tag import NONE
+
+# A passage tagged "none of these" at this confidence describes no problem and is not offered as a precedent.
+# Measured over all 18,140 tagged passages: at 0.9 the filter drops 3,549, of which 1.8% mention problem words
+# (delay, termination, cancellation); at 0.5 it would drop 13,049 with 5.6%, several of them real lessons.
+NOT_A_LESSON_MIN = 0.9
 
 STALE_CPIA_YEARS = 5
 # planners describe the package; the ICR passages that help them talk about what went wrong
@@ -44,15 +50,21 @@ def risks(bench: dict, group: str, method: str, t: dict | None, gov: list[dict])
     return out
 
 
+def _lessons(hits: list) -> list:
+    """Drop passages the tagger is confident describe no problem (indicator lists, staffing, outputs); keep untagged."""
+    return [h for h in hits if not (h.tag == NONE and h.tag_confidence >= NOT_A_LESSON_MIN)]
+
+
 def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str) -> tuple[list[dict], bool, str]:
     """(precedents, widened, how they were retrieved): widened is True when the country had too few passages and all
     countries were searched."""
     query = f"{description} {sector} {PROC_GROUP_LABELS.get(group, '')} {_PRECEDENT_TERMS}"
-    hits = retriever.search(query, k=5, country=country, proc_group=group)
+    hits = _lessons(retriever.search(query, k=12, country=country, proc_group=group))[:5]
     widened = len(hits) < 3
     if widened:
         seen = {h.chunk_id for h in hits}
-        hits += [h for h in retriever.search(query, k=8, proc_group=group) if h.chunk_id not in seen][: 5 - len(hits)]
+        more = _lessons(retriever.search(query, k=16, proc_group=group))
+        hits += [h for h in more if h.chunk_id not in seen][: 5 - len(hits)]
     if not hits:
         return [], widened, retrieval_note([])
     top = max(h.score for h in hits)

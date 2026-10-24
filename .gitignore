@@ -20,3 +20,4 @@ web/next-env.d.ts
 .env
 .env.*
 .venv-py39
+!.env.example
