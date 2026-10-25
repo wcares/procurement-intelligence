@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import logging
 import os
 import threading
 import time
@@ -18,14 +19,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import db
-from procintel import config, evaluate, evidence, feedback, feedback_review, predict, rebid, stats, wgi
+from procintel import config, db, evaluate, evidence, feedback, feedback_review, predict, rebid, stats, wgi
 from procintel.answer import ask as run_ask, idf
 from procintel.flag_evidence import FlagEvidence
 from procintel.jobs import store as jobs_store, worker as jobs_worker
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
 from procintel.similar import Similar
+
+log = logging.getLogger(__name__)
 
 ProcGroup = Literal["GO", "CW", "CS", "NC"]
 
@@ -214,17 +216,38 @@ async def lifespan(_: FastAPI):
     for key, err in config.load_saved().items():  # saved settings from the configuration page
         print(f"config: saved value for {key} ignored: {err}")
     state()  # build the index before the first request rather than during it
-    if os.environ.get("PROCINTEL_JOBS", "1") != "0":
+    if JOBS_MODE == "1":
         _worker.start()  # drains the job queue while no requests come in (procintel.jobs)
+    elif JOBS_MODE == "external":  # separate worker processes: reload when one of them changed the data
+        threading.Thread(target=_watch_data_version, name="procintel-data-version", daemon=True).start()
     yield
     _worker.stop()
+    _watch_stop.set()
 
 
 app = FastAPI(title="procintel", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3100", "http://127.0.0.1:3100"],
                    allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type"])
+JOBS_MODE = os.environ.get("PROCINTEL_JOBS", "1")  # 1 = worker thread here, external = separate processes, 0 = none
+VERSION_POLL_SECONDS = 15
 _activity = jobs_worker.Activity()
+_publisher = jobs_worker.ActivityPublisher() if JOBS_MODE == "external" else None
 _worker = jobs_worker.Worker(_activity, {"reload": lambda: reload_state()})
+_watch_stop = threading.Event()
+_loaded_version: dict[str, str | None] = {"version": None}  # data version this backend has loaded (external mode)
+
+
+def _watch_data_version() -> None:
+    _loaded_version["version"] = jobs_store.data_version()
+    while not _watch_stop.wait(VERSION_POLL_SECONDS):
+        try:
+            v = jobs_store.data_version()
+            if v != _loaded_version["version"]:
+                print(f"data version {v}: reloading", flush=True)
+                reload_state()
+                _loaded_version["version"] = v
+        except Exception:  # noqa: BLE001 - try again on the next poll
+            log.exception("data version check failed")
 
 
 @app.middleware("http")
@@ -232,6 +255,8 @@ async def mark_activity(request: Request, call_next):
     """Every user request postpones background jobs; health checks and the jobs list itself do not."""
     if not (request.url.path == "/health" or (request.url.path == "/jobs" and request.method == "GET")):
         _activity.touch()
+        if _publisher:
+            _publisher.touch()
     return await call_next(request)
 
 
@@ -398,7 +423,9 @@ class JobRequest(BaseModel):
 def get_jobs() -> dict:
     return {"jobs": jobs_store.recent(), "idleSeconds": round(_activity.idle_for()),
             "runAfterIdleSeconds": jobs_worker.IDLE_SECONDS, "running": _worker.current,
-            "workerOn": _worker.thread is not None and _worker.thread.is_alive()}
+            "workerOn": JOBS_MODE == "external" or (_worker.thread is not None and _worker.thread.is_alive()),
+            "workerMode": {"1": "thread", "external": "external"}.get(JOBS_MODE, "off"),
+            "dataVersion": _loaded_version["version"]}
 
 
 @app.post("/jobs")

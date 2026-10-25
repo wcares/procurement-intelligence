@@ -97,7 +97,12 @@ Preconditions, in order:
 2. **One data-location setting** (see the audit above).
 3. **Postgres and Qdrant behind the storage and vector interfaces.** DuckDB allows one writing process, so separate api
    and worker containers, or several workers, cannot share it.
-4. **Worker as its own process.** Today it is a thread in the api process.
+4. **Worker as its own process.** DONE (2026-10-25): `PROCINTEL_JOBS=external` in the api and
+   `python -m procintel.jobs.worker` per worker (needs Postgres). Jobs are claimed in one Postgres statement
+   (`FOR UPDATE SKIP LOCKED`, retried on a serialization conflict), each step writes a heartbeat so a starting worker
+   only takes back jobs of stopped workers, the api records the last request time for the workers' idle wait, and a
+   worker raises a data version that every api replica polls and reloads on. Checked: 4 processes claimed 40 jobs
+   three times, each job exactly once; a separate worker ran a queued retrain and the api reloaded within 25 s.
 
 Models in containers on a Mac run on the CPU only (Docker has no Apple GPU access), too slow for the 27B answer model;
 Docker runs through Colima (installed 2026-10-25, the user's choice;

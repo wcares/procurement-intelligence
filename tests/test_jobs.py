@@ -81,3 +81,33 @@ def test_a_failed_refresh_fails_the_job_without_stopping_the_worker(tmp_path, mo
     assert worker.run_one(store.next_pending(db), worker.Activity(Clock()), {}, db) == "pending"   # retried later
     [j] = store.recent(db_path=db)
     assert "refresh failed" in j["error"] and j["attempts"] == 1
+
+
+def test_shared_activity_meta_and_stale_recovery(tmp_path):
+    from datetime import datetime, timezone
+    db = tmp_path / "jobs.duckdb"
+    act = worker.SharedActivity(db)
+    assert act.idle_for() == float("inf")                                  # no request recorded yet
+    store.touch_activity(db)
+    assert 0 <= act.idle_for() < 5 and abs(act.last - datetime.now(timezone.utc).timestamp()) < 5
+    assert store.data_version(db) is None
+    v = store.bump_version(db)
+    assert store.data_version(db) == v and store.bump_version(db) != v
+    a = store.enqueue("drift_check", "t", db_path=db)
+    assert store.next_pending(db, "w1")["worker"] == "w1"
+    assert store.recover(db, stale_only=True) == 0                         # fresh heartbeat: a live worker's job
+    con = store._connect(db)
+    con.execute("UPDATE jobs SET heartbeat_at = heartbeat_at - INTERVAL 2 HOUR WHERE id = ?", [a])
+    con.close()
+    assert store.recover(db, stale_only=True) == 1                         # its worker stopped: back to pending
+
+
+def test_activity_publisher_writes_at_most_once_per_interval(tmp_path, monkeypatch):
+    clock = Clock()
+    writes = []
+    monkeypatch.setattr(store, "touch_activity", lambda db_path=None: writes.append(clock.t))
+    p = worker.ActivityPublisher(every=10, clock=clock)
+    for t in (0, 3, 9, 10, 11, 25):
+        clock.t = t
+        p.touch()
+    assert writes == [0, 10, 25]

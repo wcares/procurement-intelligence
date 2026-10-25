@@ -65,8 +65,10 @@ def copy_to_postgres() -> dict[str, int]:
             con.execute(f'DROP TABLE IF EXISTS pg."{schema}"."{t}"')
             cols = con.execute("SELECT column_name, data_type FROM duckdb_columns() WHERE database_name = 'src' "
                                "AND table_name = ? ORDER BY column_index", [t]).fetchall()
-            # Postgres has no unnamed composite types: struct columns travel as JSON
-            sel = ", ".join(f'to_json("{c}") AS "{c}"' if "STRUCT" in ty else f'"{c}"' for c, ty in cols)
+            # Postgres has no unnamed composite types: struct columns travel as JSON text; JSON columns become text too,
+            # because the extension cannot update a Postgres json column (it sends text, which Postgres refuses)
+            sel = ", ".join(f'to_json("{c}")::VARCHAR AS "{c}"' if "STRUCT" in ty
+                            else f'"{c}"::VARCHAR AS "{c}"' if ty == "JSON" else f'"{c}"' for c, ty in cols)
             con.execute(f'CREATE TABLE pg."{schema}"."{t}" AS SELECT {sel} FROM src."{t}"')
             counts[f"{schema}.{t}"] = con.execute(f'SELECT count(*) FROM pg."{schema}"."{t}"').fetchone()[0]
         con.close()
