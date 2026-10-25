@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import config, evidence, feedback, predict, rebid, stats
+from procintel import config, evaluate, evidence, feedback, predict, rebid, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.flag_evidence import FlagEvidence
 from procintel.assess import assess as run_assess
@@ -286,6 +286,57 @@ def put_config(req: ConfigUpdate) -> dict:
     if errors:
         return JSONResponse({"error": "invalid settings", "detail": errors}, status_code=400)
     return {"settings": config.listing()}
+
+
+class ProfileSave(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+
+
+class ProfileApply(BaseModel):
+    save: bool = False
+
+
+class CompareRequest(BaseModel):
+    values: dict[str, str | int | float]
+
+
+@app.get("/config/profiles")
+def get_profiles() -> dict:
+    return {"profiles": config.profiles()}
+
+
+@app.post("/config/profiles")
+def post_profile(req: ProfileSave) -> dict:
+    try:
+        config.save_profile(req.name)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return {"profiles": config.profiles()}
+
+
+@app.post("/config/profiles/{name}/apply", response_model=ConfigResponse)
+def apply_profile(name: str, req: ProfileApply) -> dict:
+    errors = config.apply_profile(name, save=req.save)
+    if errors:
+        return JSONResponse({"error": "profile not applied", "detail": errors}, status_code=400)
+    return {"settings": config.listing()}
+
+
+@app.delete("/config/profiles/{name}")
+def delete_profile(name: str) -> dict:
+    if not config.delete_profile(name):
+        return JSONResponse({"error": "no profile with this name"}, status_code=404)
+    return {"profiles": config.profiles()}
+
+
+@app.post("/config/compare")
+def post_compare(req: CompareRequest) -> dict:
+    """Search quality under the current settings and under the given values (not applied): keyword and hybrid
+    precision@5 and recall@10 over the evaluation questions. Answers are not re-run (that takes about 90 minutes)."""
+    out = config.compare(req.values, lambda: evaluate.retrieval_metrics(state().retriever))
+    if "errors" in out:
+        return JSONResponse({"error": "invalid settings", "detail": out["errors"]}, status_code=400)
+    return out
 
 
 @app.get("/health")

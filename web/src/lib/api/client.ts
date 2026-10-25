@@ -3,6 +3,8 @@ import type {
   AskResponse,
   AssessRequest,
   AssessResponse,
+  CompareResponse,
+  ConfigProfile,
   ConfigResponse,
   ConfigUpdate,
   FeedbackRequest,
@@ -40,4 +42,11 @@ export const api = {
     if (res.status === 400 && body.detail && typeof body.detail === "object" && !Array.isArray(body.detail)) return { errors: body.detail };
     throw new Error(`PUT /config failed: ${res.status}`);
   },
+  profiles: () => call<{ profiles: ConfigProfile[] }>("/config/profiles"),
+  saveProfile: (name: string) => call<{ profiles: ConfigProfile[] }>("/config/profiles", { method: "POST", body: JSON.stringify({ name }) }),
+  applyProfile: (name: string, save: boolean) =>
+    call<ConfigResponse>(`/config/profiles/${encodeURIComponent(name)}/apply`, { method: "POST", body: JSON.stringify({ save }) }),
+  deleteProfile: (name: string) => call<{ profiles: ConfigProfile[] }>(`/config/profiles/${encodeURIComponent(name)}`, { method: "DELETE" }),
+  /** search quality under the current settings and under the given values; the values are not applied */
+  compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
 };

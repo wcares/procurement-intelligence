@@ -100,6 +100,24 @@ def sample(r: Retriever, n: int = 30, seed: int = 7) -> None:
         print(f"[{j['qid']}|{'REL' if j['relevant'] else 'not'}] {j['chunk_id']}  Q: {qs[j['qid']]}\n    {text.get(j['chunk_id'], '?')[:600]}\n")
 
 
+def retrieval_metrics(r: Retriever) -> dict:
+    """Search quality only (no LLM calls, a few seconds): mean BM25/hybrid precision@5 and recall@10 over the answerable
+    questions against the judged labels. Used to compare settings before and after a change."""
+    js = _load_judgments()
+    totals: dict[str, list[float]] = {}
+    for q in questions():
+        if not q["answerable"]:
+            continue
+        R = {c for (qid, c), j in js.items() if qid == q["id"] and j["relevant"]}
+        bm = [h.chunk_id for h in _search(r, q["question"], POOL_K, False)]
+        hy = [h.chunk_id for h in _search(r, q["question"], POOL_K, True)]
+        for k, v in (("bm25_p5", _prec(bm[:5], R)), ("hybrid_p5", _prec(hy[:5], R)),
+                     ("bm25_r10", _rec(bm, R)), ("hybrid_r10", _rec(hy, R))):
+            if v is not None:
+                totals.setdefault(k, []).append(v)
+    return {k: round(sum(v) / len(v), 3) for k, v in totals.items()} | {"questions": len(totals.get("bm25_p5", []))}
+
+
 def run(r: Retriever, answers: bool = True) -> tuple[str, dict]:
     """(markdown report, headline metrics). answers=False skips answering the questions (about 10 minutes with a
     local 27B model): the report then carries the previous run's answer metrics, dated."""

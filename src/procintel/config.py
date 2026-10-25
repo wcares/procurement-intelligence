@@ -18,6 +18,7 @@ from typing import Any, Callable
 from procintel import answer, assess, embed, llm, retrieve
 
 SAVED = Path(__file__).resolve().parents[2] / "data" / "config.json"
+PROFILES = Path(__file__).resolve().parents[2] / "data" / "config_profiles.json"  # named sets of settings
 
 
 @dataclass
@@ -59,6 +60,13 @@ def _settings() -> list[Setting]:
                 "0 = deterministic", 0, 2),
         Setting("llm_max_tokens", "Answer max tokens", "Models", "int", *_attr(llm, "MAX_TOKENS"),
                 "A reply cut at this limit is treated as a failure, not an answer", 64, 8192),
+        Setting("judge_model", "Independent judge model", "Models", "str", *_env("PROCINTEL_JUDGE_MODEL"),
+                "Evaluation only: a second model that checks answer sentences, e.g. openai/qwen3-vl-8b. Empty: the "
+                "answer model is the only judge."),
+        Setting("judge_api_base", "Independent judge endpoint", "Models", "url", *_env("PROCINTEL_JUDGE_API_BASE"),
+                "OpenAI-compatible endpoint of the judge model"),
+        Setting("judge_extra_body", "Independent judge extra options", "Models", "json", *_env("PROCINTEL_JUDGE_EXTRA_BODY"),
+                "JSON merged into each judge request"),
         Setting("decide_api_base", "Decision model endpoint", "Models", "url", *_env("PROCINTEL_DECIDE_API_BASE"),
                 "llama-server with /v1/systemone. Empty: evidence and support are checked by word overlap."),
         Setting("embed_model", "Embedding model", "Models", "str", lambda: embed.model_name() or "", None,
@@ -158,3 +166,56 @@ def load_saved() -> dict[str, str]:
         e = update({k: v})
         errors |= e
     return errors
+
+
+def _read_profiles() -> dict[str, dict]:
+    return json.loads(PROFILES.read_text()) if PROFILES.exists() else {}
+
+
+def profiles() -> list[dict]:
+    """Saved profiles with the settings each changes from the defaults."""
+    return [{"name": n, "values": v, "differs": {k: x for k, x in v.items() if k in _DEFAULTS and x != _DEFAULTS[k]}}
+            for n, v in sorted(_read_profiles().items())]
+
+
+def save_profile(name: str) -> None:
+    """Store every editable setting's current value under name (overwrites a profile of the same name)."""
+    name = name.strip()
+    if not name or len(name) > 60:
+        raise ValueError("a profile name of 1 to 60 characters is needed")
+    all_ = _read_profiles()
+    all_[name] = {s.key: s.get() for s in _settings() if s.set is not None}
+    PROFILES.parent.mkdir(parents=True, exist_ok=True)
+    PROFILES.write_text(json.dumps(all_, indent=1))
+
+
+def apply_profile(name: str, save: bool = False) -> dict[str, str]:
+    """Apply a saved profile (all or nothing, like update); errors per key, or {"name": ...} if unknown."""
+    all_ = _read_profiles()
+    if name not in all_:
+        return {"name": "no profile with this name"}
+    known = {s.key for s in _settings() if s.set is not None}
+    return update({k: v for k, v in all_[name].items() if k in known}, save=save)  # settings removed since are skipped
+
+
+def delete_profile(name: str) -> bool:
+    all_ = _read_profiles()
+    if all_.pop(name, None) is None:
+        return False
+    PROFILES.write_text(json.dumps(all_, indent=1))
+    return True
+
+
+def compare(values: dict[str, Any], measure: Callable[[], dict]) -> dict:
+    """measure() under the current settings and under values, then restore: {"before", "after"} or {"errors"}.
+    Settings are module-wide, so a request served during the second measurement sees the candidate values."""
+    previous = {s.key: s.get() for s in _settings() if s.set is not None}
+    before = measure()
+    errors = update(values)
+    if errors:
+        return {"errors": errors}
+    try:
+        after = measure()
+    finally:
+        update({k: previous[k] for k in values if k in previous})
+    return {"before": before, "after": after}

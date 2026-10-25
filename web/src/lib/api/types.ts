@@ -134,6 +134,28 @@ export interface ConfigUpdate {
   save?: boolean;
 }
 
+/** A named set of settings saved on the backend (data/config_profiles.json). */
+export interface ConfigProfile {
+  name: string;
+  values: Record<string, string | number>;
+  /** the settings whose value differs from the startup value */
+  differs: Record<string, string | number>;
+}
+
+/** Search quality over the evaluation questions (no answers generated). */
+export interface RetrievalMetrics {
+  bm25_p5: number;
+  hybrid_p5: number;
+  bm25_r10: number;
+  hybrid_r10: number;
+  questions: number;
+}
+
+export interface CompareResponse {
+  before: RetrievalMetrics;
+  after: RetrievalMetrics;
+}
+
 export interface FeedbackResponse {
   ok: boolean;
   feedbackId: string;
