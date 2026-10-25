@@ -1,20 +1,42 @@
 # Work tracker: the four modules of the assessment brief
 
-One section per module of `assessment.md` §4. Each section has four parts:
+**Plan (agreed 2026-10-24):** first build every module as a minimal working version (the MVP list below), so the
+whole loop works end to end: data → answers and predictions → user feedback and evaluation → refresh and retrain.
+Then improve, driven by what the feedback and evaluation numbers show.
 
-- **Queue**: tasks you give me for this module. Add a line at the bottom of the module's queue; I take queued tasks
-  first, top to bottom, before anything in "Remaining". A task you add to a queue that already has tasks waits its turn.
-- **In progress**: what I am working on now (at most one item across the whole file).
-- **Remaining**: gaps I identified against the brief, in the order I plan to do them.
-- **Done**: finished work with the commit that holds it and how it was verified.
+How the parts work:
 
-Line format: `- [ ] task (added 2026-10-24, by you|me)`. When a task is done it moves to Done as
-`- [x] task — <commit> — <how it was verified>`.
+- **MVP**: one ordered list across all modules, worked top to bottom first.
+- **Queue** (per module): tasks you give me. They are taken before anything else, in file order. A task added to a
+  queue that already has tasks waits its turn.
+- **In progress**: what I am working on now (at most one item in the whole file).
+- **Improvements** (per module): everything beyond the MVP, done after the MVP list is empty.
+- **Done** (per module): finished work with the commit that holds it and how it was verified.
 
-The written proposal the brief asks for is tracked under "Proposal" at the end; the prototype is its evidence.
+Line format: `- [ ] task (added 2026-10-24, by you|me)`. Finished: `- [x] task — <commit> — <how verified>`.
 
-Status at a glance (2026-10-24): Module 1 most of it · Module 2 about half (retrieval yes, prediction no) ·
-Module 3 about half · Module 4 barely started · Proposal not started.
+Order of work: In progress → Queues (file order) → MVP list → Improvements (Module 2, 3, 4, 1, Proposal).
+
+---
+
+## In progress
+
+_(none)_
+
+## MVP (in order)
+
+- [ ] **M2** Prediction model: gradient-boosted trees trained from scratch on packages for tender-to-award days (median, p90) and >180-day risk; project-grouped CV against the median baseline; shown in /assess as basis "model" only if it beats it (added 2026-10-24, by me)
+- [ ] **M3** Conflict check: compare each ICR's procurement verdict with its ISR ratings (both in the report); show disagreements with both sources (added 2026-10-24, by me)
+- [ ] **M3** Small evaluation set (~20 questions, labelled relevant passages) with retrieval precision/recall and answer faithfulness (added 2026-10-24, by me)
+- [ ] **M4** Feedback capture: useful / wrong / bad citation buttons on answers and assessments, stored in the database with the response (added 2026-10-24, by me)
+- [ ] **M4** One `refresh` command: fetch new notices and reports, then chunk → embed → tag → retrain only what changed, and log what changed (added 2026-10-24, by me)
+- [ ] **M4** Evaluation report combining the test set and user feedback, re-run after each refresh (added 2026-10-24, by me)
+- [ ] **M4** Basic configuration page: view and change the main settings (models and endpoints, retrieval k, thresholds, LLM settings) through a backend /config endpoint, validated and applied live (added 2026-10-24, by you)
+- [ ] **Proposal** README: setup, models, how to run each step (added 2026-10-24, by me)
+- [ ] **Proposal** Short write-up per module, using the prototype's measurements as evidence (added 2026-10-24, by me)
+
+Status at a glance (2026-10-24): Module 1 MVP done · Module 2 retrieval done, prediction pending · Module 3 guardrails
+done, conflict check and evaluation pending · Module 4 most of the MVP pending · Proposal not started.
 
 ---
 
@@ -28,11 +50,7 @@ Module 3 about half · Module 4 barely started · Proposal not started.
 
 _(empty)_
 
-### In progress
-
-_(none)_
-
-### Remaining
+### Improvements
 
 - [ ] Supplier entity resolution: 225 duplicate normalised names are not merged into firms (added 2026-10-24, by me)
 - [ ] Link contract rows to ICR passages by sector and time, not only project ID (added 2026-10-24, by me)
@@ -66,13 +84,8 @@ _(none)_
 
 _(empty)_
 
-### In progress
+### Improvements
 
-_(none)_
-
-### Remaining
-
-- [ ] Prediction model: gradient-boosted trees trained from scratch on packages for tender-to-award days (median, p90) and >180-day risk; project-grouped CV vs the median baseline; shown in /assess as basis "model" only if it beats it (added 2026-10-24, by me)
 - [ ] Precedents: decision model checks each candidate is a lesson relevant to the package (Kenya/CW/RFB still shows a disbursement table and an indicator list) (added 2026-10-24, by me)
 - [ ] Re-bidding label per project from ICRs via the decision model, then re-bidding risk (added 2026-10-24, by me)
 - [ ] Amendment probability from notice versions, after confirming what a version number means (added 2026-10-24, by me)
@@ -98,15 +111,11 @@ _(none)_
 
 _(empty)_
 
-### In progress
+### Improvements
 
-_(none)_
-
-### Remaining
-
-- [ ] Conflicting evidence: compare each ICR's procurement verdict with its ISR ratings and show disagreements with both sources (added 2026-10-24, by me)
-- [ ] Labelled evaluation set (~100 questions) with retrieval precision/recall and answer faithfulness numbers (added 2026-10-24, by me)
+- [ ] Larger evaluation set (~100 questions) once the MVP set shows where answers fail (added 2026-10-24, by me)
 - [ ] Risk flags carry their evidence: link each flag to the packages or passages it rests on (added 2026-10-24, by me)
+- [ ] Two-step passage tagging (is a problem described? then which type) to make problem types usable (added 2026-10-24, by me)
 
 ### Done
 
@@ -127,15 +136,10 @@ _(none)_
 
 _(empty)_
 
-### In progress
+### Improvements
 
-_(none)_
-
-### Remaining
-
-- [ ] Incremental refresh: fetch new notices and reports, re-chunk, re-embed, re-tag and retrain only what changed (added 2026-10-24, by me)
-- [ ] Feedback capture in the UI (useful / wrong citation) stored for evaluation and retraining (added 2026-10-24, by me)
-- [ ] Configuration dashboard: web page + backend /config to view and tune models, endpoints, retrieval k/pool/RRF, thresholds, embedding dim, LLM settings; validated, applied live, optional save (added 2026-10-24, by you)
+- [ ] Full configuration dashboard: every tunable (retrieval pool/RRF, embedding dim, precedent filter, per-model options), saved profiles, before/after evaluation on change (added 2026-10-24, by you)
+- [ ] Retraining triggered by feedback volume or evaluation drift, not only by refresh (added 2026-10-24, by me)
 - [ ] Pilot rollout plan and KPI definitions with how each is measured (added 2026-10-24, by me)
 
 ### Done
@@ -151,7 +155,6 @@ _(none)_
 
 _(empty)_
 
-### Remaining
+### Improvements
 
-- [ ] README: setup, models, how to run each step (added 2026-10-24, by me)
-- [ ] Technical proposal covering the four modules, using the prototype's measurements as evidence (added 2026-10-24, by me)
+- [ ] Full technical proposal document per the brief's four modules, after the MVP write-up (added 2026-10-24, by me)
