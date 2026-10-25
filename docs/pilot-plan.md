@@ -29,9 +29,9 @@ pauses the phase until the cause is found and fixed.
 | Flagged citations | citations users mark as wrong, per 100 responses | `kpi` | no real use yet | ≤ 5 |
 | Refusal rate on real questions | Ask responses with no supported answer | `kpi` | 2 of 5 test questions (test traffic, not a baseline) | tracked, read with a sample of refused questions |
 | Rating rate | responses that receive any rating | `kpi` | 0% (test traffic) | ≥ 30% (below that the useful share is not trusted) |
-| Award-time error | mean absolute error, predicted vs actual tender-to-award days, on pilot packages that reached award | needs the package reference (below) | 79 days in cross-validation (median baseline 85) | below the median baseline on pilot packages |
-| Weekly active users | distinct users with ≥ 1 response in the week | needs user ids (below) | — | ≥ 50% of the pilot group |
-| Response time | median seconds per Ask / Assess response | needs timing in the log (below) | 34 s per question (evaluation, Saluki) | ≤ 40 s; report the share over 60 s |
+| Award-time error | mean absolute error, predicted vs actual tender-to-award days, on pilot packages that reached award | `kpi` (Assess logs the tender reference and its prediction; matched when the tender has an award time) | 79 days in cross-validation (median baseline 85) | below the median baseline on pilot packages |
+| Weekly active users | distinct users with ≥ 1 response in the week | `kpi` (pseudonymous user ids) | — | ≥ 50% of the pilot group |
+| Response time | median seconds per Ask / Assess response | `kpi` (time per response in the log) | 34 s per question (evaluation, Saluki) | ≤ 40 s; report the share over 60 s |
 | Planning cycle time | days from a procurement plan's first draft to its approval, pilot quarter vs the previous quarter | the planners' own system (STEP or plan records) | not available here | shorter, with the confound noted (one quarter, one region) |
 
 Quality KPIs are measured on a fixed question set so changes are comparable; usage KPIs on real traffic. Real
@@ -40,13 +40,17 @@ the reports are added to the evaluation set, so the fixed set keeps up with what
 
 ## Needed before the pilot
 
+**Built (2026-10-25):** all four, below; the deletion after 30 days (retention job) is the remaining item and must run
+before the pilot starts.
+
 1. **Pseudonymous user id** in each logged response (from the sign-in in front of the app), for active users and
    per-user rating patterns. No names in the logs.
 2. **Package reference in Assess** (an optional bid reference field), so a prediction can be matched to the tender
    when its award notice is published; a weekly job then computes the award-time error.
 3. **Response time** in the response log.
 4. **Data handling note** for participants: what is logged (questions, responses, ratings), retention, and that the
-   models run locally with no data sent to outside services.
+   models run locally with no data sent to outside services. (The web app's /data-handling page, readable without
+   signing in and linked from the sign-in page and the footer.)
 
 ## Risks
 

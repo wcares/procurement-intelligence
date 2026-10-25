@@ -9,6 +9,8 @@ const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promis
 
 export const useAuth = () => useContext(AuthContext);
 
+const PUBLIC_PAGES = ["/login", "/data-handling"]; // readable without signing in
+
 /** Loads the signed-in user; any page but /login stays hidden until there is one, and a visitor without a session is
  * sent to /login. */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -44,12 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (checked && !user && pathname !== "/login") router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    if (checked && !user && !PUBLIC_PAGES.includes(pathname)) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
   }, [checked, user, pathname, router]);
 
   // The page is rendered but hidden until the session is known (Next validates every rendered segment); the backend
   // checks the session on every call, so a hidden page without one gets 401s and the visitor is sent to /login.
-  const ready = pathname === "/login" || Boolean(checked && user);
+  const ready = PUBLIC_PAGES.includes(pathname) || Boolean(checked && user);
   return (
     <AuthContext.Provider value={{ user, refresh }}>
       <div hidden={!ready} className="flex flex-1 flex-col">

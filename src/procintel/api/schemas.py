@@ -53,6 +53,9 @@ class AssessRequest(BaseModel):
     sector: str | None = None
     estimatedValueUsd: float | None = None
     description: str | None = Field(default=None, max_length=2000)
+    # optional bid / contract reference of the tender being planned, so the pilot can compare the prediction with the
+    # actual award time when the award notice is published (docs/pilot-plan.md)
+    tenderReference: str | None = Field(default=None, max_length=120)
 
 
 class TimelineBenchmark(BaseModel):
@@ -113,6 +116,13 @@ class SimilarPackage(BaseModel):
     rebid: bool
 
 
+class Prediction(BaseModel):
+    basis: Literal["model", "historical median"]
+    days_p50: int
+    days_p90: int | None = None
+    p_long: float | None = None
+
+
 class AssessResponse(BaseModel):
     timeline: TimelineBenchmark | None
     risks: list[RiskFlag]
@@ -120,6 +130,7 @@ class AssessResponse(BaseModel):
     wgi: list[GovernanceScore] = []  # Worldwide Governance Indicators, shown where CPIA is missing
     precedents: list[Precedent]
     similarPackages: list[SimilarPackage] = []
+    prediction: Prediction | None = None
     meta: ResponseMeta
 
 

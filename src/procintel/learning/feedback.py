@@ -36,6 +36,7 @@ def _connect(db_path: Path | None) -> duckdb.DuckDBPyConnection:
     # pseudonymous id of the signed-in user (procintel.auth.service.pseudonym): the pilot's adoption measures
     con.execute("ALTER TABLE response_log ADD COLUMN IF NOT EXISTS user_id VARCHAR")
     con.execute("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS user_id VARCHAR")
+    con.execute("ALTER TABLE response_log ADD COLUMN IF NOT EXISTS duration_ms INTEGER")  # time to answer
     return con
 
 
@@ -44,15 +45,16 @@ def _now() -> datetime:
 
 
 def log_response(kind: str, request: dict, response: dict, db_path: Path | None = None,
-                 user_id: str | None = None) -> str:
+                 user_id: str | None = None, duration_ms: int | None = None) -> str:
     """Store a response and return its id (also put into response['meta']['responseId'])."""
     rid = uuid.uuid4().hex
     response["meta"]["responseId"] = rid
     with _LOCK:
         con = _connect(db_path)
         try:
-            con.execute("INSERT INTO response_log (response_id, kind, request, response, created_at, user_id) "
-                        "VALUES (?, ?, ?, ?, ?, ?)", [rid, kind, json.dumps(request), json.dumps(response), _now(), user_id])
+            con.execute("INSERT INTO response_log (response_id, kind, request, response, created_at, user_id, duration_ms) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        [rid, kind, json.dumps(request), json.dumps(response), _now(), user_id, duration_ms])
         finally:
             con.close()
     return rid

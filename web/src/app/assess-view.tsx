@@ -117,6 +117,16 @@ export function AssessView() {
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
         </Label>
+        <Label text="Tender reference (optional)">
+          <input
+            className={field}
+            placeholder="bid reference, e.g. KE-KURA-123456-CW-RFB"
+            maxLength={120}
+            value={form.tenderReference ?? ""}
+            onChange={(e) => setForm({ ...form, tenderReference: e.target.value })}
+          />
+          <span className="text-xs text-muted">Lets us check this prediction against the actual award time later.</span>
+        </Label>
         <button
           type="submit"
           disabled={!opts || !form.methodCode || loading}

@@ -35,7 +35,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </header>
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
           <footer className="border-t border-line px-4 py-4 text-center text-xs text-muted">
-            Data: World Bank Projects, Procurement Notices, Documents &amp; Reports and CPIA APIs.
+            Data: World Bank Projects, Procurement Notices, Documents &amp; Reports and CPIA APIs. ·{" "}
+            <Link href="/data-handling" className="underline">
+              How your data is handled
+            </Link>
           </footer>
         </AuthProvider>
       </body>

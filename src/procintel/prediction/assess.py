@@ -190,18 +190,39 @@ def rebid_flag(info: dict[str, dict], country: str, country_name: str, cost: tup
                       f"their completion reports or re-tender references in notices ({overall}). {cost}{example}"}
 
 
-def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[dict], t: dict | None) -> list[dict]:
-    """Risk flags from the trained timeline model (procintel.prediction.predict), only for targets where it beat the baseline."""
+def model_prediction(bundle: dict | None, req: dict, region: str | None, gov: list[dict]) -> dict | None:
+    """The trained timeline model's numbers for this package (procintel.prediction.predict), when it beat the
+    baseline for at least one target; None otherwise."""
     if not bundle:
-        return []
-    use, m = bundle["use"], bundle["metrics"]
+        return None
+    use = bundle["use"]
     if not (use.get("days_p50") or use.get("over_180")):
-        return []
+        return None
     row = {"proc_group": req["procGroup"], "method_code": req["methodCode"], "region": region,
            "sector": req.get("sector") or None, "tender_start": date.today().isoformat(),
            "value_usd": req.get("estimatedValueUsd")}
     row.update({f"cpia_{g['indicator']}": g["value"] for g in gov})
-    p = predict_one(bundle, row)
+    return predict_one(bundle, row)
+
+
+def logged_prediction(p: dict | None, bundle: dict | None, t: dict | None) -> dict | None:
+    """What the assessment predicted, kept in the response log so the pilot can compare it with the actual award time
+    once the tender is awarded (procintel.learning.kpi): the model's median when it is used, else the historical one."""
+    if p and bundle and bundle["use"].get("days_p50"):
+        return {"basis": "model", "days_p50": round(float(p["p50"])), "days_p90": round(float(p["p90"])),
+                "p_long": round(float(p["p_long"]), 3) if bundle["use"].get("over_180") else None}
+    if t:
+        return {"basis": "historical median", "days_p50": round(t["median"]), "days_p90": round(t["p90"]), "p_long": None}
+    return None
+
+
+def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[dict], t: dict | None,
+                p: dict | None = None) -> list[dict]:
+    """Risk flags from the trained timeline model (procintel.prediction.predict), only for targets where it beat the baseline."""
+    p = p if p is not None else model_prediction(bundle, req, region, gov)
+    if p is None:
+        return []
+    use, m = bundle["use"], bundle["metrics"]
     tested = f"tested on {bundle['n']} past packages from projects it had not seen"
     out = []
     if use.get("days_p50"):
@@ -247,11 +268,13 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
         caveats.append("Precedents include other countries: this country has few evaluation passages for the package, or "
                        "none from projects in its sector.")
     caveats += conflicts
-    flags = model_flags(model, req, region, gov, t)
+    p = model_prediction(model, req, region, gov)
+    flags = model_flags(model, req, region, gov, t, p)
     if flags:
         caveats.append(f"Flags marked 'model' come from gradient-boosted trees trained on {model['n']} past packages "
                        "(procurement type, method, region, sector, year, CPIA). They are estimates, not commitments.")
     extra = [f for f in (rebid_flag(rebid_info or {}, country, country_name, rebid_cost),
                          amendment_flag(amendment_info or {}, country, country_name), wgi_flag(gov, wg)) if f]
     return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags + extra, "governance": gov, "wgi": wg,
+            "prediction": logged_prediction(p, model, t),
             "precedents": precs, "meta": meta(caveats)}

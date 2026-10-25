@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
@@ -46,6 +47,9 @@ export function LoginView() {
       <button type="submit" disabled={busy} className="w-full rounded-md bg-accent px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
         {busy ? "Signing in…" : "Sign in"}
       </button>
+      <p className="text-center text-xs text-muted">
+        <Link className="underline" href="/data-handling">How your data is handled</Link>
+      </p>
     </form>
   );
 }

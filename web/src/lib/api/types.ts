@@ -44,6 +44,8 @@ export interface AssessRequest {
   sector?: string;
   estimatedValueUsd?: number;
   description?: string;
+  /** bid reference of the tender being planned; lets the pilot compare the prediction with the actual award time */
+  tenderReference?: string;
 }
 
 export interface TimelineBenchmark {
@@ -185,6 +187,8 @@ export interface AssessResponse {
   precedents: Precedent[];
   /** empty when no description was given or embeddings are not configured */
   similarPackages: SimilarPackage[];
+  /** the award time this assessment predicts, kept in the log for later comparison */
+  prediction?: { basis: "model" | "historical median"; days_p50: number; days_p90: number | null; p_long: number | null } | null;
   meta: ResponseMeta;
 }
 

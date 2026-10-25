@@ -1,6 +1,8 @@
 """Cited answers to free-text questions."""
 from __future__ import annotations
 
+import time
+
 from fastapi import APIRouter, Request
 
 from procintel.answering.answer import ask as run_ask
@@ -15,6 +17,8 @@ router = APIRouter()
 
 @router.post("/ask", response_model=AskResponse)
 def post_ask(req: AskRequest, request: Request) -> dict:
+    started = time.monotonic()
     out = run_ask(state().retriever, req.question, req.countryCode, req.procGroup)
-    feedback.log_response("ask", req.model_dump(), out, user_id=service.pseudonym(security.user_of(request)))
+    feedback.log_response("ask", req.model_dump(), out, user_id=service.pseudonym(security.user_of(request)),
+                          duration_ms=round((time.monotonic() - started) * 1000))
     return out
