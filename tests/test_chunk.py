@@ -1,4 +1,4 @@
-from procintel.chunk import chunk_document, strip_page_furniture
+from procintel.ingestion.chunk import chunk_document, strip_page_furniture
 
 # Shape copied from a real ICR page (P163035): numbered paragraph, footnote block, footer, running header.
 PAGE = (
@@ -190,7 +190,7 @@ def test_text_without_sentence_breaks_is_still_capped():
 
 
 def test_flattened_tables_are_found_but_prose_with_numbers_is_not():
-    from procintel.chunk import is_flat_table
+    from procintel.ingestion.chunk import is_flat_table
     assert is_flat_table("Original Amount (US$) 57,000,000.00 25,000,000.00 7,000,000.00 25,000,000.00 57,000,000.00")
     assert is_flat_table("TABLE 4: DISBURSEMENT BY CATEGORY No. Category Description Allocated ($) Disbursed ($) "
                          "1 Consulting Services 379,500.00 438,206.07 -58,706.07")
@@ -207,7 +207,7 @@ def test_rebuilt_chunks_keep_vectors_tags_and_labels_of_moved_texts(tmp_path, mo
 
     import duckdb
 
-    from procintel import chunk
+    from procintel.ingestion import chunk
     db = tmp_path / "t.duckdb"
     con = duckdb.connect(str(db))
     con.execute("CREATE TABLE documents (doc_id VARCHAR, text VARCHAR)")

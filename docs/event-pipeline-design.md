@@ -9,7 +9,7 @@ The brief's Module 4 asks for "a closed loop where new milestones, supervision n
 and vector indices". Today the loop is:
 
 - a **weekly refresh job** (procintel.jobs, idle time) that re-fetches every source and runs every pipeline step in a
-  fixed order (procintel.refresh: ingest → model tables → chunks → embeddings → tags → problem tags → firms → sector
+  fixed order (procintel.ingestion.refresh: ingest → model tables → chunks → embeddings → tags → problem tags → firms → sector
   links → rating checks → evidence → exchange rates → prediction models → evaluation), then reloads the backend;
 - a **daily drift check** that retrains the prediction models when enough packages were labelled since training;
 - a **feedback review job** queued by every rating in the UI.

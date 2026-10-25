@@ -1,5 +1,6 @@
-from procintel import assess, sectors
-from procintel.retrieve import Hit
+from procintel.answering.retrieve import Hit
+from procintel.ingestion import sectors
+from procintel.prediction import assess
 
 
 def test_families_map_detailed_sectors_to_major_ones():

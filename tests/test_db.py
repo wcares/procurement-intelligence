@@ -1,4 +1,4 @@
-from procintel import db, paths
+from procintel.core import db, paths
 
 
 def test_default_backend_is_duckdb_files(monkeypatch, tmp_path):
@@ -20,7 +20,7 @@ def test_postgres_url_selects_postgres_only_for_the_known_databases(monkeypatch,
 
 def test_suppliers_read_from_json_text_and_from_older_struct_lists():
     import duckdb
-    from procintel.model import SUPPLIERS
+    from procintel.ingestion.tables import SUPPLIERS
     con = duckdb.connect()
     q = f"SELECT s.firm_id, s.name FROM (SELECT UNNEST(from_json(suppliers::JSON, '{SUPPLIERS}')) AS s FROM t) ORDER BY 1"
     con.execute("""CREATE TABLE t AS SELECT '[{"name": "ACME", "firm_id": 7}]' AS suppliers""")         # JSON text

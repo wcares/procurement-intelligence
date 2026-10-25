@@ -1,6 +1,6 @@
 import pytest
 
-from procintel.retrieve import DB_PATH
+from procintel.answering.retrieve import DB_PATH
 
 pytestmark = pytest.mark.skipif(not DB_PATH.exists(), reason="needs data/procintel.duckdb (run ingest, model, chunk)")
 
@@ -8,7 +8,7 @@ pytestmark = pytest.mark.skipif(not DB_PATH.exists(), reason="needs data/procint
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
-    from procintel.server import app
+    from procintel.api.server import app
     with TestClient(app) as c:
         yield c
 
@@ -50,7 +50,7 @@ def test_bad_input_is_400(client):
 @pytest.fixture(autouse=True)
 def feedback_db(tmp_path, monkeypatch):
     """Every API test logs responses to a temporary feedback database, never to data/feedback.duckdb."""
-    from procintel import feedback
+    from procintel.learning import feedback
     monkeypatch.setattr(feedback, "DB_PATH", tmp_path / "fb.duckdb")
     return feedback
 
@@ -77,7 +77,8 @@ def test_feedback_is_refused_for_unknown_responses_and_citations(client, feedbac
 
 @pytest.fixture
 def saved_config(tmp_path, monkeypatch):
-    from procintel import answer, config
+    from procintel.answering import answer
+    from procintel.api import config
     monkeypatch.setattr(config, "SAVED", tmp_path / "config.json")
     monkeypatch.setattr(answer, "SEARCH_K", answer.SEARCH_K)  # restored after the test
     monkeypatch.setattr(answer, "DECIDE_MIN", answer.DECIDE_MIN)
@@ -92,14 +93,14 @@ def test_config_lists_settings_and_hides_keys(client):
 
 
 def test_config_update_applies_live_and_saves(client, saved_config):
-    from procintel import answer
+    from procintel.answering import answer
     r = client.put("/config", json={"values": {"search_k": 8, "decide_min": "0.6"}, "save": True})
     assert r.status_code == 200 and answer.SEARCH_K == 8 and answer.DECIDE_MIN == 0.6
     assert saved_config.SAVED.exists() and '"search_k": 8' in saved_config.SAVED.read_text()
 
 
 def test_config_rejects_invalid_values_and_applies_nothing(client, saved_config):
-    from procintel import answer
+    from procintel.answering import answer
     before = answer.SEARCH_K
     for body in [{"search_k": 0}, {"search_k": "lots"}, {"embed_model": "x"}, {"nope": 1},
                  {"llm_api_base": "ftp://x"}, {"llm_extra_body": "{not json"}, {"search_k": 7, "decide_min": 5}]:

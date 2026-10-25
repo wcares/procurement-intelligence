@@ -35,13 +35,13 @@ erDiagram
 | `notice_m` | one published notice | `notice_id` | procnotices API |
 | `supplier` | one Bank firm id | `firm_id` | parsed from award text |
 | `award_supplier` | package × firm | (`package_id`, `firm_id`) | parsed from award text |
-| `supplier_entity` | one Bank firm id | `firm_id` → `entity_id` | firm ids of the same firm merged (`procintel.entities`) |
+| `supplier_entity` | one Bank firm id | `firm_id` → `entity_id` | firm ids of the same firm merged (`procintel.ingestion.entities`) |
 | `firm` | one firm | `entity_id` | most used name, its firm ids, packages won, countries |
-| `package_icr_link` | package × ICR | (`package_id`, `doc_id`) | `same_project`, or `same_sector_period`: another project in the same major sector running at the tender date (`procintel.sectors`) |
+| `package_icr_link` | package × ICR | (`package_id`, `doc_id`) | `same_project`, or `same_sector_period`: another project in the same major sector running at the tender date (`procintel.ingestion.sectors`) |
 | `document_m` / `document_project` | one document; **many-to-many** to projects | `doc_id` | WDS API |
 | `cpia` | country × year × indicator | — | indicators API |
-| `wgi` | country × year × indicator | — | indicators API, codes `GOV_WGI_<x>.EST` (`procintel.wgi`) |
-| `contract_award` | one signed contract | `project_id`, `contract_ref` | Finances One DS00005 (`procintel.contract_awards`); matched to `package` on the bid reference; fills `package.award_date` where missing (`award_from_contract`) |
+| `wgi` | country × year × indicator | — | indicators API, codes `GOV_WGI_<x>.EST` (`procintel.ingestion.wgi`) |
+| `contract_award` | one signed contract | `project_id`, `contract_ref` | Finances One DS00005 (`procintel.ingestion.contract_awards`); matched to `package` on the bid reference; fills `package.award_date` where missing (`award_from_contract`) |
 
 ## How the three data types connect
 
@@ -64,9 +64,9 @@ erDiagram
 ## Known limitations
 
 - **Prices are multi-currency.** Only 1,181 of 7,060 priced awards are in USD. Amounts are stored with their currency
-  and converted to USD with World Bank yearly rates (table `fx`, `procintel.fx`) where a rate exists.
+  and converted to USD with World Bank yearly rates (table `fx`, `procintel.ingestion.fx`) where a rate exists.
 - **Supplier identity.** `firm_id` is the Bank's key, but one firm is often registered under several ids.
-  `procintel.entities` merges them into `firm` (4,702 ids -> 4,344 firms, 282 merged groups): same name after
+  `procintel.ingestion.entities` merges them into `firm` (4,702 ids -> 4,344 firms, 282 merged groups): same name after
   removing case, punctuation and legal-form words, within one country, or across countries for names that are clearly
   organisations; personal names stay apart across countries. All 99 merges with differing spellings were read by hand.
   2,093 awards are anonymous individual consultants with no firm id.

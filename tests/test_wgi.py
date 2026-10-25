@@ -1,8 +1,8 @@
 import duckdb
 
-from procintel import contract_awards, wgi
-from procintel.assess import wgi_flag
-from procintel.flag_evidence import WGI_URL, FlagEvidence
+from procintel.ingestion import contract_awards, wgi
+from procintel.prediction.assess import wgi_flag
+from procintel.prediction.flag_evidence import FlagEvidence, WGI_URL
 
 CPIA = [{"indicator": "transparency_corruption", "year": 2023, "value": 3.0}]
 

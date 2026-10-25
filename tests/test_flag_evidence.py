@@ -1,4 +1,4 @@
-from procintel.flag_evidence import NOTICE_URL, FlagEvidence
+from procintel.prediction.flag_evidence import FlagEvidence, NOTICE_URL
 
 
 def make(packages, events=None):

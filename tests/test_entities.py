@@ -1,4 +1,4 @@
-from procintel.entities import is_org, key, resolve
+from procintel.ingestion.entities import is_org, key, resolve
 
 
 def test_key_drops_case_punctuation_legal_forms_and_the_ms_prefix():

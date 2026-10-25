@@ -1,4 +1,4 @@
-from procintel import parse_notice as P
+from procintel.ingestion import parse_notice as P
 
 def test_supplier_name_with_parentheses_is_kept_whole():
     t = "Awarded Bidder(s): | ABC (INDIA) LTD (12345) | Country: India | Bid Price at Opening | INR"

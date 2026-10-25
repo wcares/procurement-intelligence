@@ -1,4 +1,4 @@
-from procintel import refresh
+from procintel.ingestion import refresh
 
 
 def snap(docs, notices, status, labelled=10, chunks=100, model=None):

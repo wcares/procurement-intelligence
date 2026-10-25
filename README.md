@@ -68,20 +68,20 @@ Run from the repository root with `PYTHONPATH=src`. Times are from runs on the m
 
 | step | command | what it does | time |
 |---|---|---|---|
-| ingest | `.venv/bin/python -m procintel.ingest --icrs 120` | 120 newest ICRs, their projects, up to 300 notices per project (World Bank APIs, cached in `data/cache/http`) | network-bound |
-| model | `.venv/bin/python -m procintel.model` | clean tables: project, package (tender-to-award days), notice, supplier, CPIA | < 1 s after ingest |
-| chunk | `.venv/bin/python -m procintel.chunk` | ICR text → 18,992 passages with section and paragraph anchors; page furniture and footnotes removed | 2 s |
-| embed | `.venv/bin/python -m procintel.embed` | passage vectors (needs the embedding server); only new or changed passages | 326 s full |
-| tag | `.venv/bin/python -m procintel.tag` | passage tags from the decision model; only new or changed passages | 653 s full |
-| ratings | `.venv/bin/python -m procintel.ratings` | ICR outcome vs last ISR rating, conflicts for caveats | < 1 s |
-| predict | `.venv/bin/python -m procintel.predict` | trains and cross-validates the award-time models (`data/models/timeline.joblib`) | seconds |
-| evaluate | `.venv/bin/python -m procintel.evaluate run` | evaluation report (answers every test question; ~10 min with the 27B model) | see report |
+| ingest | `.venv/bin/python -m procintel.ingestion.ingest --icrs 120` | 120 newest ICRs, their projects, up to 300 notices per project (World Bank APIs, cached in `data/cache/http`) | network-bound |
+| model | `.venv/bin/python -m procintel.ingestion.tables` | clean tables: project, package (tender-to-award days), notice, supplier, CPIA | < 1 s after ingest |
+| chunk | `.venv/bin/python -m procintel.ingestion.chunk` | ICR text → 18,992 passages with section and paragraph anchors; page furniture and footnotes removed | 2 s |
+| embed | `.venv/bin/python -m procintel.core.embed` | passage vectors (needs the embedding server); only new or changed passages | 326 s full |
+| tag | `.venv/bin/python -m procintel.ingestion.tag` | passage tags from the decision model; only new or changed passages | 653 s full |
+| ratings | `.venv/bin/python -m procintel.prediction.ratings` | ICR outcome vs last ISR rating, conflicts for caveats | < 1 s |
+| predict | `.venv/bin/python -m procintel.prediction.predict` | trains and cross-validates the award-time models (`data/models/timeline.joblib`) | seconds |
+| evaluate | `.venv/bin/python -m procintel.learning.evaluate run` | evaluation report (answers every test question; ~10 min with the 27B model) | see report |
 
 After the first build, one command keeps everything current:
 
 ```bash
-.venv/bin/python -m procintel.refresh           # fresh listings, then rebuild what changed, then evaluation
-.venv/bin/python -m procintel.refresh --skip-fetch
+.venv/bin/python -m procintel.ingestion.refresh           # fresh listings, then rebuild what changed, then evaluation
+.venv/bin/python -m procintel.ingestion.refresh --skip-fetch
 ```
 
 It logs every run (documents and notices added, passages embedded and tagged, model metrics before and after) to the
@@ -101,7 +101,7 @@ under the folder named by `PROCINTEL_DATA_DIR`.
 ### 4. Run
 
 ```bash
-PYTHONPATH=src .venv/bin/uvicorn procintel.server:app --host 127.0.0.1 --port 8000
+PYTHONPATH=src .venv/bin/uvicorn procintel.api.server:app --host 127.0.0.1 --port 8000
 cd web && API_URL=http://localhost:8000 npm run dev    # http://localhost:3100 (no API_URL: in-app mock)
 ```
 
@@ -128,7 +128,7 @@ package  ──► statistics of comparable packages + gradient-boosted trees �
   kept only if its cited passage supports it; without models, word-overlap rules do the same jobs.
 - **Prediction:** scikit-learn HistGradientBoosting trained from scratch on 1,145 packages; each model is shown only
   where project-grouped cross-validation beats the historical median by at least 2%. Only tenders with 18 months of
-  follow-up are used, because recent tenders are awarded only if fast (see `src/procintel/predict.py`).
+  follow-up are used, because recent tenders are awarded only if fast (see `src/procintel/prediction/predict.py`).
 - **Conflicting evidence:** an ICR outcome rating that disagrees with the project's last supervision (ISR) rating is
   stated as a caveat with both ratings and dates; the ICR is treated as the later verdict, never averaged.
 
@@ -162,8 +162,15 @@ Details and what comes next: [docs/TRACKER.md](docs/TRACKER.md).
 ## Layout
 
 ```
-src/procintel/   ingest, model, chunk, embed, tag, ratings, predict, retrieve, answer, assess, decide, llm,
-                 feedback, config, evaluate, refresh, server (FastAPI), wb_client, stats, export_mock
+src/procintel/
+  core/          data location, database and vector-store access, LLM / embedding / decision-model clients
+  ingestion/     Module 1: World Bank sources, tables, passages, tags, entity and sector links, refresh
+  prediction/    Module 2: award-time model, statistics, risk evidence, assessments, similar contracts
+  answering/     Module 3: hybrid retrieval, cited and checked answers
+  learning/      Module 4: feedback, feedback review, evaluation, pilot KPIs
+  jobs/          background job queue and workers
+  api/           FastAPI server and the runtime settings it exposes
+  tools/         mock-fixture export for the web app
 tests/           pytest suite
 web/             Next.js app (Assess, Ask, Settings) with an in-app mock API
 eval/            questions, relevance judgments, hand check, report, history

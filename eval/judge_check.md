@@ -1,6 +1,6 @@
 # Hand check of the relevance judge (2026-10-24)
 
-`python -m procintel.evaluate sample` (30 random judgments, seed 7) from 232 judged (question, passage) pairs.
+`python -m procintel.learning.evaluate sample` (30 random judgments, seed 7) from 232 judged (question, passage) pairs.
 Judge: `openai/saluki-27b` (Underdog-Saluki-27B-1.0 IQ2, thinking off). Labels below are mine, read from the passage.
 
 **Agreement: 28 / 30 (93%).** Both disagreements are the judge marking a passage relevant that I would not

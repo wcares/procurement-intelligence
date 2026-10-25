@@ -1,4 +1,4 @@
-from procintel import fx
+from procintel.ingestion import fx
 
 TABLE = {"IDR": {2019: 14000.0, 2020: 14500.0}, "SLL": {2020: 9.83 * 1000}}
 

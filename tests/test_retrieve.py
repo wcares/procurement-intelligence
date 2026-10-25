@@ -1,7 +1,7 @@
 import duckdb
 import pytest
 
-from procintel.retrieve import Retriever
+from procintel.answering.retrieve import Retriever
 
 CHUNKS = [
     ("d1:0", "d1", 0, "Lessons", "12", "text", "Civil works contracts were terminated because the contractor abandoned the road site."),
@@ -47,7 +47,7 @@ def test_no_term_overlap_returns_nothing(retriever):
 def hybrid(retriever, monkeypatch):
     """The same 4-chunk retriever with fake unit vectors: the query vector is closest to d2:0 (no shared terms)."""
     import numpy as np
-    from procintel import embed
+    from procintel.core import embed
     vecs = np.array([[1, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)  # d1:0, d1:1, d2:0, d3:0
     monkeypatch.setattr(retriever, "vectors", vecs)
     monkeypatch.setattr(embed, "embed", lambda texts: np.array([[0.1, 0.99, 0.0]], dtype=np.float32))
@@ -64,7 +64,7 @@ def test_filters_apply_to_vector_results(hybrid):
 
 
 def test_embedding_failure_falls_back_to_bm25(hybrid, monkeypatch):
-    from procintel import embed
+    from procintel.core import embed
 
     def down(texts):
         raise ConnectionError("embedding server not running")
@@ -74,8 +74,8 @@ def test_embedding_failure_falls_back_to_bm25(hybrid, monkeypatch):
 
 
 def test_precedents_skip_passages_tagged_as_no_problem(retriever, monkeypatch):
-    from procintel import assess
-    from procintel.tag import NONE
+    from procintel.ingestion.tag import NONE
+    from procintel.prediction import assess
     tagged = {"d1:0": (NONE, 0.9), "d3:0": ("re-tendering or contract termination", 0.8)}
     for r in retriever.records:
         r["tag"], r["tag_confidence"] = tagged.get(r["chunk_id"], (None, 0.0))
@@ -89,7 +89,8 @@ def test_precedents_skip_passages_tagged_as_no_problem(retriever, monkeypatch):
 
 
 def test_precedents_keep_the_passages_the_llm_picks(retriever, monkeypatch):
-    from procintel import assess, llm
+    from procintel.core import llm
+    from procintel.prediction import assess
     monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
     prompts = []
 
@@ -106,7 +107,8 @@ def test_precedents_keep_the_passages_the_llm_picks(retriever, monkeypatch):
 
 
 def test_precedents_keep_retrieval_order_when_the_llm_reply_is_unusable(retriever, monkeypatch):
-    from procintel import assess, llm
+    from procintel.core import llm
+    from procintel.prediction import assess
     monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
     monkeypatch.setattr(llm, "complete", lambda *a, **k: "I think passage two is nice.")
     with_llm, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
@@ -116,7 +118,8 @@ def test_precedents_keep_retrieval_order_when_the_llm_reply_is_unusable(retrieve
 
 
 def test_precedent_judge_is_not_the_decision_model(retriever, monkeypatch):
-    from procintel import assess, decide
+    from procintel.core import decide
+    from procintel.prediction import assess
     monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
     monkeypatch.delenv("PROCINTEL_LLM_MODEL", raising=False)
     monkeypatch.setattr(decide, "yes", lambda *a, **k: (_ for _ in ()).throw(AssertionError("decision model called")))

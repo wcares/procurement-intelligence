@@ -1,4 +1,4 @@
-from procintel import feedback, kpi
+from procintel.learning import feedback, kpi
 
 
 def test_weekly_kpis_from_logged_responses_and_ratings(tmp_path):

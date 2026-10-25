@@ -9,5 +9,5 @@ env_file=.env
 set -a; . ./$env_file; set +a
 mkdir -p data/logs
 log=data/logs/refresh-$(date +%Y%m%d-%H%M).log
-PYTHONPATH=src .venv/bin/python -m procintel.refresh --reload-url "${PROCINTEL_RELOAD_URL:-http://127.0.0.1:8000/admin/reload}" >"$log" 2>&1
+PYTHONPATH=src .venv/bin/python -m procintel.ingestion.refresh --reload-url "${PROCINTEL_RELOAD_URL:-http://127.0.0.1:8000/admin/reload}" >"$log" 2>&1
 echo "refresh finished, log: $log"

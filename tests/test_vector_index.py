@@ -1,6 +1,6 @@
 import numpy as np
 
-from procintel import vector_index as vi
+from procintel.core import vector_index as vi
 
 
 class FakeResponse:

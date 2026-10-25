@@ -1,7 +1,7 @@
 import numpy as np
 
-from procintel import similar
-from procintel.answer import terms
+from procintel.answering.answer import terms
+from procintel.prediction import similar
 
 
 def make(rows, vectors):

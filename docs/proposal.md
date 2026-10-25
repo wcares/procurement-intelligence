@@ -130,7 +130,7 @@ World Bank APIs ──► refresh ──► only new/changed passages embedded a
        └────────────── planners use Assess / Ask ──► feedback (useful, not useful, flagged citation) ◄───┘
 ```
 
-- `python -m procintel.refresh` re-fetches listings, keeps existing reports, rebuilds what depends on them, retrains
+- `python -m procintel.ingestion.refresh` re-fetches listings, keeps existing reports, rebuilds what depends on them, retrains
   the prediction models and logs what changed (documents, notices, passages, metrics before and after). Measured:
   2.9 min with fetching, 6 s without.
 - Every answer and assessment is logged with an id; feedback attaches to that exact response. Flagged citations are
@@ -141,7 +141,7 @@ World Bank APIs ──► refresh ──► only new/changed passages embedded a
   memory after 5 idle minutes.
 
 **Pilot rollout (proposed; full plan with entry and exit criteria, KPI definitions and baselines in
-`docs/pilot-plan.md`, measurable KPIs from the logs via `python -m procintel.kpi`).**
+`docs/pilot-plan.md`, measurable KPIs from the logs via `python -m procintel.learning.kpi`).**
 
 | phase | who | what is measured |
 |---|---|---|

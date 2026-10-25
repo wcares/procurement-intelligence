@@ -1,4 +1,4 @@
-from procintel import procurement_rating as pr
+from procintel.prediction import procurement_rating as pr
 
 
 def test_closing_rating_and_conflict_with_a_satisfactory_outcome():

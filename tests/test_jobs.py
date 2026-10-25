@@ -74,7 +74,7 @@ def test_drift_decision():
 
 
 def test_a_failed_refresh_fails_the_job_without_stopping_the_worker(tmp_path, monkeypatch):
-    from procintel import refresh
+    from procintel.ingestion import refresh
     db = tmp_path / "jobs.duckdb"
     monkeypatch.setattr(refresh, "run", lambda **kw: (_ for _ in ()).throw(SystemExit(1)))
     store.enqueue("refresh", "test", db_path=db)

@@ -25,7 +25,7 @@ pauses the phase until the cause is found and fixed.
 | Answer faithfulness | answer sentences the independent judge finds supported by their citations | `evaluate run` | 282/285 (98.9%) | ≥ 97% |
 | Refusal on unanswerable questions | traps and off-topic questions refused | `evaluate run` | 20/20 | 100% |
 | Answer coverage | answerable evaluation questions answered | `evaluate run` | 77/80 (79/80 after the 2026-10-25 fix, checked directly) | ≥ 95% |
-| Useful share | ratings "useful" / (useful + not useful) on real responses | `python -m procintel.kpi` (feedback log) | no real ratings yet | ≥ 60% in shadow, ≥ 70% assisted |
+| Useful share | ratings "useful" / (useful + not useful) on real responses | `python -m procintel.learning.kpi` (feedback log) | no real ratings yet | ≥ 60% in shadow, ≥ 70% assisted |
 | Flagged citations | citations users mark as wrong, per 100 responses | `kpi` | no real use yet | ≤ 5 |
 | Refusal rate on real questions | Ask responses with no supported answer | `kpi` | 2 of 5 test questions (test traffic, not a baseline) | tracked, read with a sample of refused questions |
 | Rating rate | responses that receive any rating | `kpi` | 0% (test traffic) | ≥ 30% (below that the useful share is not trusted) |

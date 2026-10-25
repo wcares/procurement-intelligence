@@ -1,4 +1,4 @@
-from procintel import feedback, feedback_review as fr
+from procintel.learning import feedback, feedback_review as fr
 
 
 def ask(db, question, unsupported=False, cites=("d:1",)):

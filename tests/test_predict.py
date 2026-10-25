@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from procintel import assess, predict
+from procintel.prediction import assess, predict
 
 
 def frame(rows):

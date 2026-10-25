@@ -1,10 +1,10 @@
 """Persistent job queue in its own DuckDB file (data/jobs.duckdb), so pending and paused jobs survive a restart.
 
-Each call opens and closes its connection (like procintel.feedback), so a command-line tool can queue a job while the
+Each call opens and closes its connection (like procintel.learning.feedback), so a command-line tool can queue a job while the
 backend runs. A job moves pending -> running -> done | failed; a job paused between steps goes back to pending with its
 cursor, and resumes from there.
 
-With Postgres (procintel.db) several worker processes share the queue: a job is claimed in one Postgres statement
+With Postgres (procintel.core.db) several worker processes share the queue: a job is claimed in one Postgres statement
 (FOR UPDATE SKIP LOCKED), so no two workers take the same job, and every step writes a heartbeat, so a worker that
 starts only takes back jobs whose worker stopped (no heartbeat for STALE). Table meta holds what the api and the
 workers share: the time of the last user request (workers wait for idle time) and a data version that a worker raises
@@ -22,7 +22,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import db, paths
+from procintel.core import db, paths
 
 DB_PATH = paths.JOBS_DB
 MAX_ATTEMPTS = 3

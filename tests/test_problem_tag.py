@@ -1,6 +1,6 @@
 import pytest
 
-from procintel import problem_tag as pt
+from procintel.ingestion import problem_tag as pt
 
 
 def replies(monkeypatch, *answers):

@@ -5,16 +5,16 @@ which is passed back in to resume after a pause or restart; its return value is 
                   data) and how many there are; queues a retrain when they are numerous or the model does worse on
                   them than in cross-validation
     retrain       cross-validate, train, save, then ask the backend to load the new model
-    refresh       re-fetch the World Bank sources and rebuild what changed (procintel.refresh), then reload the backend
-    feedback_review  rebuild the review list and the demoted citations from user feedback (procintel.feedback_review);
+    refresh       re-fetch the World Bank sources and rebuild what changed (procintel.ingestion.refresh), then reload the backend
+    feedback_review  rebuild the review list and the demoted citations from user feedback (procintel.learning.feedback_review);
                   reload the backend when the demoted set changed
 """
 from __future__ import annotations
 
 from typing import Any, Callable, Iterator
 
-from procintel import predict
 from procintel.jobs import store
+from procintel.prediction import predict
 
 MIN_NEW = 20          # fewer new packages than this: too few to judge the model on
 GROWTH = 0.05         # new packages >= 5% of the training set: retrain to use them
@@ -75,7 +75,7 @@ def retrain(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
 
 @handler("refresh")
 def refresh(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
-    from procintel import refresh as refresh_mod  # imported here: it pulls in every pipeline module
+    from procintel.ingestion import refresh as refresh_mod  # imported here: it pulls in every pipeline module
     try:
         changes = refresh_mod.run(fetch=params.get("fetch", True), db_path=ctx.get("db_path", predict.DB_PATH))
     except SystemExit as e:  # refresh signals failure with SystemExit, which must not end the worker thread
@@ -89,7 +89,7 @@ def refresh(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
 
 @handler("feedback_review")
 def feedback_review(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
-    from procintel import feedback_review as fr
+    from procintel.learning import feedback_review as fr
     before = fr.load_demoted(ctx.get("feedback_db"))
     out = fr.build(ctx.get("feedback_db"))
     yield {"step": "built"}

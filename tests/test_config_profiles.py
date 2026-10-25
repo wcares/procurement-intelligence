@@ -1,4 +1,5 @@
-from procintel import answer, config, retrieve
+from procintel.answering import answer, retrieve
+from procintel.api import config
 
 
 def test_profile_save_apply_and_delete(tmp_path, monkeypatch):

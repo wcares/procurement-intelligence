@@ -1,5 +1,5 @@
-from procintel import answer
-from procintel.retrieve import Hit
+from procintel.answering import answer
+from procintel.answering.retrieve import Hit
 
 
 def hit(i, text):
@@ -68,7 +68,7 @@ def test_retrieval_note_names_the_method_actually_used(monkeypatch):
 
 def test_cut_model_output_is_an_error_not_an_answer(monkeypatch):
     import types, litellm
-    from procintel import llm
+    from procintel.core import llm
     monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/x")
     cut = types.SimpleNamespace(choices=[types.SimpleNamespace(finish_reason="length", message=types.SimpleNamespace(content='{"sente'))])
     monkeypatch.setattr(litellm, "completion", lambda **kw: cut)
@@ -79,7 +79,7 @@ def test_cut_model_output_is_an_error_not_an_answer(monkeypatch):
 
 def fake_decider(monkeypatch, rule):
     """Route decide.yes to rule(state) -> probability, and mark the decision model as configured."""
-    from procintel import decide
+    from procintel.core import decide
     monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
     monkeypatch.delenv("PROCINTEL_LLM_MODEL", raising=False)  # no answer LLM: the decision model is the gate
     monkeypatch.setattr(decide, "yes", lambda state, question, **kw: rule(state))
@@ -102,7 +102,7 @@ def test_decision_model_drops_unsupported_generated_sentences(monkeypatch):
 
 
 def test_decision_server_failure_falls_back_to_word_overlap(monkeypatch):
-    from procintel import decide
+    from procintel.core import decide
     monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
 
     def down(*a, **kw):
@@ -115,7 +115,7 @@ def test_decision_server_failure_falls_back_to_word_overlap(monkeypatch):
 
 def test_second_search_runs_only_when_evidence_is_thin_and_keeps_the_larger_set(monkeypatch):
     monkeypatch.setattr(answer, "VOCAB_STEP", 0)                      # the older thin-evidence path
-    from procintel.retrieve import Hit as H
+    from procintel.answering.retrieve import Hit as H
     calls = []
 
     class R:
@@ -177,7 +177,7 @@ def test_no_second_search_when_the_answer_llm_found_no_evidence(monkeypatch):
 
 
 def test_vocabulary_step_searches_rephrasings_and_needs_evidence_from_the_own_search(monkeypatch):
-    from procintel.retrieve import Hit as H
+    from procintel.answering.retrieve import Hit as H
     own = HITS[:1]
     lookalike = H(chunk_id="x:9", doc_id="x", title="T", doc_type="ICR", url="u", section="Lessons", para="9", kind="text",
                   text="HSIP metering equipment certification delays.", project_id="P9", project_name="HSIP",

@@ -5,8 +5,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK = """
-from procintel import config, feedback, predict, retrieve, wb_client
+from procintel.answering import retrieve
+from procintel.api import config
+from procintel.ingestion import wb_client
 from procintel.jobs import store
+from procintel.learning import feedback
+from procintel.prediction import predict
 print(retrieve.DB_PATH, feedback.DB_PATH, store.DB_PATH, config.SAVED, predict.MODEL_PATH.parent, wb_client.CACHE_DIR, sep="\\n")
 """
 

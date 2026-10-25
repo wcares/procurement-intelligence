@@ -1,4 +1,4 @@
-from procintel import ratings
+from procintel.prediction import ratings
 
 # Layouts copied from real ICR data sheets (40130697, 40130174, 40109568, 40120020).
 INLINE = ("RATINGS SUMMARY\nOutcome Bank Performance M&E Quality\nSatisfactory Moderately Satisfactory Substantial\n"

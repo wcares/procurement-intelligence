@@ -1,4 +1,4 @@
-from procintel import evaluate as E
+from procintel.learning import evaluate as E
 
 
 def test_precision_and_recall_against_the_judged_relevant_set():

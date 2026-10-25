@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from procintel import server
+from procintel.api import server
 
 
 def test_reload_swaps_state_and_is_refused_from_other_hosts(monkeypatch):

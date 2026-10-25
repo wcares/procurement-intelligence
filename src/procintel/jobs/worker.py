@@ -151,7 +151,8 @@ class Worker:
 
 def main() -> None:
     """A worker in its own process (PROCINTEL_JOBS=external in the backend)."""
-    from procintel import config, db
+    from procintel.api import config
+    from procintel.core import db
     global IDLE_SECONDS
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     if db.backend() != "postgres":

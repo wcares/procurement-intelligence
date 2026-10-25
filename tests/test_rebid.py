@@ -1,4 +1,4 @@
-from procintel import assess, rebid
+from procintel.prediction import assess, rebid
 
 
 def test_reports_vs_advice():
@@ -25,7 +25,7 @@ def test_no_evidence_is_not_presented_as_no_risk():
 
 
 def test_amendment_reports_exclude_advice_and_laws():
-    from procintel import evidence as E
+    from procintel.prediction import evidence as E
     k = E.AMENDMENT
     assert E.reports(k, "Price escalation in 2022 was managed transparently through contract amendments.")
     assert E.reports(k, "Contract amendments and extensions were often handled retroactively.")
