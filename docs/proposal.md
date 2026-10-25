@@ -41,8 +41,9 @@ The entity-relationship diagram, grain of every table and measured gaps are in `
 - *Labels from a decision model:* every passage gets a problem-type tag from Laya, a small model that returns
   calibrated probabilities instead of text (18,140 passages in 653 s).
 
-**Not done yet.** Supplier entity resolution (225 duplicate normalised names are not merged); links by sector and time
-proximity; tables are flattened in the text exports (page-image indexing with the multimodal embedding model is the
+Supplier firm ids of the same firm are merged (4,702 ids into 4,344 firms; table `firm`).
+
+**Not done yet.** Links by sector and time proximity; tables are flattened in the text exports (page-image indexing with the multimodal embedding model is the
 candidate fix); two sources were unavailable (Major Contract Awards returns HTML, the WGI code was not found).
 
 ## Module 2: Predictive and prescriptive engines

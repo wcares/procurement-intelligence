@@ -35,6 +35,8 @@ erDiagram
 | `notice_m` | one published notice | `notice_id` | procnotices API |
 | `supplier` | one Bank firm id | `firm_id` | parsed from award text |
 | `award_supplier` | package × firm | (`package_id`, `firm_id`) | parsed from award text |
+| `supplier_entity` | one Bank firm id | `firm_id` → `entity_id` | firm ids of the same firm merged (`procintel.entities`) |
+| `firm` | one firm | `entity_id` | most used name, its firm ids, packages won, countries |
 | `document_m` / `document_project` | one document; **many-to-many** to projects | `doc_id` | WDS API |
 | `cpia` | country × year × indicator | — | indicators API |
 
@@ -58,10 +60,12 @@ erDiagram
 
 ## Known limitations
 
-- **Prices are multi-currency.** Only 1,181 of 7,060 priced awards are in USD; there is no FX table, so amounts are
-  stored with their currency and not compared across currencies.
-- **Supplier identity.** `firm_id` is the key. 225 normalized names map to more than one firm id (e.g. one firm
-  registered twice, and both ids appear together in 28 packages). `name_key` groups them; they are not merged.
+- **Prices are multi-currency.** Only 1,181 of 7,060 priced awards are in USD. Amounts are stored with their currency
+  and converted to USD with World Bank yearly rates (table `fx`, `procintel.fx`) where a rate exists.
+- **Supplier identity.** `firm_id` is the Bank's key, but one firm is often registered under several ids.
+  `procintel.entities` merges them into `firm` (4,702 ids -> 4,344 firms, 282 merged groups): same name after
+  removing case, punctuation and legal-form words, within one country, or across countries for names that are clearly
+  organisations; personal names stay apart across countries. All 99 merges with differing spellings were read by hand.
   2,093 awards are anonymous individual consultants with no firm id.
 - **Linkage is partial.** Only packages whose pre-award and award notices share a `bid_ref` get a tender duration.
 - **Slice bias.** The slice is projects that already have an ICR (closed or closing), so it over-represents completed

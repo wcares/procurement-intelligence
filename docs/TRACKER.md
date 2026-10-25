@@ -44,7 +44,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Supplier entity resolution: 225 duplicate normalised names are not merged into firms (added 2026-10-24, by me)
 - [ ] Link contract rows to ICR passages by sector and time, not only project ID (added 2026-10-24, by me)
 - [ ] Tables: report text comes from the World Bank text files, so tables arrive flattened; parse them or index page images (added 2026-10-24, by me)
 - [ ] Data quality debts: 4 reports keep ~51% of their text; 137 packages have award before tender; data-sheet tables mixed with lessons (added 2026-10-24, by me)
@@ -53,6 +52,7 @@ _(empty)_
 
 ### Done
 
+- [x] Supplier entity resolution: procintel.entities merges Bank firm ids into firms (tables supplier_entity, firm; refresh step): same name after removing case, punctuation, legal-form words and the "M/S" prefix, within one country, or across countries when the name is clearly an organisation (legal form or words like UNITED NATIONS, GROUP, CONSULTING), so personal names stay apart across countries — COMMIT_PENDING — 4,702 firm ids -> 4,344 firms, 282 merged groups (177 identical spellings, 99 differing, 6 cross-country); all 99 differing-spelling merges read by hand, none wrong (AGTECH PLC/PVT LTD, CHAMPA (PRIVATE) ENTERPRISE, HORIZON CONSTRUCTION (COMPANY) LTD not confirmable from the name); the 15 names in several countries were all international organisations, 13 now merged (SEURECA, CESI S.P.A stay split: no organisation word); data-model.md and the proposal updated (also a stale "no FX table" line); 105 tests pass (2 new)
 - [x] World Bank API client with caching and retries (projects, notices, WDS documents, CPIA) — 98ac4a5 — live calls 2026-10-23
 - [x] Raw load into DuckDB and normalised model: project, package (tender-to-award days), notice, supplier, award_supplier, document, cpia — 98ac4a5 — row counts in docs/data-model.md
 - [x] Notice parser: award dates, prices (USD preferred), suppliers incl. names with brackets — 98ac4a5 — tests/test_parse_notice.py
