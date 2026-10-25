@@ -126,7 +126,8 @@ World Bank APIs ──► refresh ──► only new/changed passages embedded a
 - A settings page tunes models, endpoints and thresholds live, validated, with saving; model servers release their
   memory after 5 idle minutes.
 
-**Pilot rollout (proposed).**
+**Pilot rollout (proposed; full plan with entry and exit criteria, KPI definitions and baselines in
+`docs/pilot-plan.md`, measurable KPIs from the logs via `python -m procintel.kpi`).**
 
 | phase | who | what is measured |
 |---|---|---|
