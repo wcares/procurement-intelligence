@@ -84,6 +84,23 @@ export interface ResponseMeta {
   source: "mock" | "live";
   generatedAt: string;
   caveats: string[];
+  /** id of this response in the server's log; feedback refers to it */
+  responseId: string;
+}
+
+export type FeedbackRating = "useful" | "not_useful" | "bad_citation";
+
+export interface FeedbackRequest {
+  responseId: string;
+  rating: FeedbackRating;
+  /** required for "bad_citation": the id of a citation shown in that response */
+  citationId?: string;
+  comment?: string;
+}
+
+export interface FeedbackResponse {
+  ok: boolean;
+  feedbackId: string;
 }
 
 export interface AssessResponse {

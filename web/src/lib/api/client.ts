@@ -1,4 +1,4 @@
-import type { AskRequest, AskResponse, AssessRequest, AssessResponse, Options } from "./types";
+import type { AskRequest, AskResponse, AssessRequest, AssessResponse, FeedbackRequest, FeedbackResponse, Options } from "./types";
 
 // Default is the in-app mock. Point at the Python backend with NEXT_PUBLIC_API_BASE=http://localhost:8000
 // (inlined at build time, so restart `next dev` after changing it).
@@ -20,4 +20,5 @@ export const api = {
   options: () => call<Options>("/options"),
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),
+  feedback: (req: FeedbackRequest) => call<FeedbackResponse>("/feedback", { method: "POST", body: JSON.stringify(req) }),
 };

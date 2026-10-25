@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Citation, ResponseMeta, RiskLevel, TimelineBenchmark } from "@/lib/api/types";
 
 const RISK_STYLE: Record<RiskLevel, string> = {
@@ -12,7 +13,7 @@ export function RiskBadge({ level }: { level: RiskLevel }) {
   );
 }
 
-export function CitationCard({ c, index, highlight }: { c: Citation; index?: number; highlight?: string }) {
+export function CitationCard({ c, index, highlight, action }: { c: Citation; index?: number; highlight?: string; action?: ReactNode }) {
   return (
     <article id={`cite-${c.id}`} className="rounded-lg border border-line bg-surface p-4">
       <header className="mb-2 flex flex-wrap items-baseline gap-x-2 text-xs text-muted">
@@ -25,11 +26,12 @@ export function CitationCard({ c, index, highlight }: { c: Citation; index?: num
       <blockquote className="border-l-2 border-accent pl-3 text-sm leading-relaxed">
         {highlight ? <Highlighted text={c.quote} needle={highlight} /> : c.quote}
       </blockquote>
-      <footer className="mt-2 text-xs text-muted">
+      <footer className="mt-2 flex flex-wrap items-center gap-x-1 text-xs text-muted">
         {c.docType} · <span className="italic">{c.section}</span> ·{" "}
         <a href={c.url} target="_blank" rel="noreferrer" className="text-accent underline-offset-2 hover:underline">
           open source PDF
         </a>
+        {action && <span className="ml-auto">{action}</span>}
       </footer>
     </article>
   );

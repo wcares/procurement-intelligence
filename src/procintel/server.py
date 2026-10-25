@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import predict, stats
+from procintel import feedback, predict, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
@@ -106,6 +106,7 @@ class ResponseMeta(BaseModel):
     source: Literal["mock", "live"]
     generatedAt: str
     caveats: list[str]
+    responseId: str  # used to attach feedback to exactly this response
 
 
 class AssessResponse(BaseModel):
@@ -181,12 +182,37 @@ def get_options() -> dict:
 def post_assess(req: AssessRequest) -> dict:
     s = state()
     body = req.model_dump()
-    return run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]))
+    out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]))
+    feedback.log_response("assess", body, out)
+    return out
 
 
 @app.post("/ask", response_model=AskResponse)
 def post_ask(req: AskRequest) -> dict:
-    return run_ask(state().retriever, req.question, req.countryCode, req.procGroup)
+    out = run_ask(state().retriever, req.question, req.countryCode, req.procGroup)
+    feedback.log_response("ask", req.model_dump(), out)
+    return out
+
+
+class FeedbackRequest(BaseModel):
+    responseId: str = Field(min_length=1, max_length=64)
+    rating: Literal["useful", "not_useful", "bad_citation"]
+    citationId: str | None = Field(default=None, max_length=64)
+    comment: str | None = Field(default=None, max_length=1000)
+
+
+class FeedbackResponse(BaseModel):
+    ok: bool
+    feedbackId: str
+
+
+@app.post("/feedback", response_model=FeedbackResponse)
+def post_feedback(req: FeedbackRequest) -> dict:
+    try:
+        fid = feedback.add(req.responseId, req.rating, req.citationId, req.comment)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return {"ok": True, "feedbackId": fid}
 
 
 @app.get("/health")

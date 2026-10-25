@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { AssessRequest, AssessResponse, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evidence";
+import { FeedbackBar, FlagCitation } from "@/components/feedback";
 
 const CPIA_LABELS: Record<string, string> = {
   transparency_corruption: "Transparency & corruption",
@@ -180,12 +181,13 @@ function Results({ r }: { r: AssessResponse }) {
             {r.precedents.map((p, i) => (
               <div key={p.citation.id}>
                 <p className="mb-1 text-xs text-muted">Matched on: {p.matchedOn.join(" · ")}</p>
-                <CitationCard c={p.citation} index={i} />
+                <CitationCard c={p.citation} index={i} action={<FlagCitation responseId={r.meta.responseId} citationId={p.citation.id} />} />
               </div>
             ))}
           </div>
         )}
       </div>
+      <FeedbackBar responseId={r.meta.responseId} subject="assessment" />
     </>
   );
 }

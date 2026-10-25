@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **M4** Feedback capture: useful / wrong / bad citation buttons on answers and assessments, stored in the database with the response (added 2026-10-24, by me)
 - [ ] **M4** One `refresh` command: fetch new notices and reports, then chunk → embed → tag → retrain only what changed, and log what changed (added 2026-10-24, by me)
 - [ ] **M4** Evaluation report combining the test set and user feedback, re-run after each refresh (added 2026-10-24, by me)
 - [ ] **M4** Basic configuration page: view and change the main settings (models and endpoints, retrieval k, thresholds, LLM settings) through a backend /config endpoint, validated and applied live (added 2026-10-24, by you)
@@ -149,6 +148,7 @@ _(empty)_
 
 ### Done
 
+- [x] Feedback capture: every /ask and /assess response logged with a responseId; POST /feedback (useful / not_useful / bad_citation naming a shown citation, optional comment); "Was this useful?" bar and "flag citation" on answers and assessments; separate data/feedback.duckdb so the server never blocks the build commands — COMMIT — 4 API tests (unknown response, citation not shown, missing citation, bad rating all 400); in Chrome: flagged a citation and sent "not useful" with a comment, both rows stored against the logged response, no console errors
 - [x] Embeddings and tags re-run only for new or changed passages (text hash per model) — a36f209, d19a6e8 — re-run embeds 0
 - [x] All models swappable by configuration; documented in .env.example — b8d7c0e — backend starts from it
 - [x] Idle model servers release memory: --sleep-idle-seconds 300 on all three llama-servers — 911f037 — Saluki wired memory 12.6 → 3.6 GB after idle, 1.4 s to wake

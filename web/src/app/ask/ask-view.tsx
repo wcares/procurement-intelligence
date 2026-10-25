@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { AskResponse, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard } from "@/components/evidence";
+import { FeedbackBar, FlagCitation } from "@/components/feedback";
 
 type Turn = { id: number; question: string; response?: AskResponse; error?: string };
 
@@ -125,6 +126,7 @@ function Answer({ turnId, r }: { turnId: number; r: AskResponse }) {
           rather than a guess. Try rephrasing, or removing the filters.
         </p>
         <Caveats meta={r.meta} />
+        <FeedbackBar responseId={r.meta.responseId} subject="answer" />
       </div>
     );
   }
@@ -145,11 +147,17 @@ function Answer({ turnId, r }: { turnId: number; r: AskResponse }) {
       <div className="space-y-2">
         {r.citations.map((c, i) => (
           <div key={c.id} id={`t${turnId}-c${i}`} className="scroll-mt-20">
-            <CitationCard c={c} index={i} highlight={r.answer.find((s) => s.citations.includes(i))?.text} />
+            <CitationCard
+              c={c}
+              index={i}
+              highlight={r.answer.find((s) => s.citations.includes(i))?.text}
+              action={<FlagCitation responseId={r.meta.responseId} citationId={c.id} />}
+            />
           </div>
         ))}
       </div>
       <Caveats meta={r.meta} />
+      <FeedbackBar responseId={r.meta.responseId} subject="answer" />
     </div>
   );
 }

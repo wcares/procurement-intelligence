@@ -30,7 +30,7 @@ const STOP = new Set(
 );
 
 function meta(caveats: string[]) {
-  return { source: "mock" as const, generatedAt: new Date().toISOString(), caveats };
+  return { source: "mock" as const, generatedAt: new Date().toISOString(), caveats, responseId: crypto.randomUUID() };
 }
 
 function tokens(s: string): string[] {
