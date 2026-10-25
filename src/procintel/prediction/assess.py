@@ -13,6 +13,7 @@ from procintel.core import llm, prompts
 from procintel.ingestion import sectors
 from procintel.ingestion.tag import NONE
 from procintel.prediction.predict import LONG_DAYS, predict_one
+from procintel.prediction.stages import stage_of_problem
 from procintel.prediction.stats import MIN_BENCH_N, PROC_GROUP_LABELS
 
 # A passage tagged "none of these" at this confidence describes no problem and is not offered as a precedent.
@@ -137,7 +138,9 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         shared = sorted(want & terms(h.text))
         if shared:
             matched.append("terms: " + ", ".join(shared[:4]))
-        out.append({"citation": citation(h), "relevance": round(h.score / top, 3), "matchedOn": matched})
+        out.append({"citation": citation(h), "relevance": round(h.score / top, 3), "matchedOn": matched,
+                    # the stage of the tender the passage's problem kind belongs to (None: not tagged as a problem)
+                    "stage": stage_of_problem(h.problem)})
     return out, widened, how, conflict_notes(retriever, hits)
 
 

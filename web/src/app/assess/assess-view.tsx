@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import type { AssessRequest, AssessResponse, FlagEvidenceItem, Options, ProcGroup, SimilarPackage } from "@/lib/api/types";
 import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
+import { StageTimeline } from "@/components/assess/stage-timeline";
 
 const CPIA_LABELS: Record<string, string> = {
   transparency_corruption: "Transparency & corruption",
@@ -151,9 +152,20 @@ export function AssessView() {
 }
 
 function Results({ r }: { r: AssessResponse }) {
+  const showFlag = (id: string) => {
+    const el = document.getElementById(`flag-${id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.classList.add("ring-2", "ring-accent");
+    setTimeout(() => el?.classList.remove("ring-2", "ring-accent"), 1500);
+  };
   return (
     <>
       <Caveats meta={r.meta} />
+      {r.stages && r.stages.length > 0 && (
+        <Card title="Tender stages and where the risks are">
+          <StageTimeline stages={r.stages} risks={r.risks} precedents={r.precedents} onSelect={showFlag} />
+        </Card>
+      )}
       <div className="grid gap-6 md:grid-cols-2">
         <Card title="Expected timeline">
           {r.timeline ? <TimelineBar t={r.timeline} /> : <p className="text-sm text-muted">Not enough comparable packages.</p>}
@@ -164,7 +176,7 @@ function Results({ r }: { r: AssessResponse }) {
           ) : (
             <ul className="space-y-3">
               {r.risks.map((f) => (
-                <li key={f.id}>
+                <li key={f.id} id={`flag-${f.id}`} className="rounded-md p-1 transition-shadow">
                   <div className="flex items-center gap-2">
                     <RiskBadge level={f.level} />
                     <span className="text-sm font-medium">{f.label}</span>

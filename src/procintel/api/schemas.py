@@ -76,6 +76,15 @@ class FlagEvidenceItem(BaseModel):
     url: str | None = None
 
 
+class Stage(BaseModel):
+    key: str
+    label: str
+    median: float | None  # typical days for comparable packages (None: the data has no dates for this stage)
+    p90: float | None
+    n: int
+    scope: str | None
+
+
 class RiskFlag(BaseModel):
     id: str
     label: str
@@ -83,6 +92,7 @@ class RiskFlag(BaseModel):
     basis: Literal["statistic", "model"]
     detail: str
     evidence: list[FlagEvidenceItem] = []
+    stage: str | None = None  # the tender stage it bites on ("all": across the timeline)
 
 
 class GovernanceScore(BaseModel):
@@ -95,6 +105,7 @@ class Precedent(BaseModel):
     citation: Citation
     relevance: float
     matchedOn: list[str]
+    stage: str | None = None  # tender stage of the problem it describes (procintel.prediction.stages)
 
 
 class ResponseMeta(BaseModel):
@@ -131,6 +142,7 @@ class AssessResponse(BaseModel):
     precedents: list[Precedent]
     similarPackages: list[SimilarPackage] = []
     prediction: Prediction | None = None
+    stages: list[Stage] = []  # tender stages with typical durations, for the timeline
     meta: ResponseMeta
 
 

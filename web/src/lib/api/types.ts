@@ -79,6 +79,18 @@ export interface RiskFlag {
   detail: string;
   /** Records the flag rests on (empty for model flags and the mock engine) */
   evidence?: FlagEvidenceItem[];
+  /** the tender stage it bites on ("all": across the timeline) */
+  stage?: string | null;
+}
+
+/** A tender stage with its typical duration for comparable packages (null when the data has no dates for it). */
+export interface Stage {
+  key: string;
+  label: string;
+  median: number | null;
+  p90: number | null;
+  n: number;
+  scope: string | null;
 }
 
 export interface GovernanceScore {
@@ -91,6 +103,8 @@ export interface Precedent {
   citation: Citation;
   relevance: number; // 0..1
   matchedOn: string[];
+  /** tender stage of the problem the passage describes */
+  stage?: string | null;
 }
 
 export interface ResponseMeta {
@@ -187,6 +201,8 @@ export interface AssessResponse {
   precedents: Precedent[];
   /** empty when no description was given or embeddings are not configured */
   similarPackages: SimilarPackage[];
+  /** tender stages with typical durations, for the stage timeline */
+  stages?: Stage[];
   /** the award time this assessment predicts, kept in the log for later comparison */
   prediction?: { basis: "model" | "historical median"; days_p50: number; days_p90: number | null; p_long: number | null } | null;
   meta: ResponseMeta;

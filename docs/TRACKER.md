@@ -21,6 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
+- [ ] U3 Interactive visuals for results (user, 2026-10-25): besides the text report, a tender stage timeline with risks placed and coloured by stage, clickable to their evidence; answer map for Ask; design in docs/ui-design.md section 2 — STATUS: part 1 stage timeline done in COMMIT_PENDING: procintel.prediction.stages (stages with durations where the data has dates: bids and evaluation 1,292 packages, award to contract signing 3,758 (award notice to Finances One signing date), contract 6,151; planning, document preparation and prequalification have none and are listed, not drawn; durations per comparable group like the award benchmark; risk flags and precedent problem kinds mapped to stages), Assess returns stages and each risk / precedent carries its stage; web: stage timeline (ECharts) with typical and slow-case rows and risk markers by stage (colour = level, circle = statistic, diamond = model), marker click scrolls to and highlights the flag. Checked: a test (group fallback, untimed stages, risk and problem placement), an assessment (Bangladesh civil works RFB: bidding 111.5 days / signing 7 / contract 270; 7 risks placed, 5 precedents staged), in the browser (backend with sign-in off for the check, then restarted with it on): chart, markers, a marker click scrolling to 'Contract amendments', no console errors; fixed on the way: stage names overlapping on narrow segments. 166 tests pass. Next: part 2 answer map (Ask), part 3 similar contracts and precedents on the timeline.
 
 ## MVP (in order)
 
@@ -175,7 +176,6 @@ _(empty)_
 
 ### Queue
 
-- [ ] U3 Interactive visuals for results (user, 2026-10-25): besides the text report, a tender stage timeline with risks placed and coloured by stage, clickable to their evidence; answer map for Ask; design in docs/ui-design.md section 2
 - [ ] U4 Pipeline pages (user, 2026-10-25): connectors, event log, rules, upload, as part of the event pipeline build; design in docs/ui-design.md section 3 and docs/event-pipeline-design.md
 - [ ] U6 Evaluation page (user, 2026-10-25): quality over time, live-vs-shadow and model comparisons with promote/discard, prediction-model history, labelling queue for judge checks and new evaluation questions; design in docs/ui-design.md section 3b
 - [ ] U8 Alerts, recommendations and trends beside the query (user, 2026-10-25): a compact panel on the query page linking to a full Insights page; alerts from event rules matched to a planner's watch-list; recommendations only from cited precedents and statistics; design in docs/ui-design.md section 2.4

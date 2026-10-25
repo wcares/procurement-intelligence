@@ -50,3 +50,16 @@ def test_trends_heatmap_records_and_summary(board):
     recs = board.records("country", "AA", "delay")["records"]
     assert [r["packageId"] for r in recs] == ["P1/a", "P2/b", "P3/c"]                # slowest first, awarded only
     assert board.summary()["awarded"] == 4 and board.problem_mix()["kinds"] == [{"kind": "funding or payment delays", "passages": 2}]
+
+
+def test_stage_durations_by_group_and_risks_placed():
+    from procintel.prediction import stages
+    stats = {"all": {"bidding": {"median": 100.0, "p90": 300.0, "n": 50}},
+             "CW": {"bidding": {"median": 120.0, "p90": 350.0, "n": 30}, "contract": {"median": 270.0, "p90": 560.0, "n": 40}}}
+    rows = {r["key"]: r for r in stages.for_package(stats, "CW", "RFB")}
+    assert [r["key"] for r in stages.for_package(stats, "CW", "RFB")] == ["plan", "bidding", "signing", "contract"]
+    assert rows["bidding"]["median"] == 120.0 and rows["bidding"]["scope"] == "all Civil Works packages"   # no CW/RFB
+    assert rows["plan"]["median"] is None and rows["signing"]["n"] == 0                                    # no dates
+    placed = stages.place_risks([{"id": "rebid"}, {"id": "amendment"}, {"id": "governance"}, {"id": "new-kind"}])
+    assert [r["stage"] for r in placed] == ["bidding", "contract", "all", "all"]
+    assert stages.stage_of_problem("weak specifications or design") == "plan" and stages.stage_of_problem(None) is None

@@ -11,7 +11,7 @@ from procintel.core import db
 from procintel.ingestion import wgi
 from procintel.insights.dashboard import Dashboard
 from procintel.learning import feedback_review
-from procintel.prediction import evidence, predict, rebid, stats
+from procintel.prediction import evidence, predict, rebid, stages, stats
 from procintel.prediction.flag_evidence import FlagEvidence
 from procintel.prediction.similar import Similar
 
@@ -30,6 +30,7 @@ class State:
         self.amendments = evidence.by_country(con, "amendment")
         self.similar = Similar(db_path)
         self.flag_evidence = FlagEvidence(db_path)
+        self.stage_stats = stages.build(con)  # typical stage durations per comparable group
         con.close()
         self.dashboard = Dashboard(db_path)  # home page: rankings, trends, heat map (procintel.insights)
         self.retriever = Retriever(db_path)
