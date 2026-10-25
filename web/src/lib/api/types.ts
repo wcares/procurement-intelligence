@@ -322,6 +322,31 @@ export interface PipelineResponse {
   events: { type: string; key: string; changed: string[]; detectedAt: string; batch: string }[];
   firings: { batch: string; rule: string; events: number; actions: string[]; job: string | null; firedAt: string }[];
   entityTypes: { name: string; every: string; watched: string[] }[];
-  rules: { id: string; on: string[]; fields: string[]; do: string[]; enabled: boolean }[];
-  actions: { name: string; label: string }[];
+  rules: PipelineRule[];
+  /** false while the default rules are in use */
+  customised: boolean;
+  eventTypes: string[];
+  actions: { name: string; label: string; minHours: number }[];
+}
+
+export interface PipelineRule {
+  id: string;
+  on: string[];
+  /** for .changed events: fire only when one of these fields changed */
+  fields: string[];
+  do: string[];
+  enabled: boolean;
+}
+
+export interface DryRunSide {
+  batches: number;
+  events: number;
+  fired: Record<string, number>;
+  actions: Record<string, { events: number; runs: number }>;
+}
+
+export interface DryRunResponse {
+  days: number;
+  candidate: DryRunSide;
+  current: DryRunSide;
 }

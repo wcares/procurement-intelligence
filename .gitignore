@@ -11,6 +11,8 @@ data/*.duckdb.wal
 data/raw/
 # prompt versions saved from the Settings page (runtime state)
 data/prompts/
+# pipeline rules edited on the Settings page (runtime state; absent = the defaults)
+data/pipeline_rules.json
 
 # Next.js (web/ also has its own .gitignore)
 web/node_modules/

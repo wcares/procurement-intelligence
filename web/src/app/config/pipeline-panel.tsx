@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { PipelineResponse } from "@/lib/api/types";
+import { RulesEditor } from "./rules-editor";
 
 const when = (iso: string) => new Date(iso).toLocaleString();
 
@@ -54,15 +55,21 @@ export function Pipeline() {
         <button className="rounded-md border border-line px-2 py-1 text-xs" onClick={detect}>Check all sources now</button>
         {note && <p className="text-xs text-muted">{note}</p>}
         <details className="text-xs">
-          <summary className="cursor-pointer">Rules ({data.rules.length})</summary>
+          <summary className="cursor-pointer">Rules ({data.rules.length}{data.customised ? ", edited" : ""})</summary>
           <ul className="mt-1 space-y-0.5">
             {data.rules.map((r) => (
-              <li key={r.id}>
+              <li key={r.id} className={r.enabled ? "" : "text-muted line-through"}>
                 <span className="font-mono">{r.on.join(", ")}</span>
                 {r.fields.length > 0 && <span className="text-muted"> (fields: {r.fields.join(", ")})</span>} → {r.do.join(", ")}
               </li>
             ))}
           </ul>
+          <details className="mt-2">
+            <summary className="cursor-pointer">Edit rules</summary>
+            <div className="mt-2">
+              <RulesEditor data={data} onSaved={setData} />
+            </div>
+          </details>
         </details>
         <div>
           <h3 className="text-xs font-semibold">Recent rule firings</h3>

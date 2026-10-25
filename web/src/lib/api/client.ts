@@ -11,8 +11,10 @@ import type {
   FeedbackReviewResponse,
   JobsResponse,
   FeedbackResponse,
+  DryRunResponse,
   Options,
   PipelineResponse,
+  PipelineRule,
   PromptInfo,
   ShadowsResponse,
 } from "./types";
@@ -57,6 +59,22 @@ export const api = {
   jobs: () => call<JobsResponse>("/jobs"),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
   pipeline: () => call<PipelineResponse>("/pipeline"),
+  /** rule errors come back as { errors } so the editor can show them */
+  saveRules: async (rules: PipelineRule[]): Promise<PipelineResponse | { errors: Record<string, string> }> => {
+    const res = await fetch(`${API_BASE}/pipeline/rules`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rules }) });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) return body as PipelineResponse;
+    if (res.status === 400 && body.detail) return { errors: body.detail };
+    throw new Error(body.error ?? `PUT /pipeline/rules failed: ${res.status}`);
+  },
+  dryRunRules: async (rules: PipelineRule[]): Promise<DryRunResponse | { errors: Record<string, string> }> => {
+    const res = await fetch(`${API_BASE}/pipeline/rules/dry-run`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rules }) });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) return body as DryRunResponse;
+    if (res.status === 400 && body.detail) return { errors: body.detail };
+    throw new Error(`dry run failed: ${res.status}`);
+  },
+  resetRules: () => call<PipelineResponse>("/pipeline/rules/reset", { method: "POST" }),
   detectNow: () => call<{ queued: string | null; note: string | null }>("/pipeline/detect", { method: "POST" }),
   prompts: () => call<{ prompts: PromptInfo[] }>("/prompts"),
   /** saved as a candidate; prompts used in answering get an evaluation job */
