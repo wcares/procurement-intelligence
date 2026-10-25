@@ -33,7 +33,11 @@ The entity-relationship diagram, grain of every table and measured gaps are in `
 - *A report-aware chunker instead of generic splitting.* ICRs number their paragraphs, so chunks follow numbered
   paragraphs and keep `section` and `¶` as the citation anchor. Running headers, footers, page numbers and footnote
   blocks are removed first: before that fix 1,360 of 19,169 chunks (7%) contained page furniture; after it, none, while
-  keeping 99.8% of the real words (every removed line audited). Text without sentence breaks is capped at 1,400
+  keeping 99.8% of the real words in that step (every removed line audited). Across the whole pipeline 86% of a
+  report's words reach the index (measured 2026-10-25): the rest are running headers, the table of contents, headings
+  (kept as section labels), abbreviation and staff lists and the data sheet, removed on purpose. Two rules that dropped
+  real findings were fixed then: a footnote cut that removed up to a page of body text, and "Annex 4." headings in
+  mixed case, whose annex was swallowed by a skipped section. Text without sentence breaks is capped at 1,400
   characters so it fits an embedding window (107 chunks were over).
 - *Embeddings:* EmbeddingGemma 2 with its retrieval prompts, truncated to 256 of 768 dimensions (trained for it),
   stored with the model name and a text hash so a rebuild only embeds new or changed passages (18,992 in 326 s; a
@@ -151,7 +155,7 @@ drift; feedback-driven additions to the evaluation set.
 
 | module | MVP status | strongest evidence | biggest gap |
 |---|---|---|---|
-| 1 Ingestion | done | 0 leaky passages after cleaning, 99.8% of words kept | supplier entity resolution |
+| 1 Ingestion | done | 0 leaky passages after cleaning; 86% of words indexed, the rest removed on purpose | page images for tables |
 | 2 Prediction & retrieval | done | award-time error 74 vs 81 days; hybrid P@5 0.77 vs 0.64 | censoring (survival model) |
 | 3 Guardrails | done | 53/55 sentences supported, 5/5 refusals, fabrication caught live | independent faithfulness judge |
 | 4 Continuous learning | done | one-command refresh with change log; feedback in the evaluation report | scheduling and drift-triggered retraining |

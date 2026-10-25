@@ -200,3 +200,33 @@ def test_flattened_tables_are_found_but_prose_with_numbers_is_not():
                              "of which 1,164 (99.05%) were resolved prior to closure.")
     assert not is_flat_table("Table 14: Operational Lessons and Implications for Future Operations Lesson area Key lesson "
                              "What worked Shared design features and common templates sped up preparation")
+
+
+def test_rebuilt_chunks_keep_vectors_tags_and_labels_of_moved_texts(tmp_path, monkeypatch):
+    import json
+
+    import duckdb
+
+    from procintel import chunk
+    db = tmp_path / "t.duckdb"
+    con = duckdb.connect(str(db))
+    con.execute("CREATE TABLE documents (doc_id VARCHAR, text VARCHAR)")
+    con.execute("CREATE TABLE chunk AS SELECT * FROM (VALUES ('d:0', 'old first text'), ('d:1', 'kept lesson text'), "
+                "('d:2', 'text that changes')) t(chunk_id, text)")
+    con.execute("CREATE TABLE chunk_vec AS SELECT * FROM (VALUES ('d:1', 'v1'), ('d:2', 'v2')) t(chunk_id, vec)")
+    con.close()
+    labels = tmp_path / "judgments.jsonl"
+    labels.write_text(json.dumps({"qid": "q1", "chunk_id": "d:1", "relevant": True}) + "\n")
+    new_chunks = ["inserted new text", "old first text", "kept lesson text", "text that changed"]
+    monkeypatch.setattr(chunk, "chunk_document", lambda text: [chunk.Chunk("S", None, "text", t) for t in new_chunks])
+    monkeypatch.setattr(chunk, "ID_KEYED_FILES", (labels,))
+    con = duckdb.connect(str(db))
+    con.execute("INSERT INTO documents VALUES ('d', 'whole report')")
+    con.close()
+    assert chunk.remap_ids({"d:1": "kept lesson text", "d:2": "text that changes"},
+                           {"d:2": "kept lesson text", "d:3": "text that changed"}) == {"d:1": "d:2"}
+    chunk.build(db)
+    con = duckdb.connect(str(db))
+    assert sorted(con.execute("SELECT chunk_id, vec FROM chunk_vec").fetchall()) == [("d:2", "v1")]  # moved; the
+    con.close()                                                                  # changed text's vector is dropped
+    assert json.loads(labels.read_text())["chunk_id"] == "d:2"

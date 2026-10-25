@@ -10,6 +10,7 @@ Layout facts this relies on (observed in the ingested ICRs):
 """
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,7 +18,8 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+ROOT = Path(__file__).resolve().parents[2]
+DB_PATH = ROOT / "data" / "procintel.duckdb"
 MAX_CHARS = 1400
 
 _FOOTER_LINE = re.compile(r"^\s*(?:Page \d{1,3}(?: of \d{1,3})?)?\s*$")
@@ -29,14 +31,22 @@ _HEADER_END = re.compile(r"\(P\d{6}\)|ICR DOCUMENT", re.I)
 _TEMPLATE_MARK = re.compile(r"@#&OPS~")
 HEADER_WINDOW = 5  # the running header (bank name, project title wrapped over 1-3 lines) fits in this many lines
 _FOOTNOTE_MARK = re.compile(r"^\s*\d{1,3}\s*$")
+FOOTNOTE_MAX_LINES = 15  # a footnote block at the foot of a page is short
 _PARA_START = re.compile(r"^\s{0,6}(\d{1,3})\.\s+(\S.*)$")
-_HEADING = re.compile(r"^\s*(?:[IVX]+\.|ANNEX\s+\d+\.?|[A-H]\.)?\s*[A-Z][A-Z ,/&()'’:-]{6,90}$")
+# "Annex 4. EFFICIENCY ANALYSIS" (mixed-case "Annex") must count too: otherwise its text stays in the previous section,
+# often a skipped one (staff and cost tables), and a whole annex of findings is dropped (found 2026-10-25)
+_HEADING = re.compile(r"^\s*(?:[IVX]+\.|(?i:annex)\s+\d+\.?|[A-H]\.)?\s*[A-Z][A-Z ,/&()'’:-]{6,90}$")
 _TOC = re.compile(r"\.{5,}")
 _MOJIBAKE = re.compile(r"�[^\w\s]?�?|�")
 _COLUMN_GAP = re.compile(r"\S\s{3,}\S")
 
 # Sections that hold staff lists or cost tables rather than findings.
-SKIP_SECTIONS = re.compile(r"task team|bank lending|staff time|supervision cost|data sheet|front matter|abbreviations|acronyms|table of contents", re.I)
+# The data sheet's parts (staff names, sector percentages, ids, dates; 1,245 chunks, none judged relevant to any of
+# the 100 evaluation questions, 2026-10-25) are matched by their whole name. Rating checks read the raw text instead.
+SKIP_SECTIONS = re.compile(
+    r"task team|bank lending|staff time|supervision cost|data sheet|front matter|abbreviations|acronyms|"
+    r"table of contents|^(?:sectors and themes|clients|fiscal year|basic data|adm staff|ratings summary|key dates|"
+    r"isr ratings|financing|product information|implementation completion and results report(?: \(icr\))?)$", re.I)
 
 
 @dataclass
@@ -94,9 +104,12 @@ def strip_page_furniture(page: str) -> list[str]:
         lines.append(l)
     while lines and not lines[-1].strip():
         lines.pop()
-    # footnote block: a bare number line in the lower part of the page, preceded by a blank line
+    # footnote block: a bare number line in the lower part of the page, preceded by a blank line, with at most
+    # FOOTNOTE_MAX_LINES after it. Without that limit a stray number (a page or table number) cut off the rest of the
+    # page, up to 80 lines of findings ("Project Costs" in 40109737); keeping a footnote is the lesser harm.
     for i in range(int(len(lines) * 0.4), len(lines)):
-        if _FOOTNOTE_MARK.match(lines[i]) and i > 0 and not lines[i - 1].strip():
+        if (_FOOTNOTE_MARK.match(lines[i]) and i > 0 and not lines[i - 1].strip()
+                and len(lines) - i <= FOOTNOTE_MAX_LINES):
             return lines[:i]
     return lines
 
@@ -223,8 +236,61 @@ def chunk_document(text: str) -> list[Chunk]:
     return [c for c in chunks if not SKIP_SECTIONS.search(c.section)]
 
 
+# Tables and files that refer to passages by chunk id ("<doc_id>:<seq>"). Ids are positions, so a chunker change that adds or
+# removes a passage shifts every later id in that report; build() moves what refers to an unchanged text to its new id.
+ID_KEYED_TABLES = ("chunk_vec", "chunk_tag", "chunk_problem")
+ID_KEYED_FILES = (ROOT / "eval" / "judgments.jsonl", ROOT / "eval" / "precedent_labels.json")
+
+
+def remap_ids(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
+    """old chunk id -> new chunk id, for texts that moved: the same exact text, found once in the same report."""
+    by_text: dict[tuple[str, str], list[str]] = {}
+    for cid, text in new.items():
+        by_text.setdefault((cid.split(":")[0], text), []).append(cid)
+    out = {}
+    for cid, text in old.items():
+        if new.get(cid) == text:
+            continue
+        hits = by_text.get((cid.split(":")[0], text), [])
+        if len(hits) == 1:
+            out[cid] = hits[0]
+    return out
+
+
+def _remap_value(v, mapping: dict[str, str]):
+    """Replace every string (value or key) that is an old chunk id in mapping; nothing else can match it."""
+    if isinstance(v, str):
+        return mapping.get(v, v)
+    if isinstance(v, list):
+        return [_remap_value(x, mapping) for x in v]
+    if isinstance(v, dict):
+        return {mapping.get(k, k): _remap_value(x, mapping) for k, x in v.items()}
+    return v
+
+
+def remap_files(mapping: dict[str, str], files=None) -> int:
+    """Rewrite chunk ids in the evaluation files (JSON lines or JSON); returns how many values changed."""
+    changed = 0
+    for f in ID_KEYED_FILES if files is None else files:
+        if not f.exists() or not mapping:
+            continue
+        if f.suffix == ".jsonl":
+            rows = [json.loads(l) for l in f.read_text().splitlines() if l.strip()]
+            out = [_remap_value(r, mapping) for r in rows]
+            changed += sum(a != b for a, b in zip(rows, out))
+            f.write_text("".join(json.dumps(r) + "\n" for r in out))
+        else:
+            data = json.loads(f.read_text())
+            out = _remap_value(data, mapping)
+            changed += json.dumps(data) != json.dumps(out)
+            f.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+    return changed
+
+
 def build(db_path: Path = DB_PATH) -> None:
     con = duckdb.connect(str(db_path))
+    has_chunks = con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk'").fetchone()
+    old = dict(con.execute("SELECT chunk_id, text FROM chunk").fetchall()) if has_chunks else {}
     rows = []
     for doc_id, text in con.execute("SELECT doc_id, text FROM documents").fetchall():
         for i, c in enumerate(chunk_document(text)):
@@ -232,7 +298,19 @@ def build(db_path: Path = DB_PATH) -> None:
                          "para": c.para, "kind": c.kind, "text": c.text, "n_chars": len(c.text)})
     df = pd.DataFrame(rows)
     con.execute("CREATE OR REPLACE TABLE chunk AS SELECT * FROM df")
-    print(f"chunk: {len(df)} rows from {df.doc_id.nunique()} documents")
+    mapping = remap_ids(old, dict(zip(df.chunk_id, df.text)))
+    if mapping:  # vectors and tags of moved texts follow them, so only new texts are embedded and tagged again
+        con.execute("CREATE OR REPLACE TEMP TABLE id_map (old_id VARCHAR, new_id VARCHAR)")
+        con.executemany("INSERT INTO id_map VALUES (?, ?)", list(mapping.items()))
+        for t in ID_KEYED_TABLES:
+            if con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = ?", [t]).fetchone():
+                # rows whose own id is now another text's become stale first, then moved rows take their new ids
+                con.execute(f"DELETE FROM {t} WHERE chunk_id IN (SELECT new_id FROM id_map) "
+                            f"AND chunk_id NOT IN (SELECT old_id FROM id_map)")
+                con.execute(f"UPDATE {t} SET chunk_id = m.new_id FROM id_map m WHERE {t}.chunk_id = m.old_id")
+    files = remap_files(mapping)
+    print(f"chunk: {len(df)} rows from {df.doc_id.nunique()} documents; {len(mapping)} passages moved to a new id "
+          f"(vectors, tags and {files} evaluation labels follow them)")
     con.close()
 
 
