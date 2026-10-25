@@ -110,6 +110,18 @@ def build(db_path: Path = DB_PATH) -> None:
                 THEN date_diff('day', pre.tender_start, aw.award_date) END AS tender_to_award_days
     FROM base b LEFT JOIN pre USING (package_id) LEFT JOIN aw USING (package_id)""")
 
+    # Re-bid evidence. Some agencies number a re-tender as the original reference plus "-N": 30 references exist both
+    # as X and X-N in the same project (28 of them with X-N later, median 104 days), and 10 awards were filed under
+    # "-N" (linked above). This marks the ORIGINAL package. It is positive-only evidence from ~12 of 98 projects
+    # (13 pairs from one project): a package without it may still have been re-bid, so it is not a re-bid rate.
+    con.execute("""
+    ALTER TABLE package ADD COLUMN rebid_evidence VARCHAR;
+    UPDATE package SET rebid_evidence = 'award_under_suffix' WHERE award_relinked;
+    UPDATE package SET rebid_evidence = 'successor_reference'
+    WHERE rebid_evidence IS NULL AND package_id IN (
+        SELECT regexp_replace(package_id, '-[0-9]{1,2}$', '') FROM package WHERE regexp_matches(package_id, '-[0-9]{1,2}$'));
+    """)
+
     con.execute("""
     CREATE OR REPLACE TABLE supplier AS
     SELECT s.firm_id, arg_max(s.name, LENGTH(s.name)) AS name,
