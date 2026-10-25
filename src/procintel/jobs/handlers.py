@@ -8,6 +8,11 @@ which is passed back in to resume after a pause or restart; its return value is 
     refresh       re-fetch the World Bank sources and rebuild what changed (procintel.ingestion.refresh), then reload the backend
     feedback_review  rebuild the review list and the demoted citations from user feedback (procintel.learning.feedback_review);
                   reload the backend when the demoted set changed
+    shadow_build     build an alternative index next to the live one (procintel.learning.shadows), then queue its
+                  evaluation; background priority, resumable step by step
+    shadow_evaluate  compare live and shadow search quality on the evaluation questions; background
+    shadow_promote   swap a shadow in (high priority), sync the vector store, queue index_followup, reload
+    index_followup   tag passages that have no tags yet (after a promotion); background
 """
 from __future__ import annotations
 
@@ -101,3 +106,49 @@ def feedback_review(params: dict, cursor: dict | None, ctx: dict) -> Iterator[di
     if changed and reload:
         reload()
     return {"items": out["items"], "demoted": len(out["demoted"]), "reloaded": bool(changed and reload)}
+
+
+@handler("shadow_build", priority="background")
+def shadow_build(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.learning import shadows
+    name = params["name"]
+    yield from shadows.SHADOWS[name].build(cursor)
+    jid = store.enqueue("shadow_evaluate", f"shadow {name} built", {"name": name}, db_path=ctx.get("jobs_db"))
+    return {"built": name, "evaluation_job": jid}
+
+
+@handler("shadow_evaluate", priority="background")
+def shadow_evaluate(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.learning import shadows
+    out = shadows.evaluate_shadow(params["name"])
+    yield {"step": "evaluated"}
+    return out
+
+
+@handler("shadow_promote", priority="high")
+def shadow_promote(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.core import vector_index
+    from procintel.learning import shadows
+    shadows.promote(params["name"])
+    yield {"step": "promoted"}
+    if vector_index.backend() == "qdrant":
+        vector_index.sync("chunks")
+        yield {"step": "vectors synced"}
+    jid = store.enqueue("index_followup", f"shadow {params['name']} promoted", db_path=ctx.get("jobs_db"))
+    reload: Callable[[], Any] | None = ctx.get("reload")
+    if reload:
+        reload()
+    return {"promoted": params["name"], "followup_job": jid, "reloaded": bool(reload)}
+
+
+@handler("index_followup", priority="background")
+def index_followup(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.core import decide, llm
+    from procintel.ingestion import problem_tag, tag
+    tagged = tag.build() if decide.available() else 0
+    yield {"step": "tagged"}
+    problems = problem_tag.build() if decide.available() and llm.available() else 0
+    reload: Callable[[], Any] | None = ctx.get("reload")
+    if reload:
+        reload()
+    return {"tagged": tagged, "problems_tagged": problems, "reloaded": bool(reload)}

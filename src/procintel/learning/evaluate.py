@@ -101,19 +101,23 @@ def sample(r: Retriever, n: int = 30, seed: int = 7) -> None:
         print(f"[{j['qid']}|{'REL' if j['relevant'] else 'not'}] {j['chunk_id']}  Q: {qs[j['qid']]}\n    {text.get(j['chunk_id'], '?')[:600]}\n")
 
 
-def retrieval_metrics(r: Retriever) -> dict:
+def retrieval_metrics(r: Retriever, parents: dict[str, list[str]] | None = None) -> dict:
     """Search quality only (no LLM calls, a few seconds): mean BM25/hybrid precision@5 and recall@10 over the answerable
-    questions against the judged labels. Used to compare settings before and after a change."""
+    questions against the judged labels. Used to compare settings before and after a change.
+
+    parents maps passages made from other passages (a shadow build's re-split paragraphs, procintel.learning.shadows)
+    to the passages the labels name: such a hit is relevant when one of its parents is, and recall counts its parents."""
     js = _load_judgments()
+    parents = parents or {}
     totals: dict[str, list[float]] = {}
     for q in questions():
         if not q["answerable"]:
             continue
         R = {c for (qid, c), j in js.items() if qid == q["id"] and j["relevant"]}
-        bm = [h.chunk_id for h in _search(r, q["question"], POOL_K, False)]
-        hy = [h.chunk_id for h in _search(r, q["question"], POOL_K, True)]
-        for k, v in (("bm25_p5", _prec(bm[:5], R)), ("hybrid_p5", _prec(hy[:5], R)),
-                     ("bm25_r10", _rec(bm, R)), ("hybrid_r10", _rec(hy, R))):
+        bm = [parents.get(h.chunk_id, [h.chunk_id]) for h in _search(r, q["question"], POOL_K, False)]
+        hy = [parents.get(h.chunk_id, [h.chunk_id]) for h in _search(r, q["question"], POOL_K, True)]
+        for k, v in (("bm25_p5", _prec_groups(bm[:5], R)), ("hybrid_p5", _prec_groups(hy[:5], R)),
+                     ("bm25_r10", _rec_groups(bm, R)), ("hybrid_r10", _rec_groups(hy, R))):
             if v is not None:
                 totals.setdefault(k, []).append(v)
     return {k: round(sum(v) / len(v), 3) for k, v in totals.items()} | {"questions": len(totals.get("bm25_p5", []))}
@@ -190,6 +194,15 @@ def _history() -> list[dict]:
 def record(headline: dict) -> None:
     with HISTORY.open("a") as f:
         f.write(json.dumps(headline) + "\n")
+
+
+def _prec_groups(hits: list[list[str]], rel: set[str]) -> float | None:
+    """Precision where each hit stands for one or more labelled passages: relevant if any of them is."""
+    return sum(any(c in rel for c in g) for g in hits) / len(hits) if hits else None
+
+
+def _rec_groups(hits: list[list[str]], rel: set[str]) -> float | None:
+    return len(rel & {c for g in hits for c in g}) / len(rel) if rel else None
 
 
 def _prec(ids: list[str], rel: set[str]) -> float | None:

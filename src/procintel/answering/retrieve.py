@@ -44,7 +44,7 @@ SELECT c.chunk_id, c.doc_id, c.seq, c.section, c.para, c.kind, c.text,
        list(dp.project_id ORDER BY dp.project_id)  AS project_ids,
        list(p.name ORDER BY dp.project_id)          AS project_names,
        list(p.country_code ORDER BY dp.project_id)  AS country_codes
-FROM chunk c
+FROM {chunk} c
 JOIN document_m d USING (doc_id)
 JOIN document_project dp USING (doc_id)
 LEFT JOIN project p USING (project_id)
@@ -75,16 +75,23 @@ class Hit:
 
 
 class Retriever:
-    def __init__(self, db_path: Path = DB_PATH):
+    def __init__(self, db_path: Path = DB_PATH, chunk_table: str = "chunk", vec_table: str = "chunk_vec"):
+        """chunk_table / vec_table: another passage set (a shadow build, procintel.learning.shadows); its vectors are
+        searched in memory, since the configured vector store holds the live index."""
         con = db.connect(db_path, read_only=True)
-        rows = con.execute(_QUERY).fetchall()
+        rows = con.execute(_QUERY.format(chunk=chunk_table)).fetchall()
         cols = [d[0] for d in con.description]
         if not rows:
             con.close()
             raise ValueError("no chunks to index; run `python -m procintel.ingestion.chunk` first")
         ids = [r[0] for r in rows]
         # a numpy matrix (in memory) or a Qdrant index, by PROCINTEL_VECTOR_URL (procintel.core.vector_index)
-        self.vectors = vector_index.open_index("chunks", ids, lambda: embed.load(con, ids)) if embed.available() else None
+        if not embed.available():
+            self.vectors = None
+        elif chunk_table == "chunk":
+            self.vectors = vector_index.open_index("chunks", ids, lambda: embed.load(con, ids))
+        else:
+            self.vectors = embed.load(con, ids, chunk_table, vec_table)
         tags = _load_tags(con)
         problems = _load_problems(con)
         self.rating_conflicts = ratings.load(con)  # doc_id -> note where the ICR outcome and last ISR rating disagree

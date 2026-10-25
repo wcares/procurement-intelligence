@@ -11,6 +11,15 @@ const JOB_LABELS: Record<string, string> = {
   feedback_review: "Review user feedback",
 };
 
+// kinds queued by the system or the Evaluation page, shown by name but without a queue button here
+const OTHER_LABELS: Record<string, string> = {
+  shadow_build: "Build shadow index",
+  shadow_evaluate: "Evaluate shadow index",
+  shadow_promote: "Promote shadow index",
+  index_followup: "Tag new passages",
+};
+const label = (kind: string) => JOB_LABELS[kind] ?? OTHER_LABELS[kind] ?? kind;
+
 function jobSummary(j: Job): string {
   if (j.status === "failed" || (j.status === "pending" && j.error)) return `error: ${j.error}`;
   const r = j.result;
@@ -56,7 +65,7 @@ export function Jobs() {
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-muted">
           Jobs run only after {data.runAfterIdleSeconds} s without requests and pause when someone uses the app. Idle now:{" "}
-          {data.idleSeconds} s{data.running ? ` · running: ${JOB_LABELS[data.running] ?? data.running}` : ""}
+          {data.idleSeconds} s{data.running ? ` · running: ${label(data.running)}` : ""}
           {!data.workerOn && " · worker is off (PROCINTEL_JOBS=0)"}
           {data.workerMode === "external" && " · separate worker processes"}. High-priority jobs run first, background
           jobs only when nothing else waits; a running job pauses between steps when a more urgent one arrives.
@@ -75,7 +84,7 @@ export function Jobs() {
           <ul className="divide-y divide-line text-sm">
             {data.jobs.slice(0, 10).map((j) => (
               <li key={j.id} className="flex flex-wrap items-baseline gap-x-2 py-1.5">
-                <span className="font-medium">{JOB_LABELS[j.kind] ?? j.kind}</span>
+                <span className="font-medium">{label(j.kind)}</span>
                 <span className={`text-xs ${j.status === "failed" ? "text-risk-high" : "text-muted"}`}>{j.status}</span>
                 {j.priority !== "normal" && <span className="rounded border border-line px-1 text-xs text-muted">{j.priority}</span>}
                 <span className="text-xs text-muted">{new Date(j.finished_at ?? j.created_at).toLocaleString()}</span>

@@ -209,6 +209,16 @@ The result is shown on the Evaluation page with Promote / Discard; promoting swi
 follow-on work (re-tagging) in the background. First candidate: semantic chunking with EmbeddingGemma (sentence
 embeddings cached by fingerprint, boundaries at similarity drops) for unstructured documents and over-long paragraphs.
 
+**Built and measured (2026-10-25).** `procintel.learning.shadows` (registry of alternatives, build / evaluate /
+promote / discard; tables `<table>__<shadow>`, `chunk_parent__<shadow>` naming the live passages each new passage was
+made from, state in table `shadow`), jobs `shadow_build` and `shadow_evaluate` (background), `shadow_promote` (high,
+followed by `index_followup` tagging), `/shadows` endpoints. Promotion is recorded in the database, so every process
+builds the same way afterwards (`PROCINTEL_CHUNKER` overrides). The first shadow, semantic chunking of the 1,009
+paragraphs the size chunker splits (2,334 passages, about 10,800 sentences embedded once and cached), scored below
+the live index: hybrid P@5 0.698 -> 0.670, R@10 0.766 -> 0.711, BM25 likewise lower (80 questions, scored through
+the parent passages so the existing labels apply). It stays unpromoted. Caveat: the labels were pooled from the live
+index's results, which can favour it; judging the shadow's new top results would remove that bias.
+
 ## 6d. Retention (user, 2026-10-25: 30 days)
 
 | data | kept |

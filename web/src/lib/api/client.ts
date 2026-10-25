@@ -12,6 +12,7 @@ import type {
   JobsResponse,
   FeedbackResponse,
   Options,
+  ShadowsResponse,
 } from "./types";
 
 // Calls go to this app's own server, which forwards them to the backend named by API_URL (read per request, so the
@@ -53,6 +54,10 @@ export const api = {
   compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
   jobs: () => call<JobsResponse>("/jobs"),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
+  shadows: () => call<ShadowsResponse>("/shadows"),
+  /** build / evaluate / promote are queued as jobs; discard drops the shadow tables at once */
+  shadowAction: (name: string, action: "build" | "evaluate" | "promote" | "discard") =>
+    call<{ queued?: string | null; note?: string | null; discarded?: string }>(`/shadows/${encodeURIComponent(name)}/${action}`, { method: "POST" }),
   queueJob: (kind: string) =>
     call<{ queued: string | null; note: string | null }>("/jobs", { method: "POST", body: JSON.stringify({ kind, reason: "queued from the Settings page" }) }),
 };

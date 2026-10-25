@@ -257,3 +257,28 @@ export interface FeedbackReviewResponse {
   demoted: string[];
   demoteAfter: number;
 }
+
+/** Search quality on the evaluation questions (procintel.learning.evaluate.retrieval_metrics). */
+export interface RetrievalScores {
+  bm25_p5: number;
+  hybrid_p5: number;
+  bm25_r10: number;
+  hybrid_r10: number;
+  questions: number;
+}
+
+/** An alternative index built next to the live one; promoted only after its evaluation (GET /shadows). */
+export interface ShadowBuild {
+  name: string;
+  label: string;
+  status: "building" | "built" | "evaluated" | "promoted" | "discarded";
+  built_at: string | null;
+  evaluated_at: string | null;
+  metrics: { live: RetrievalScores; shadow: RetrievalScores; passages: { live: number; shadow: number } } | null;
+  note: string | null;
+}
+
+export interface ShadowsResponse {
+  shadows: ShadowBuild[];
+  available: { name: string; label: string }[];
+}

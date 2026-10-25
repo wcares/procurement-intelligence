@@ -139,12 +139,14 @@ def build_packages(db_path: Path = DB_PATH) -> int:
     return len(todo)
 
 
-def load(con: duckdb.DuckDBPyConnection, chunk_ids: list[str]) -> np.ndarray | None:
-    """Matrix aligned with chunk_ids for the configured model and dim, or None if any chunk lacks a current vector."""
+def load(con: duckdb.DuckDBPyConnection, chunk_ids: list[str], chunk_table: str = "chunk",
+         vec_table: str = "chunk_vec") -> np.ndarray | None:
+    """Matrix aligned with chunk_ids for the configured model and dim, or None if any chunk lacks a current vector.
+    The table names select a shadow build (procintel.learning.shadows) instead of the live index."""
     m, d = model_name(), dim()
-    if m is None or not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk_vec'").fetchone():
+    if m is None or not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = ?", [vec_table]).fetchone():
         return None
-    rows = dict(con.execute("""SELECT v.chunk_id, v.vec FROM chunk_vec v JOIN chunk c USING (chunk_id)
+    rows = dict(con.execute(f"""SELECT v.chunk_id, v.vec FROM {vec_table} v JOIN {chunk_table} c USING (chunk_id)
         WHERE v.model = ? AND v.dim = ? AND v.text_hash = sha256(c.section || chr(0) || c.text)[:16]""", [m, d]).fetchall())
     if len(rows) < len(chunk_ids):
         return None

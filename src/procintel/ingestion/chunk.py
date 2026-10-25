@@ -299,6 +299,14 @@ def build(db_path: Path = DB_PATH) -> None:
                          "para": c.para, "kind": c.kind, "text": c.text, "n_chars": len(c.text)})
     df = pd.DataFrame(rows)
     con.execute("CREATE OR REPLACE TABLE chunk AS SELECT * FROM df")
+    from procintel.core import embed  # imported here: semantic_chunk imports this module
+    from procintel.ingestion import semantic_chunk
+    if semantic_chunk.active(con) and embed.available():  # over-long paragraphs cut at topic shifts
+        note = semantic_chunk.write_table(con, "chunk__build", "chunk_parent")
+        con.execute("DROP TABLE chunk")
+        con.execute("ALTER TABLE chunk__build RENAME TO chunk")
+        df = con.execute("SELECT * FROM chunk").df()
+        print(f"chunk: semantic passages: {note}")
     mapping = remap_ids(old, dict(zip(df.chunk_id, df.text)))
     if mapping:  # vectors and tags of moved texts follow them, so only new texts are embedded and tagged again
         con.execute("CREATE OR REPLACE TEMP TABLE id_map (old_id VARCHAR, new_id VARCHAR)")
