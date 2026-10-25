@@ -38,6 +38,8 @@ def connect(db_path: Path | None = None) -> duckdb.DuckDBPyConnection:
                    job_id VARCHAR, fired_at TIMESTAMP)""")
     con.execute("""CREATE TABLE IF NOT EXISTS detection (batch_id VARCHAR, entity_type VARCHAR, ran_at TIMESTAMP,
                    items INTEGER, events INTEGER, note VARCHAR)""")
+    con.execute("""CREATE TABLE IF NOT EXISTS action_run (batch_id VARCHAR, action VARCHAR, ran_at TIMESTAMP,
+                   outcome VARCHAR)""")
     return con
 
 
@@ -150,6 +152,36 @@ def log_derived(batch_id: str, events: list[dict], db_path: Path | None = None) 
     try:
         con.executemany("INSERT INTO event_log VALUES (?, ?, ?, ?, '[]', 'null', 'null', ?)",
                         [(uuid.uuid4().hex[:12], batch_id, e["type"], e["key"], _now()) for e in events])
+    finally:
+        con.close()
+
+
+def log_action(batch_id: str, action: str, outcome: str, db_path: Path | None = None) -> None:
+    con = connect(db_path)
+    try:
+        con.execute("INSERT INTO action_run VALUES (?, ?, ?, ?)", [batch_id, action, _now(), outcome])
+    finally:
+        con.close()
+
+
+def hours_since_action(action: str, db_path: Path | None = None) -> float | None:
+    con = connect(db_path)
+    try:
+        r = con.execute("SELECT max(ran_at) FROM action_run WHERE action = ? AND outcome = 'ran'", [action]).fetchone()
+        return None if r[0] is None else (_now() - r[0]).total_seconds() / 3600
+    finally:
+        con.close()
+
+
+def recent_batches(since: datetime, db_path: Path | None = None) -> dict[str, list[dict]]:
+    """Events since a time, grouped by batch (for a dry run of rules)."""
+    con = connect(db_path)
+    try:
+        out: dict[str, list[dict]] = {}
+        for b, t, k, c in con.execute("SELECT batch_id, type, key, changed_fields FROM event_log WHERE detected_at >= ? "
+                                      "ORDER BY detected_at", [since]).fetchall():
+            out.setdefault(b, []).append({"type": t, "key": k, "changed": json.loads(c)})
+        return out
     finally:
         con.close()
 

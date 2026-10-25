@@ -159,6 +159,7 @@ def indicators_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
 DOCUMENT_FIELDS = ["doc_type", "doc_date", "title", "txt_url"]
 DOCUMENT_PAGE = 50      # completion reports per listing request, newest first
 DOCUMENT_MAX_PAGES = 6  # read until every tracked report was seen (new ones appear at the top), at most 300
+DOCUMENT_SCOPE = 120    # the corpus: the newest this many reports (as procintel.ingestion.refresh, --icrs 120)
 
 
 def documents_from_db() -> dict[str, dict]:
@@ -178,7 +179,11 @@ def documents_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
         if not batch or tracked <= {d["id"] for d in docs}:
             break
     out = {}
-    for d in docs:
+    for i, d in enumerate(docs):
+        # a report is in scope when it is among the newest DOCUMENT_SCOPE or already tracked: reading on until every
+        # tracked report is seen must not turn older reports further down the listing into new ones
+        if i >= DOCUMENT_SCOPE and d["id"] not in tracked:
+            continue
         if d.get("projectid") and d.get("txturl"):
             out[d["id"]] = {"doc_id": d["id"], "project_id": d["projectid"], "doc_type": d.get("docty"),
                             "doc_date": pd.to_datetime(d.get("docdt"), errors="coerce", utc=True),

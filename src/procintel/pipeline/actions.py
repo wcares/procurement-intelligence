@@ -20,6 +20,8 @@ class Action:
     name: str
     label: str
     run: Callable[[list[str], dict[str, dict], dict], list[dict]]   # (keys, events by key, ctx) -> derived events
+    emits: tuple[str, ...] = ()        # derived event types it may report (checked for cycles when rules are saved)
+    min_hours: float = 0               # costly actions: skipped when they ran less than this long ago
 
 
 def _upsert(table: str, key_sql: str, rows: list[dict], removed: list[str]) -> int:
@@ -211,19 +213,25 @@ def reload_backend(keys, events, ctx):
 
 ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("ingest_documents", "Fetch and write new or changed reports (and new projects' records and notices)",
-           ingest_documents),
-    Action("apply_notices", "Write new and changed procurement notices", apply_notices),
-    Action("apply_projects", "Write changed project records", apply_projects),
-    Action("apply_contracts", "Write new and changed contract awards", apply_contracts),
-    Action("apply_indicators", "Write CPIA and WGI values", apply_indicators),
-    Action("rebuild_tables", "Rebuild packages, suppliers and links (procintel.ingestion.tables)", rebuild_tables),
-    Action("fill_award_dates", "Fill award dates from contract signing dates", fill_award_dates),
-    Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms),
-    Action("chunk_documents", "Cut report texts into passages", chunk_documents),
-    Action("index_passages", "Embed and tag new or changed passages", index_passages),
-    Action("document_checks", "Rating checks, re-bid and amendment evidence from the passages", document_checks),
-    Action("sector_links", "Rebuild contract-to-report links by sector and time", sector_links),
-    Action("drift_check", "Queue a prediction drift check", drift_check),
+           ingest_documents, ("Data.updated", "Documents.changed")),
+    Action("apply_notices", "Write new and changed procurement notices", apply_notices, ("Data.updated",)),
+    Action("apply_projects", "Write changed project records", apply_projects, ("Data.updated",)),
+    Action("apply_contracts", "Write new and changed contract awards", apply_contracts, ("Data.updated",)),
+    Action("apply_indicators", "Write CPIA and WGI values", apply_indicators, ("Data.updated",)),
+    Action("rebuild_tables", "Rebuild packages, suppliers and links (procintel.ingestion.tables)", rebuild_tables,
+           ("Data.updated", "Package.award_changed")),
+    Action("fill_award_dates", "Fill award dates from contract signing dates", fill_award_dates,
+           ("Data.updated", "Package.award_changed")),
+    Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms,
+           ("Data.updated",)),
+    Action("chunk_documents", "Cut report texts into passages", chunk_documents,
+           ("Data.updated", "Passages.changed")),
+    Action("index_passages", "Embed and tag new or changed passages", index_passages,
+           ("Data.updated",)),
+    Action("document_checks", "Rating checks, re-bid and amendment evidence from the passages", document_checks,
+           ("Data.updated",)),
+    Action("sector_links", "Rebuild contract-to-report links by sector and time", sector_links, ("Data.updated",)),
+    Action("drift_check", "Queue a prediction drift check", drift_check, min_hours=6),
     Action("reload_backend", "Reload the backend's data", reload_backend),
 ]}
 ORDER = list(ACTIONS)

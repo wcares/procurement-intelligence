@@ -59,13 +59,13 @@ def detect_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]
     events = [e for e in store.batch_events(cur["batch"])]
     job = None
     if events:
-        steps, fired = rules.plan(events, rules.DEFAULT_RULES, actions.ORDER)
+        steps, fired = rules.plan(events, rules.active(), actions.ORDER)
         if steps:
             from procintel.jobs import store as jobs_store
             job = jobs_store.enqueue("pipeline_batch", f"{len(events)} changes detected", {"batch": cur["batch"]},
                                      dedupe=False, db_path=ctx.get("jobs_db"))
         for rule_id, n in fired.items():
-            rule = next(r for r in rules.DEFAULT_RULES if r.id == rule_id)
+            rule = next(r for r in rules.active() if r.id == rule_id)
             store.log_firing(cur["batch"], rule_id, n, list(rule.do), job)
     return {"batch": cur["batch"], "events": cur["counts"], "job": job}
 
@@ -75,15 +75,21 @@ def batch_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     cur = cursor or {"done": [], "derived": []}
     while True:
         events = store.batch_events(batch)  # includes the derived events logged so far
-        plan, _ = rules.plan(events, rules.DEFAULT_RULES, actions.ORDER)
+        plan, _ = rules.plan(events, rules.active(), actions.ORDER)
         last = max((actions.ORDER.index(a) for a in cur["done"]), default=-1)
         todo = [(a, keys) for a, keys in plan if a not in cur["done"] and actions.ORDER.index(a) > last]
         if not todo:
             return {"actions": cur["done"], "derived": sorted({e["type"] for e in cur["derived"]})}
         name, keys = todo[0]
-        mine = {e["key"]: e for e in events if e["key"] in keys and not e["type"].startswith(DERIVED_PREFIXES)}
-        new = [d for d in actions.ACTIONS[name].run(keys, mine, ctx) if d not in cur["derived"]]
-        store.log_derived(batch, new)
-        cur["derived"] += new
+        action = actions.ACTIONS[name]
+        since = store.hours_since_action(name) if action.min_hours else None
+        if since is not None and since < action.min_hours:  # costly action that ran recently: skip, and say so
+            store.log_action(batch, name, f"skipped: ran {since:.1f} h ago (at most every {action.min_hours:g} h)")
+        else:
+            mine = {e["key"]: e for e in events if e["key"] in keys and not e["type"].startswith(DERIVED_PREFIXES)}
+            new = [d for d in action.run(keys, mine, ctx) if d not in cur["derived"]]
+            store.log_derived(batch, new)
+            store.log_action(batch, name, "ran")
+            cur["derived"] += new
         cur["done"].append(name)
         yield cur

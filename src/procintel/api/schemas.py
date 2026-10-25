@@ -200,3 +200,7 @@ class PromptSave(BaseModel):
 
 class PromptActivate(BaseModel):
     version: int = Field(ge=0)
+
+
+class RuleSet(BaseModel):
+    rules: list[dict] = Field(max_length=200)  # [{id, on, fields, do, enabled}], validated by procintel.pipeline.rules

@@ -100,3 +100,45 @@ def test_kept_report_dates_are_read_back_in_utc():
     got = con.execute("SELECT strftime(timezone('UTC', doc_date), '%Y-%m-%dT%H:%M:%SZ') FROM d").fetchone()[0]
     assert got == "2026-06-26T04:00:00Z"
     assert con.execute("SELECT strftime(doc_date, '%Y-%m-%dT%H:%M:%SZ') FROM d").fetchone()[0] != got   # the old form
+
+
+def test_rule_validation_refuses_unknown_names_bad_fields_and_cycles():
+    E, A = entities.ENTITY_TYPES, actions.ACTIONS
+    assert rules.validate(list(rules.DEFAULT_RULES), E, A) == {}                       # the defaults are valid
+    bad = [rules.Rule("x", ("Notice.exploded",), ("apply_notices",)),
+           rules.Rule("y", ("Notice.added",), ("launch_rockets",)),
+           rules.Rule("z", ("Project.changed",), ("apply_projects",), fields=("colour",))]
+    errors = rules.validate(bad, E, A)
+    assert set(errors) == {"x", "y", "z"} and "unknown events" in errors["x"] and "colour" in errors["z"]
+    loop = [rules.Rule("a", ("Passages.changed",), ("chunk_documents",))]           # chunking emits Passages.changed
+    assert "cycle" in rules.validate(loop, E, A)["(set)"]
+
+
+def test_saved_rules_replace_the_defaults_until_reset_and_dry_run_counts(tmp_path, monkeypatch):
+    monkeypatch.setattr(paths, "PIPELINE_RULES", tmp_path / "rules.json")
+    only = [rules.Rule("awards-only", ("Notice.added",), ("apply_notices",))]
+    assert rules.save(only, entities.ENTITY_TYPES, actions.ACTIONS) == {} and rules.active() == only
+    batches = {"b1": [{"type": "Notice.added", "key": "n1"}, {"type": "Notice.added", "key": "n2"}],
+               "b2": [{"type": "Notice.changed", "key": "n1", "changed": ["award_date"]}]}
+    d = rules.dry_run(only, batches, actions.ORDER)
+    assert d["fired"] == {"awards-only": 2} and d["actions"] == {"apply_notices": {"events": 2, "runs": 1}}
+    d = rules.dry_run(list(rules.DEFAULT_RULES), batches, actions.ORDER)
+    assert d["actions"]["rebuild_tables"] == {"events": 3, "runs": 2}                  # coalesced per batch
+    rules.reset()
+    assert rules.active() == list(rules.DEFAULT_RULES) and not rules.customised()
+
+
+def test_older_reports_below_the_corpus_scope_are_not_new(monkeypatch):
+    from procintel.ingestion import wb_client
+    listing = [{"id": f"d{i}", "projectid": "P1", "txturl": "t", "docdt": "2026-01-01"} for i in range(150)]
+
+    class Client:
+        def __init__(self, **kw):
+            pass
+
+        def documents(self, rows, offset, docty_exact):
+            return len(listing), listing[offset:offset + rows]
+    monkeypatch.setattr(wb_client, "WBClient", Client)
+    monkeypatch.setattr(entities, "DOCUMENT_SCOPE", 100)
+    rows, complete = entities.documents_from_source({"tracked": ["d5", "d120"]})   # d120 is tracked below the scope
+    assert not complete and len(rows) == 101 and "d120" in rows and "d121" not in rows and "d99" in rows

@@ -16,6 +16,7 @@ DB_PATH = DATA_DIR / "procintel.duckdb"          # projects, notices, documents,
 FEEDBACK_DB = DATA_DIR / "feedback.duckdb"       # response log and feedback (its own file: one writer per DuckDB file)
 JOBS_DB = DATA_DIR / "jobs.duckdb"               # job queue
 PIPELINE_DB = DATA_DIR / "pipeline.duckdb"       # change detection: entity state, event log, rule firings
+PIPELINE_RULES = DATA_DIR / "pipeline_rules.json"  # rules edited on the Settings page (absent: the defaults)
 CONFIG_FILE = DATA_DIR / "config.json"           # settings saved from the Settings page
 PROFILES_FILE = DATA_DIR / "config_profiles.json"
 MODEL_DIR = DATA_DIR / "models"                  # trained prediction models
