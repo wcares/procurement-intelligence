@@ -170,13 +170,20 @@ def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tupl
 
 
 def conflict_notes(retriever: Retriever, cited: list[Hit]) -> list[str]:
-    """Caveats for cited reports whose completion rating disagrees with the project's last supervision rating."""
+    """Caveats for cited reports whose completion rating disagrees with the last supervision rating, or whose procurement
+    rating is lower than a satisfactory overall rating."""
     notes, seen = [], set()
     for h in cited:
         note = getattr(retriever, "rating_conflicts", {}).get(h.doc_id)
         if note and h.doc_id not in seen:
             seen.add(h.doc_id)
             notes.append(f"Conflicting evidence for {h.project_id} ({h.project_name}): {note}")
+    seen = set()
+    for h in cited:
+        note = getattr(retriever, "procurement_conflicts", {}).get(h.doc_id)
+        if note and h.doc_id not in seen:
+            seen.add(h.doc_id)
+            notes.append(f"Procurement weaker than the overall rating for {h.project_id} ({h.project_name}): {note}")
     return notes
 
 

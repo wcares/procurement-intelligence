@@ -26,7 +26,7 @@ import numpy as np
 from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
-from procintel import embed, ratings
+from procintel import embed, procurement_rating, ratings
 from procintel.stats import GROUP_TERMS
 
 log = logging.getLogger(__name__)
@@ -82,6 +82,7 @@ class Retriever:
         self.vectors = embed.load(con, [r[0] for r in rows]) if embed.available() else None
         tags = _load_tags(con)
         self.rating_conflicts = ratings.load(con)  # doc_id -> note where the ICR outcome and last ISR rating disagree
+        self.procurement_conflicts = procurement_rating.load(con)  # doc_id -> note where procurement rated below it
         con.close()
         if embed.available() and self.vectors is None:
             log.warning("PROCINTEL_EMBED_MODEL is set but chunk_vec is missing or stale; run `python -m procintel.embed`")

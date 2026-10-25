@@ -21,7 +21,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import chunk, decide, embed, evidence, fx, ingest, model, predict, ratings, tag
+from procintel import chunk, decide, embed, evidence, fx, ingest, model, predict, procurement_rating, ratings, tag
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
 
@@ -83,6 +83,7 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
         if decide.available():
             counts["tagged"] = step("tags (new or changed passages)", tag.build)
         step("ICR / ISR rating check", ratings.build)
+        step("ICR procurement rating check", procurement_rating.build)
         step("re-bid and amendment evidence", lambda: evidence.build(evidence.KINDS))
         if fetch:
             step("exchange rates", fx.build)
