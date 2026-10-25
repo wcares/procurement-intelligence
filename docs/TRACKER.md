@@ -78,7 +78,9 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Survival model for award time that uses never-awarded tenders as censored rows (recent tenders look fast because slow ones are unawarded; the current model still gives Kenya CW/RFB 17% >180 days where 37% of comparable past packages took that long) (added 2026-10-24, by me)
+- [ ] Recover missing awards before any censoring model: 107 tenders have an award notice under the same package id whose award date did not parse, 29 more have their award under the same id with a "-N" suffix; fixing both adds ~136 labelled packages (+12%) (added 2026-10-25, by me)
+- [ ] Re-bidding signal from reference suffixes: 68 award notices end in "<method>-N", likely re-bid numbering; confirm on a sample, then use as the re-bidding label (added 2026-10-25, by me)
+- [ ] Survival model for award time — DEFERRED 2026-10-25: of 859 tenders without an award, 805 are over 2 years old and ~723 have no award notice in the data at all (no-award shares 32-46% for every method, including open-bid works and goods that must publish awards), so they are mostly unpublished or unlinked awards, not open tenders; treating them as censored would inflate predicted times. Revisit after the two items above, if a reliable "still open" signal exists (added 2026-10-24, by me)
 - [ ] Contract value as a feature: convert local-currency prices to USD and use the planner's estimate (added 2026-10-24, by me)
 - [ ] Precedents: decision model checks each candidate is a lesson relevant to the package (Kenya/CW/RFB still shows a disbursement table and an indicator list) (added 2026-10-24, by me)
 - [ ] Re-bidding label per project from ICRs via the decision model, then re-bidding risk (added 2026-10-24, by me)
