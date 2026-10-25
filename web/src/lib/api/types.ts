@@ -98,6 +98,31 @@ export interface FeedbackRequest {
   comment?: string;
 }
 
+/** A backend setting shown on the configuration page. API keys are never included. */
+export interface ConfigSetting {
+  key: string;
+  label: string;
+  group: string;
+  type: "str" | "url" | "json" | "int" | "float";
+  value: string | number;
+  /** value when the backend started */
+  default: string | number;
+  editable: boolean;
+  note: string;
+  min: number | null;
+  max: number | null;
+}
+
+export interface ConfigResponse {
+  settings: ConfigSetting[];
+}
+
+export interface ConfigUpdate {
+  values: Record<string, string | number>;
+  /** also write data/config.json so the values survive a restart */
+  save?: boolean;
+}
+
 export interface FeedbackResponse {
   ok: boolean;
   feedbackId: string;

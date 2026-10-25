@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **M4** Basic configuration page: view and change the main settings (models and endpoints, retrieval k, thresholds, LLM settings) through a backend /config endpoint, validated and applied live (added 2026-10-24, by you)
 - [ ] **Proposal** README: setup, models, how to run each step (added 2026-10-24, by me)
 - [ ] **Proposal** Short write-up per module, using the prototype's measurements as evidence (added 2026-10-24, by me)
 
@@ -147,6 +146,7 @@ _(empty)_
 
 ### Done
 
+- [x] Configuration page (Settings): 15 backend settings grouped by area (answer/decision model and endpoints, LLM temperature and max tokens, retrieval k, fusion pool and constant, evidence passages and thresholds, precedent filter), applied to the next request through GET/PUT /config, validated all-or-nothing, optional save to data/config.json loaded at startup; embedding model and dimensions read-only (stored vectors belong to one model); API keys never listed — COMMIT — 3 API tests (live apply + save, 7 invalid bodies applying nothing, no keys exposed); in Chrome: search k = 0 refused in place, 8 applied and confirmed on the backend without a saved file, reverted to 12
 - [x] Evaluation report with user feedback and history: eval/report.md shows retrieval metrics now vs the previous run, answer metrics (re-run, or the last measured ones dated), and feedback counts per page with the most flagged citations; every run appends headline metrics to eval/history.jsonl; refresh ends with the quick evaluation (retrieval + feedback), `evaluate run` does the full one — a51f373 — refresh --skip-fetch: evaluation step 10.5 s, retrieval metrics identical to the committed full run (P@5 0.64/0.77, R@10 0.62/0.76); 2 report tests (with history and feedback, and with neither)
 - [x] `python -m procintel.refresh`: re-fetches listings (projects, notices, ICR list) while keeping cached ICR texts and existing ICRs, then model tables → chunks → embeddings and tags (incremental) → rating check → prediction models; table refresh_log records added/changed/removed documents, new notices, project status changes, passages embedded/tagged, model metrics before and after, and per-step times — d33fe0d — --skip-fetch run: 0 changes, 0 re-embedded, 0 re-tagged, 5.8 s; live run: 304 listings re-fetched from the network (cache files rewritten), 0 texts re-downloaded, no changes since the 2026-10-23 ingest, 2.9 min; change detection covered by 2 unit tests
 - [x] Feedback capture: every /ask and /assess response logged with a responseId; POST /feedback (useful / not_useful / bad_citation naming a shown citation, optional comment); "Was this useful?" bar and "flag citation" on answers and assessments; separate data/feedback.duckdb so the server never blocks the build commands — 9d6aa0d — 4 API tests (unknown response, citation not shown, missing citation, bad rating all 400); in Chrome: flagged a citation and sent "not useful" with a comment, both rows stored against the logged response, no console errors

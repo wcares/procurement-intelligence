@@ -29,13 +29,19 @@ def available() -> bool:
     return model_name() is not None
 
 
-def complete(system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 1200, **kw: Any) -> str:
+TEMPERATURE = 0.0  # defaults for every call; tunable at runtime through procintel.config
+MAX_TOKENS = 1200
+
+
+def complete(system: str, user: str, *, temperature: float | None = None, max_tokens: int | None = None, **kw: Any) -> str:
     """Return the assistant text. Raises if no model is configured; callers check available() first."""
     m = model_name()
     if m is None:
         raise RuntimeError("PROCINTEL_LLM_MODEL is not set")
     import litellm  # imported lazily: it is slow to import and not needed for retrieval-only paths
 
+    temperature = TEMPERATURE if temperature is None else temperature
+    max_tokens = MAX_TOKENS if max_tokens is None else max_tokens
     extra = os.environ.get("PROCINTEL_LLM_EXTRA_BODY")
     if extra:
         kw.setdefault("extra_body", json.loads(extra))

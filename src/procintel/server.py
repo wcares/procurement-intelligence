@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import feedback, predict, stats
+from procintel import config, feedback, predict, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
@@ -157,13 +157,15 @@ def state(db_path: Path = DB_PATH) -> State:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    for key, err in config.load_saved().items():  # saved settings from the configuration page
+        print(f"config: saved value for {key} ignored: {err}")
     state()  # build the index before the first request rather than during it
     yield
 
 
 app = FastAPI(title="procintel", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3100", "http://127.0.0.1:3100"],
-                   allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+                   allow_methods=["GET", "POST", "PUT"], allow_headers=["Content-Type"])
 
 
 @app.exception_handler(RequestValidationError)
@@ -213,6 +215,41 @@ def post_feedback(req: FeedbackRequest) -> dict:
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return {"ok": True, "feedbackId": fid}
+
+
+class ConfigSetting(BaseModel):
+    key: str
+    label: str
+    group: str
+    type: Literal["str", "url", "json", "int", "float"]
+    value: str | int | float
+    default: str | int | float
+    editable: bool
+    note: str
+    min: float | None
+    max: float | None
+
+
+class ConfigResponse(BaseModel):
+    settings: list[ConfigSetting]
+
+
+class ConfigUpdate(BaseModel):
+    values: dict[str, str | int | float]
+    save: bool = False
+
+
+@app.get("/config", response_model=ConfigResponse)
+def get_config() -> dict:
+    return {"settings": config.listing()}
+
+
+@app.put("/config", response_model=ConfigResponse)
+def put_config(req: ConfigUpdate) -> dict:
+    errors = config.update(req.values, save=req.save)
+    if errors:
+        return JSONResponse({"error": "invalid settings", "detail": errors}, status_code=400)
+    return {"settings": config.listing()}
 
 
 @app.get("/health")

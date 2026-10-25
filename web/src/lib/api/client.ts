@@ -1,4 +1,14 @@
-import type { AskRequest, AskResponse, AssessRequest, AssessResponse, FeedbackRequest, FeedbackResponse, Options } from "./types";
+import type {
+  AskRequest,
+  AskResponse,
+  AssessRequest,
+  AssessResponse,
+  ConfigResponse,
+  ConfigUpdate,
+  FeedbackRequest,
+  FeedbackResponse,
+  Options,
+} from "./types";
 
 // Default is the in-app mock. Point at the Python backend with NEXT_PUBLIC_API_BASE=http://localhost:8000
 // (inlined at build time, so restart `next dev` after changing it).
@@ -21,4 +31,13 @@ export const api = {
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),
   feedback: (req: FeedbackRequest) => call<FeedbackResponse>("/feedback", { method: "POST", body: JSON.stringify(req) }),
+  config: () => call<ConfigResponse>("/config"),
+  /** Per-setting errors come back as { errors } instead of an exception, so the form can show them in place. */
+  updateConfig: async (req: ConfigUpdate): Promise<{ settings: ConfigResponse["settings"] } | { errors: Record<string, string> }> => {
+    const res = await fetch(`${API_BASE}/config`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(req) });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) return { settings: body.settings };
+    if (res.status === 400 && body.detail && typeof body.detail === "object" && !Array.isArray(body.detail)) return { errors: body.detail };
+    throw new Error(`PUT /config failed: ${res.status}`);
+  },
 };

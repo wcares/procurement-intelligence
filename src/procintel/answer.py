@@ -36,6 +36,7 @@ _STOP = set(STOPWORDS_EN) | set(
 _ABBREV = r"(?<!\bRs\.)(?<!\bNo\.)(?<!\bUS\.)(?<!\bvs\.)(?<!\bMr\.)(?<!\bDr\.)(?<!\bSt\.)(?<!\be\.g\.)(?<!\bi\.e\.)"
 _SENT = re.compile(r"(?<=[.;])" + _ABBREV + r"\s+(?=[A-Z0-9])")
 MAX_PASSAGES = 5
+SEARCH_K = 12  # passages retrieved per question before the evidence check
 GROUNDING_MIN = 0.3  # word-overlap fallback: share of a sentence's content stems that must appear in the cited passage
 DECIDE_MIN = 0.5  # decision-model probability needed for "relevant" and "supported"
 
@@ -186,7 +187,7 @@ def retrieval_note(hits: list[Hit]) -> str:
 
 
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
-    hits, judged_by = supporting(question, retriever.search(question, k=12, country=country, proc_group=proc_group))
+    hits, judged_by = supporting(question, retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group))
     use_decide = judged_by == "decision"
     checker = f"the decision model {decide.api_base()}" if use_decide else "word overlap"
     caveats = [] if use_decide or not decide.available() else [

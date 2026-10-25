@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 const NAV = [
   { href: "/", label: "Assess a package" },
   { href: "/ask", label: "Ask the evidence" },
+  { href: "/config", label: "Settings" },
 ] as const;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

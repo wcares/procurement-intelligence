@@ -71,3 +71,36 @@ def test_feedback_is_refused_for_unknown_responses_and_citations(client, feedbac
     assert client.post("/feedback", json={"responseId": rid, "rating": "bad_citation", "citationId": "not-shown"}).status_code == 400
     assert client.post("/feedback", json={"responseId": rid, "rating": "bad_citation"}).status_code == 400  # no citation named
     assert client.post("/feedback", json={"responseId": rid, "rating": "great"}).status_code == 400
+
+
+@pytest.fixture
+def saved_config(tmp_path, monkeypatch):
+    from procintel import answer, config
+    monkeypatch.setattr(config, "SAVED", tmp_path / "config.json")
+    monkeypatch.setattr(answer, "SEARCH_K", answer.SEARCH_K)  # restored after the test
+    monkeypatch.setattr(answer, "DECIDE_MIN", answer.DECIDE_MIN)
+    return config
+
+
+def test_config_lists_settings_and_hides_keys(client):
+    keys = {s["key"]: s for s in client.get("/config").json()["settings"]}
+    assert keys["search_k"]["editable"] and not keys["embed_model"]["editable"]
+    assert not any("key" in k.split("_")[-1] and k != "search_k" for k in keys)  # no API keys exposed
+    assert "api_key" not in str(keys)
+
+
+def test_config_update_applies_live_and_saves(client, saved_config):
+    from procintel import answer
+    r = client.put("/config", json={"values": {"search_k": 8, "decide_min": "0.6"}, "save": True})
+    assert r.status_code == 200 and answer.SEARCH_K == 8 and answer.DECIDE_MIN == 0.6
+    assert saved_config.SAVED.exists() and '"search_k": 8' in saved_config.SAVED.read_text()
+
+
+def test_config_rejects_invalid_values_and_applies_nothing(client, saved_config):
+    from procintel import answer
+    before = answer.SEARCH_K
+    for body in [{"search_k": 0}, {"search_k": "lots"}, {"embed_model": "x"}, {"nope": 1},
+                 {"llm_api_base": "ftp://x"}, {"llm_extra_body": "{not json"}, {"search_k": 7, "decide_min": 5}]:
+        r = client.put("/config", json={"values": body})
+        assert r.status_code == 400, body
+    assert answer.SEARCH_K == before  # the valid search_k=7 in the last body was not applied either
