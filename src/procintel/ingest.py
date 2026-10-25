@@ -70,16 +70,28 @@ def notice_row(n: dict) -> dict:
     }
 
 
-def run(n_icrs: int) -> None:
-    c = WBClient()
+def run(n_icrs: int, fresh: bool = False, keep_existing: bool = False) -> None:
+    """fresh: re-fetch listings instead of reading the HTTP cache. keep_existing: start from the documents already in
+    the database and add newly listed ones (the listing is newest-first, so a fresh top-N would drop older ICRs)."""
+    c = WBClient(fresh_listings=fresh)
     projects: dict[str, dict] = {}
     documents: list[dict] = []
     notices: list[dict] = []
+    if keep_existing and DB_PATH.exists():
+        con = duckdb.connect(str(DB_PATH), read_only=True)
+        cols = "doc_id, project_id, doc_type, strftime(doc_date, '%Y-%m-%dT%H:%M:%SZ') AS doc_date, title, pdf_url, txt_url"
+        documents = [dict(zip(["doc_id", "project_id", "doc_type", "doc_date", "title", "pdf_url", "txt_url"], r))
+                     for r in con.execute(f"SELECT {cols} FROM documents").fetchall()]
+        for d in documents:  # same type as newly listed rows
+            d["doc_date"] = pd.to_datetime(d["doc_date"], errors="coerce", utc=True)
+        con.close()
+        print(f"keeping {len(documents)} existing documents")
+    known = {d["doc_id"] for d in documents}
 
     print(f"listing {n_icrs} ICRs ...")
     for d in c.iter_documents(n_icrs, docty_exact=ICR_TYPE):
         pid = d.get("projectid")
-        if not pid or not d.get("txturl"):
+        if not pid or not d.get("txturl") or d["id"] in known:
             continue
         documents.append({
             "doc_id": d["id"], "project_id": pid, "doc_type": d.get("docty"),
@@ -115,4 +127,7 @@ def run(n_icrs: int) -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--icrs", type=int, default=120)
-    run(ap.parse_args().icrs)
+    ap.add_argument("--fresh", action="store_true", help="re-fetch listings instead of using the HTTP cache")
+    ap.add_argument("--keep-existing", action="store_true", help="keep documents already in the database")
+    a = ap.parse_args()
+    run(a.icrs, fresh=a.fresh, keep_existing=a.keep_existing)

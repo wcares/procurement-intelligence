@@ -45,7 +45,8 @@ def tag_text(text: str) -> dict[str, float]:
     return decide.choices(f"Passage: {text}", {"tag": (QUESTION, TAGS)})["tag"]
 
 
-def build(db_path: Path = DB_PATH) -> None:
+def build(db_path: Path = DB_PATH) -> int:
+    """Number of passages tagged now (new or changed text)."""
     if not decide.available():
         raise SystemExit("set PROCINTEL_DECIDE_API_BASE first")
     m = model_id()
@@ -85,6 +86,7 @@ def build(db_path: Path = DB_PATH) -> None:
     for tag, n, conf in dist:
         print(f"  {n:6d}  mean confidence {conf}  {tag}")
     con.close()
+    return len(todo) - len(failed)
 
 
 if __name__ == "__main__":

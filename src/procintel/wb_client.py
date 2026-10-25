@@ -29,8 +29,11 @@ ICR_TYPE = "Implementation Completion and Results Report"
 
 
 class WBClient:
-    def __init__(self, cache: bool = True, pause: float = 0.2, timeout: int = 60):
+    def __init__(self, cache: bool = True, pause: float = 0.2, timeout: int = 60, fresh_listings: bool = False):
+        """fresh_listings: re-fetch project / notice / document listings (they change as projects progress) while
+        still caching document texts, which do not change once published. Used by procintel.refresh."""
         self.cache = cache
+        self.fresh_listings = fresh_listings
         self.pause = pause
         self.timeout = timeout
         self.s = requests.Session()
@@ -38,10 +41,10 @@ class WBClient:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     # -- low level -----------------------------------------------------
-    def _get(self, url: str, params: dict[str, Any] | None = None, text: bool = False) -> Any:
+    def _get(self, url: str, params: dict[str, Any] | None = None, text: bool = False, fresh: bool = False) -> Any:
         key = hashlib.sha256((url + json.dumps(params or {}, sort_keys=True)).encode()).hexdigest()[:32]
         path = CACHE_DIR / (key + (".txt" if text else ".json"))
-        if self.cache and path.exists():
+        if self.cache and path.exists() and not fresh:
             raw = path.read_text()
             return raw if text else json.loads(raw)
         last: Exception | None = None
@@ -61,7 +64,7 @@ class WBClient:
 
     # -- projects ------------------------------------------------------
     def projects(self, rows: int = 100, offset: int = 0, **filters: Any) -> tuple[int, list[dict]]:
-        d = self._get(f"{SEARCH}/v2/projects", {"format": "json", "rows": rows, "os": offset, **filters})
+        d = self._get(f"{SEARCH}/v2/projects", {"format": "json", "rows": rows, "os": offset, **filters}, fresh=self.fresh_listings)
         return int(d["total"]), list(d.get("projects", {}).values())
 
     def iter_projects(self, limit: int, page: int = 100, **filters: Any) -> Iterator[dict]:
@@ -77,7 +80,7 @@ class WBClient:
 
     # -- procurement notices ------------------------------------------
     def notices(self, rows: int = 100, offset: int = 0, **filters: Any) -> tuple[int, list[dict]]:
-        d = self._get(f"{SEARCH}/v2/procnotices", {"format": "json", "rows": rows, "os": offset, **filters})
+        d = self._get(f"{SEARCH}/v2/procnotices", {"format": "json", "rows": rows, "os": offset, **filters}, fresh=self.fresh_listings)
         return int(d["total"]), list(d.get("procnotices", []))
 
     def iter_notices(self, limit: int, page: int = 100, **filters: Any) -> Iterator[dict]:
@@ -98,7 +101,7 @@ class WBClient:
             "fl": "id,docty,docdt,projectid,display_title,pdfurl,txturl,count",
             **filters,
         }
-        d = self._get(f"{SEARCH}/v3/wds", params)
+        d = self._get(f"{SEARCH}/v3/wds", params, fresh=self.fresh_listings)
         docs = [v for k, v in d.get("documents", {}).items() if k != "facets"]
         return int(d["total"]), docs
 

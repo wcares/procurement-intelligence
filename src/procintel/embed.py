@@ -83,8 +83,8 @@ def text_hash(section: str, text: str) -> str:
     return hashlib.sha256(f"{section}\x00{text}".encode()).hexdigest()[:16]
 
 
-def build(db_path: Path = DB_PATH) -> None:
-    """Embed every chunk whose (model, dim, text hash) is not stored yet; drop vectors of chunks that no longer exist."""
+def build(db_path: Path = DB_PATH) -> int:
+    """Number of chunks embedded. Embed every chunk whose (model, dim, text hash) is not stored yet; drop vectors of chunks that no longer exist."""
     m, d = model_name(), dim()
     if m is None:
         raise SystemExit("set PROCINTEL_EMBED_MODEL (and PROCINTEL_EMBED_API_BASE) first")
@@ -109,6 +109,7 @@ def build(db_path: Path = DB_PATH) -> None:
     n = con.execute("SELECT count(*) FROM chunk_vec WHERE model = ? AND dim = ?", [m, d]).fetchone()[0]
     print(f"chunk_vec: {n} vectors for {m}; {len(gone)} stale removed; {time.time() - t0:.0f}s")
     con.close()
+    return len(todo)
 
 
 def load(con: duckdb.DuckDBPyConnection, chunk_ids: list[str]) -> np.ndarray | None:

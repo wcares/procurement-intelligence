@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **M4** One `refresh` command: fetch new notices and reports, then chunk → embed → tag → retrain only what changed, and log what changed (added 2026-10-24, by me)
 - [ ] **M4** Evaluation report combining the test set and user feedback, re-run after each refresh (added 2026-10-24, by me)
 - [ ] **M4** Basic configuration page: view and change the main settings (models and endpoints, retrieval k, thresholds, LLM settings) through a backend /config endpoint, validated and applied live (added 2026-10-24, by you)
 - [ ] **Proposal** README: setup, models, how to run each step (added 2026-10-24, by me)
@@ -143,11 +142,13 @@ _(empty)_
 ### Improvements
 
 - [ ] Full configuration dashboard: every tunable (retrieval pool/RRF, embedding dim, precedent filter, per-model options), saved profiles, before/after evaluation on change (added 2026-10-24, by you)
+- [ ] Scheduled refresh (e.g. nightly) and a backend reload so a refresh reaches the running server without a restart (added 2026-10-24, by me)
 - [ ] Retraining triggered by feedback volume or evaluation drift, not only by refresh (added 2026-10-24, by me)
 - [ ] Pilot rollout plan and KPI definitions with how each is measured (added 2026-10-24, by me)
 
 ### Done
 
+- [x] `python -m procintel.refresh`: re-fetches listings (projects, notices, ICR list) while keeping cached ICR texts and existing ICRs, then model tables → chunks → embeddings and tags (incremental) → rating check → prediction models; table refresh_log records added/changed/removed documents, new notices, project status changes, passages embedded/tagged, model metrics before and after, and per-step times — COMMIT — --skip-fetch run: 0 changes, 0 re-embedded, 0 re-tagged, 5.8 s; live run: 304 listings re-fetched from the network (cache files rewritten), 0 texts re-downloaded, no changes since the 2026-10-23 ingest, 2.9 min; change detection covered by 2 unit tests
 - [x] Feedback capture: every /ask and /assess response logged with a responseId; POST /feedback (useful / not_useful / bad_citation naming a shown citation, optional comment); "Was this useful?" bar and "flag citation" on answers and assessments; separate data/feedback.duckdb so the server never blocks the build commands — 9d6aa0d — 4 API tests (unknown response, citation not shown, missing citation, bad rating all 400); in Chrome: flagged a citation and sent "not useful" with a comment, both rows stored against the logged response, no console errors
 - [x] Embeddings and tags re-run only for new or changed passages (text hash per model) — a36f209, d19a6e8 — re-run embeds 0
 - [x] All models swappable by configuration; documented in .env.example — b8d7c0e — backend starts from it
