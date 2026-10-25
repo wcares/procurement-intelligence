@@ -272,6 +272,10 @@ Actions write to the main database as the pipeline does today; the worker is the
    (the brief's "supervision notes and amendments").
 3. Rules editable in the UI: rule panel, validation, dry run.
 4. Weekly refresh reduced to reconciliation; remove the duplicated steps.
+   **Steps 2-4 built (2026-10-25):** reports and passages (Document entity, ingest / chunk / index / checks actions;
+   a report is in scope among the newest 120 or when tracked), editable rules with validation, dry run and reset
+   (Settings page), and the refresh ending with a reconciliation of the state (its changes logged, nothing queued).
+   ISRs and restructuring papers became their own task (Module 1 improvements).
 
 Verification for each step: a recorded fixture of source changes replayed through the detector, asserting the exact
 events and jobs; a live run on the real sources comparing the event-driven result with a full refresh (same tables).

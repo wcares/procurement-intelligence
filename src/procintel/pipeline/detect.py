@@ -93,3 +93,21 @@ def batch_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
             cur["derived"] += new
         cur["done"].append(name)
         yield cur
+
+
+def reconcile() -> dict[str, int]:
+    """After a full refresh: bring the state of every tracked type in line with the database and log the differences
+    as events of their own batch, without queuing actions (the refresh already did the work). Types not tracked yet
+    are left for their first detection run. Returns the events per type."""
+    batch = "refresh-" + store.new_batch()
+    out = {}
+    for name, et in entities.ENTITY_TYPES.items():
+        known = store.states(name)
+        if not known:
+            continue
+        rows = et.read_db()
+        events = store.diff(name, et.watched, rows, known, complete=True)
+        store.record(name, batch, events, list(rows))
+        store.log_detection(batch, name, len(rows), len(events), "reconciled with the database after a full refresh")
+        out[name] = len(events)
+    return out

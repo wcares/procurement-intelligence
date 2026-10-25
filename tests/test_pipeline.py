@@ -142,3 +142,18 @@ def test_older_reports_below_the_corpus_scope_are_not_new(monkeypatch):
     monkeypatch.setattr(entities, "DOCUMENT_SCOPE", 100)
     rows, complete = entities.documents_from_source({"tracked": ["d5", "d120"]})   # d120 is tracked below the scope
     assert not complete and len(rows) == 101 and "d120" in rows and "d121" not in rows and "d99" in rows
+
+
+def test_reconcile_logs_what_a_refresh_wrote_and_queues_nothing(tmp_path, monkeypatch):
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    monkeypatch.setattr(jobs_store, "DB_PATH", tmp_path / "jobs.duckdb")
+    db_rows = {"n1": {"award_date": None}}
+    fake = entities.EntityType("Notice", timedelta(hours=1), ["award_date"], lambda ctx: ({}, False), lambda: dict(db_rows))
+    monkeypatch.setattr(entities, "ENTITY_TYPES", {"Notice": fake})
+    store.seed("Notice", ["award_date"], db_rows)
+    db_rows["n1"] = {"award_date": "2026-10-20"}            # the refresh wrote an award date and a new notice
+    db_rows["n2"] = {"award_date": None}
+    assert detect.reconcile() == {"Notice": 2}
+    assert jobs_store.next_pending() is None                  # nothing queued: the refresh did the work
+    assert detect.reconcile() == {"Notice": 0}                # state now matches the database
+    assert store.overview()["lastRun"]["Notice"]["note"].startswith("reconciled")

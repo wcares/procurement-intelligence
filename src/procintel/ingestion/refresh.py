@@ -6,7 +6,9 @@
 
 Steps: ingest (listings re-fetched, existing ICRs kept, document texts cached) → model tables → chunks → embeddings
 (new or changed passages only) → tags (same) → ICR/ISR rating check → prediction models (retrained, metrics compared)
-→ evaluation report (retrieval metrics and user feedback; eval/report.md, eval/history.jsonl).
+→ change-detection state reconciled → evaluation report (retrieval metrics and user feedback; eval/report.md,
+eval/history.jsonl). Between refreshes procintel.pipeline applies changes as they are detected; this weekly run is the
+reconciliation that rebuilds everything, and its last step logs what it changed as events (no actions queued).
 Embedding and tagging are the slow steps and are incremental; the others rebuild in seconds to a minute.
 Each run appends a row to table refresh_log with the changes and per-step times. A running backend keeps its old
 data in memory until it reloads: pass --reload-url to have the refresh ask it to (scripts/refresh.sh and the weekly refresh job do).
@@ -22,6 +24,7 @@ from pathlib import Path
 
 from procintel.core import db, decide, embed, llm, paths, vector_index
 from procintel.ingestion import chunk, contract_awards, entities, fx, ingest, problem_tag, sectors, tables, tag, wgi
+from procintel.pipeline import detect
 from procintel.prediction import evidence, predict, procurement_rating, ratings
 
 DB_PATH = paths.DB_PATH
@@ -98,6 +101,8 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
         if fetch:
             step("exchange rates", fx.build)
         step("prediction models", predict.main)
+        # the change-detection state learns what this refresh wrote, so the next hourly run does not redo it
+        counts["pipeline_reconciled"] = step("change-detection state", lambda: sum(detect.reconcile().values()))
         # retrieval metrics + user feedback; answering every question takes ~10 min, run `evaluate run` for that
         counts["evaluation"] = step("evaluation report (retrieval + feedback)", lambda: _evaluate())
     except Exception as e:  # record the failed step, then re-raise so the command exits non-zero
