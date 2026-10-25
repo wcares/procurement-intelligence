@@ -59,13 +59,24 @@ export interface TimelineBenchmark {
 
 export type RiskLevel = "low" | "medium" | "high";
 
+/** A record a risk flag rests on: a past package (linked to its award notice), a completion-report passage, or an indicator. */
+export interface FlagEvidenceItem {
+  kind: "package" | "report" | "indicator";
+  ref: string;
+  label: string;
+  detail: string;
+  url: string | null;
+}
+
 export interface RiskFlag {
   id: string;
   label: string;
   level: RiskLevel;
-  /** "statistic" = computed from historical records; "model" = a model prediction (not built yet) */
+  /** "statistic" = computed from historical records; "model" = a gradient-boosted model estimate */
   basis: "statistic" | "model";
   detail: string;
+  /** Records the flag rests on (empty for model flags and the mock engine) */
+  evidence?: FlagEvidenceItem[];
 }
 
 export interface GovernanceScore {

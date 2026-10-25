@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { AssessRequest, AssessResponse, Options, ProcGroup, SimilarPackage } from "@/lib/api/types";
+import type { AssessRequest, AssessResponse, FlagEvidenceItem, Options, ProcGroup, SimilarPackage } from "@/lib/api/types";
 import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
 
@@ -152,6 +152,7 @@ function Results({ r }: { r: AssessResponse }) {
                   </div>
                   <p className="mt-1 text-sm text-muted">{f.detail}</p>
                   <p className="mt-0.5 text-xs text-muted">Basis: {f.basis === "statistic" ? "historical statistic" : "model estimate"}</p>
+                  {f.evidence && f.evidence.length > 0 && <FlagEvidence items={f.evidence} />}
                 </li>
               ))}
             </ul>
@@ -232,5 +233,27 @@ function SimilarPackages({ items }: { items: SimilarPackage[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+function FlagEvidence({ items }: { items: FlagEvidenceItem[] }) {
+  return (
+    <details className="mt-1">
+      <summary className="cursor-pointer text-xs text-muted">Evidence ({items.length})</summary>
+      <ul className="mt-1 space-y-1 border-l pl-3">
+        {items.map((e) => (
+          <li key={e.ref} className="text-xs">
+            {e.url ? (
+              <a href={e.url} target="_blank" rel="noreferrer" className="underline">
+                {e.label}
+              </a>
+            ) : (
+              <span>{e.label}</span>
+            )}
+            <span className="text-muted"> · {e.detail}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

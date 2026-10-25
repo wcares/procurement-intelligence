@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from procintel import config, evidence, feedback, predict, rebid, stats
 from procintel.answer import ask as run_ask, idf
+from procintel.flag_evidence import FlagEvidence
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
 from procintel.similar import Similar
@@ -83,12 +84,21 @@ class TimelineBenchmark(BaseModel):
     p90: float
 
 
+class FlagEvidenceItem(BaseModel):
+    kind: Literal["package", "report", "indicator"]
+    ref: str
+    label: str
+    detail: str
+    url: str | None = None
+
+
 class RiskFlag(BaseModel):
     id: str
     label: str
     level: Literal["low", "medium", "high"]
     basis: Literal["statistic", "model"]
     detail: str
+    evidence: list[FlagEvidenceItem] = []
 
 
 class GovernanceScore(BaseModel):
@@ -161,6 +171,7 @@ class State:
         self.rebid_cost = rebid.cost(con)
         self.amendments = evidence.by_country(con, "amendment")
         self.similar = Similar(db_path)
+        self.flag_evidence = FlagEvidence(db_path)
         con.close()
         self.retriever = Retriever(db_path)
         idf(self.retriever)  # term weights for picking answer sentences
@@ -205,6 +216,7 @@ def post_assess(req: AssessRequest) -> dict:
     body = req.model_dump()
     out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
                      s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments)
+    s.flag_evidence.attach(out["risks"], body, s.bench, out["timeline"], out["governance"])
     try:
         out["similarPackages"] = s.similar.search(body.get("description") or "", body["procGroup"])
     except Exception:  # embedding server down: the assessment stands without this section
