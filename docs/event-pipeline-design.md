@@ -116,6 +116,28 @@ Default rules (initial set):
 | `Model.drift_detected` | — | `retrain` |
 | `Data.updated` (end of any batch that changed served data) | — | `reload_backend` |
 
+### Who controls what
+
+| layer | decided by | in the UI |
+|---|---|---|
+| State and detection (what changed) | automatic: the detectors compare fingerprints; never the user | view only: tracked items per entity type, last check, changes found |
+| Events | automatic, derived from state differences | view only: the event log |
+| Rules (event -> actions) | the user, starting from the defaults | add, edit, disable, dry run, reset |
+| Actions (what can be done) | code (each is today's `build()` or a job handler) | chosen from a list in a rule; their runs and results shown |
+
+The UI shows, for each event, the rules that fired and the jobs they queued, linked to the background jobs panel
+("2026-11-02 14:05 · Notice.added ×14 → update_packages · done · 14 packages → drift_check · no retrain needed").
+
+### New tables
+
+- **A table already in the database** (for example one an import step creates) is registered as an entity type from
+  the UI by naming the table, its key column and the columns to watch; a generic table detector diffs any table given
+  those three, so no code is needed. Its `<Table>.added` / `.changed` events then appear in the rule editor.
+- **Data from a new outside source** needs a small detector (and usually an ingest step) written once in code; after
+  that its rules are managed in the UI like any other.
+- A rule for new data can reuse existing actions (reload, rebuild benchmarks ...) from the UI; a new kind of
+  processing is a new action written once in code, which then appears in the action list.
+
 ### Rules in the UI
 
 The Settings page gets a "Pipeline rules" panel: list rules with their last firing; add or edit one by choosing an
