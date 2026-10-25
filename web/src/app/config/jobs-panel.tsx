@@ -17,6 +17,9 @@ const OTHER_LABELS: Record<string, string> = {
   shadow_evaluate: "Evaluate shadow index",
   shadow_promote: "Promote shadow index",
   index_followup: "Tag new passages",
+  prompt_evaluate: "Evaluate a prompt version",
+  detect_changes: "Check sources for changes",
+  pipeline_batch: "Process detected changes",
 };
 const label = (kind: string) => JOB_LABELS[kind] ?? OTHER_LABELS[kind] ?? kind;
 

@@ -264,6 +264,10 @@ Actions write to the main database as the pipeline does today; the worker is the
 
 1. State store, event log and detectors for Notice, ContractAward, Project, Indicator; default rules; actions for
    packages, award dates, benchmarks, drift check, reload. Hourly detection job. Settings page: event log view.
+   **Built (2026-10-25)** in `procintel.pipeline`; one request covers all projects for notices (`project_id=P1^P2^...`,
+   newest first) and projects, `project_id in (...)` for contracts; indicators stay per country (weekly). Checked by a
+   replayed fixture and by a live replay that removed the 8 newest notices from a copy: detection found exactly them
+   and the batch rebuilt tables identical to the original.
 2. Documents and passages: per-document chunk/embed/tag actions; ISRs and restructuring papers as new document types
    (the brief's "supervision notes and amendments").
 3. Rules editable in the UI: rule panel, validation, dry run.

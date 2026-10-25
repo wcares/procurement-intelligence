@@ -31,7 +31,8 @@ from procintel.jobs import handlers, store
 log = logging.getLogger(__name__)
 IDLE_SECONDS = 300  # tunable on the Settings page
 POLL_SECONDS = 10
-SCHEDULE = {"drift_check": timedelta(days=1), "refresh": timedelta(days=7)}  # queued automatically, and how often
+# queued automatically, and how often (detect_changes: procintel.pipeline; the weekly refresh reconciles)
+SCHEDULE = {"drift_check": timedelta(days=1), "refresh": timedelta(days=7), "detect_changes": timedelta(hours=1)}
 
 
 class Activity:
@@ -120,7 +121,7 @@ class Worker:
         """One poll: queue due periodic jobs, then run a pending job if the app has been idle long enough."""
         for kind, every in SCHEDULE.items():
             if store.due(kind, every, self.db_path):
-                store.enqueue(kind, f"scheduled: every {every.days} day(s)", db_path=self.db_path)
+                store.enqueue(kind, f"scheduled: every {every}", db_path=self.db_path)
         if self.activity.idle_for() < IDLE_SECONDS:
             return None
         job = store.next_pending(self.db_path, self.name)

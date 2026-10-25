@@ -31,11 +31,12 @@ COLUMNS = ["project_id", "borrower_contract_reference_number", "contract_descrip
            "supplier_country_code", "supplier_contract_amount_usd", "wb_contract_number", "as_of_date"]
 
 
-def fetch_project(project_id: str, get=requests.get) -> list[dict]:
+def fetch(filter_: str, get=requests.get) -> list[dict]:
+    """Every row matching an OData-style filter, page by page."""
     rows, skip = [], 0
     while True:
         r = get(API, params={"datasetId": "DS00005", "resourceId": "RS00005", "type": "json", "top": PAGE,
-                             "skip": skip, "filter": f"project_id='{project_id}'"}, timeout=60)
+                             "skip": skip, "filter": filter_}, timeout=60)
         r.raise_for_status()
         d = r.json()
         batch = d.get("data") or []
@@ -43,6 +44,37 @@ def fetch_project(project_id: str, get=requests.get) -> list[dict]:
         skip += len(batch)
         if not batch or skip >= d.get("count", 0):
             return rows
+
+
+def fetch_project(project_id: str, get=requests.get) -> list[dict]:
+    return fetch(f"project_id='{project_id}'", get)
+
+
+def fetch_projects(project_ids: list[str], per_request: int = 40, get=requests.get) -> list[dict]:
+    """Rows for many projects with `project_id in (...)` filters (checked: same counts as one request per project)."""
+    out = []
+    for i in range(0, len(project_ids), per_request):
+        part = ",".join(f"'{p}'" for p in project_ids[i:i + per_request])
+        out += fetch(f"project_id in ({part})", get)
+    return out
+
+
+def to_row(r: dict) -> dict:
+    """A source row as a contract_award row."""
+    row = {"project_id": r.get("project_id"), "contract_ref": r.get("borrower_contract_reference_number"),
+           "description": r.get("contract_description"), "signing_date": _date(r.get("contract_signing_date")),
+           "category": r.get("procurement_category"), "method": r.get("procurement_method"),
+           "review_type": r.get("review_type"), "supplier": r.get("supplier"), "supplier_id": r.get("supplier_id"),
+           "supplier_country": r.get("supplier_country_code"), "amount_usd": r.get("supplier_contract_amount_usd"),
+           "wb_contract_number": r.get("wb_contract_number"), "as_of_date": _date(r.get("as_of_date"))}
+    sid = str(row["supplier_id"] or "")
+    row["firm_id"] = int(sid) if sid.isdigit() else None  # Bank firm id; some supplier ids are hex keys
+    return row
+
+
+TABLE_COLUMNS = ["project_id", "contract_ref", "description", "signing_date", "category", "method", "review_type",
+                 "supplier", "supplier_id", "supplier_country", "amount_usd", "wb_contract_number", "as_of_date",
+                 "firm_id"]
 
 
 def _date(s: str | None) -> str | None:
@@ -56,20 +88,16 @@ def build(db_path: Path = DB_PATH, pause: float = 0.2) -> dict:
     rows, failed = [], []
     for pid in projects:
         try:
-            for r in fetch_project(pid):
-                rows.append([r.get(c) for c in COLUMNS])
+            rows += [[to_row(r)[c] for c in TABLE_COLUMNS] for r in fetch_project(pid)]
         except Exception as e:  # one project failing must not lose the others
             failed.append(f"{pid}: {type(e).__name__}")
         time.sleep(pause)
-    for r in rows:
-        r[3], r[12] = _date(r[3]), _date(r[12])
-        r.append(int(r[8]) if str(r[8] or "").isdigit() else None)  # Bank firm id; some supplier ids are hex keys
     con = db.connect(db_path)
     con.execute("""CREATE OR REPLACE TABLE contract_award (project_id VARCHAR, contract_ref VARCHAR, description VARCHAR,
         signing_date DATE, category VARCHAR, method VARCHAR, review_type VARCHAR, supplier VARCHAR, supplier_id VARCHAR,
         supplier_country VARCHAR, amount_usd DOUBLE, wb_contract_number VARCHAR, as_of_date DATE, firm_id BIGINT)""")
     if rows:
-        con.executemany("INSERT INTO contract_award VALUES (" + ", ".join("?" * (len(COLUMNS) + 1)) + ")", rows)
+        con.executemany("INSERT INTO contract_award VALUES (" + ", ".join("?" * len(TABLE_COLUMNS)) + ")", rows)
     n_proj = con.execute("SELECT count(DISTINCT project_id) FROM contract_award").fetchone()[0]
     con.close()
     out = {"contracts": len(rows), "projects_with_contracts": n_proj, "projects": len(projects), "failed": failed}

@@ -12,6 +12,7 @@ import type {
   JobsResponse,
   FeedbackResponse,
   Options,
+  PipelineResponse,
   PromptInfo,
   ShadowsResponse,
 } from "./types";
@@ -55,6 +56,8 @@ export const api = {
   compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
   jobs: () => call<JobsResponse>("/jobs"),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
+  pipeline: () => call<PipelineResponse>("/pipeline"),
+  detectNow: () => call<{ queued: string | null; note: string | null }>("/pipeline/detect", { method: "POST" }),
   prompts: () => call<{ prompts: PromptInfo[] }>("/prompts"),
   /** saved as a candidate; prompts used in answering get an evaluation job */
   savePrompt: (name: string, text: string, note: string) =>

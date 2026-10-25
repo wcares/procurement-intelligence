@@ -314,3 +314,14 @@ export interface PromptInfo {
   active: number;
   versions: PromptVersion[];
 }
+
+/** Change detection (GET /pipeline): tracked entities, recent events and rule firings. */
+export interface PipelineResponse {
+  tracked: Record<string, number>;
+  lastRun: Record<string, { ranAt: string; items: number; events: number; note: string }>;
+  events: { type: string; key: string; changed: string[]; detectedAt: string; batch: string }[];
+  firings: { batch: string; rule: string; events: number; actions: string[]; job: string | null; firedAt: string }[];
+  entityTypes: { name: string; every: string; watched: string[] }[];
+  rules: { id: string; on: string[]; fields: string[]; do: string[]; enabled: boolean }[];
+  actions: { name: string; label: string }[];
+}

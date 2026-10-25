@@ -4,7 +4,8 @@ PROCINTEL_DB_URL selects it:
   (unset)                      DuckDB files in the data folder (procintel.core.paths): the local default
   postgresql://user:pw@host/db Postgres, through DuckDB's postgres extension: the same SQL runs, tables live in
                                Postgres, and several processes (api, workers) can write at once. The main database
-                               maps to schema "public", the feedback log to "feedback", the job queue to "jobs".
+                               maps to schema "public", the feedback log to "feedback", the job queue to "jobs",
+                               change detection to "pipeline".
 
 Paths other than the three known databases (tests, scratch copies) always open as DuckDB files.
 """
@@ -17,7 +18,8 @@ import duckdb
 
 from procintel.core import paths
 
-SCHEMAS = {paths.DB_PATH: "public", paths.FEEDBACK_DB: "feedback", paths.JOBS_DB: "jobs"}
+SCHEMAS = {paths.DB_PATH: "public", paths.FEEDBACK_DB: "feedback", paths.JOBS_DB: "jobs",
+           paths.PIPELINE_DB: "pipeline"}
 
 
 def url() -> str:

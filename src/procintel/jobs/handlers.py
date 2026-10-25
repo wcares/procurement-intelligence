@@ -15,6 +15,8 @@ which is passed back in to resume after a pause or restart; its return value is 
     index_followup   tag passages that have no tags yet (after a promotion); background
     prompt_evaluate  answer a question sample with the active and a candidate prompt version
                   (procintel.learning.prompt_eval); background, one question per step
+    detect_changes   read each due source, record what changed, queue a pipeline_batch for it (procintel.pipeline)
+    pipeline_batch   run the actions the rules ask for, one per step, then reload
 """
 from __future__ import annotations
 
@@ -160,3 +162,15 @@ def index_followup(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dic
 def prompt_evaluate(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     from procintel.learning import prompt_eval
     return (yield from prompt_eval.steps(params["name"], params["version"], cursor))
+
+
+@handler("detect_changes")
+def detect_changes(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.pipeline import detect
+    return (yield from detect.detect_steps(params, cursor, ctx))
+
+
+@handler("pipeline_batch")
+def pipeline_batch(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.pipeline import detect
+    return (yield from detect.batch_steps(params, cursor, ctx))
