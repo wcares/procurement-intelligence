@@ -100,6 +100,26 @@ compares before and after a change. The page:
 | Labelling queue | random judge labels to confirm (agreement shown, 54/60 today); refused and not-useful real questions to turn into evaluation questions; judge disagreements | judgments, feedback review |
 | Run | queue a full evaluation or a quick search-quality check (background priority) | job queue |
 
+## 3c. Sign-in and roles
+
+One app, one sign-in; the role decides what a person sees and can do (user, 2026-10-25: "one for end clients and one for
+admin users who run the pipeline ... exactly the role based").
+
+| role | who | can |
+|---|---|---|
+| **Planner** | World Bank project teams and procurement specialists, borrower implementing agencies | home dashboard, Assess, Ask, interactive visuals; rate answers, flag citations; upload documents to analyse |
+| **Admin** | the team running the platform | everything a planner can, plus Settings, connectors, rules, event log, background jobs, evaluation page, feedback review, promotions |
+| Reviewer (later) | domain experts | label evaluation items and review feedback, no pipeline control |
+
+- **Identity provider by configuration**: a simple local login for the prototype; single sign-on (OpenID Connect, e.g.
+  Microsoft Entra ID or Okta) for a pilot. Changing it is a setting (docs/architecture-principles.md).
+- **Roles enforced in the backend**, not only hidden in the UI: every admin endpoint checks the caller's role. Today the
+  settings, jobs and reload endpoints are open to anyone who can reach the server (only reload and queueing jobs are
+  limited to this machine).
+- **Identity on every logged response** (a pseudonymous id), which the pilot's adoption KPIs need
+  (docs/pilot-plan.md, phase 0).
+- **Navigation by role**: planners see the planner app; admins also see an Admin area.
+
 ## 4. Visual language
 
 - One colour scale for risk everywhere: red high, amber medium, grey low; green only for "better than typical". The
@@ -160,6 +180,7 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | queued, after event pipeline step 1 |
 | U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | decided (section 4, Components); applies to U2-U4 |
 | U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | queued (section 3b) |
+| U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | queued (section 3c), before the pre-pilot logging |
 
 ## 7. Open questions
 
