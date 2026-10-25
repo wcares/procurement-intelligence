@@ -6,6 +6,8 @@ which is passed back in to resume after a pause or restart; its return value is 
                   them than in cross-validation
     retrain       cross-validate, train, save, then ask the backend to load the new model
     refresh       re-fetch the World Bank sources and rebuild what changed (procintel.refresh), then reload the backend
+    feedback_review  rebuild the review list and the demoted citations from user feedback (procintel.feedback_review);
+                  reload the backend when the demoted set changed
 """
 from __future__ import annotations
 
@@ -83,3 +85,16 @@ def refresh(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     if reload:
         reload()
     return {"changes": {k: v for k, v in changes.items() if not isinstance(v, (dict, list))}, "reloaded": bool(reload)}
+
+
+@handler("feedback_review")
+def feedback_review(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel import feedback_review as fr
+    before = fr.load_demoted(ctx.get("feedback_db"))
+    out = fr.build(ctx.get("feedback_db"))
+    yield {"step": "built"}
+    changed = set(out["demoted"]) != before
+    reload: Callable[[], Any] | None = ctx.get("reload")
+    if changed and reload:
+        reload()
+    return {"items": out["items"], "demoted": len(out["demoted"]), "reloaded": bool(changed and reload)}

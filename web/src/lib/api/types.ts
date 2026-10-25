@@ -228,3 +228,19 @@ export interface JobsResponse {
   running: string | null;
   workerOn: boolean;
 }
+
+/** Something user feedback asks a person to look at (built by the feedback_review job). */
+export interface ReviewItem {
+  kind: "flagged_citation" | "refused_question" | "not_useful";
+  key: string;
+  responses: number;
+  questions: string[];
+  comments: string[];
+}
+
+export interface FeedbackReviewResponse {
+  items: ReviewItem[];
+  /** passages search moves to the end of its results */
+  demoted: string[];
+  demoteAfter: number;
+}

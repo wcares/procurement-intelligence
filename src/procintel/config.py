@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from procintel import answer, assess, embed, llm, retrieve
+from procintel import answer, assess, embed, feedback_review, llm, retrieve
 from procintel.jobs import worker as jobs_worker
 
 SAVED = Path(__file__).resolve().parents[2] / "data" / "config.json"
@@ -100,6 +100,10 @@ def _settings() -> list[Setting]:
                 *_attr(jobs_worker, "IDLE_SECONDS"),
                 "Seconds without any request before the queue (drift check, retraining) starts; a request pauses it",
                 10, 86400),
+        Setting("demote_min", "Flags before a citation is demoted", "Background jobs", "int",
+                *_attr(feedback_review, "DEMOTE_MIN"),
+                "Separate responses that must flag a passage as a wrong citation before search moves it to the end "
+                "of its results (applied by the next feedback review job)", 1, 100),
         Setting("not_a_lesson_min", "Precedent filter threshold", "Assess", "float", *_attr(assess, "NOT_A_LESSON_MIN"),
                 "Tag confidence above which a 'no problem' passage is not shown as a precedent (1 = never filter)", 0.5, 1),
     ]

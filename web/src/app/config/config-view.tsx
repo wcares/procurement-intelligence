@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { CompareResponse, ConfigProfile, ConfigSetting, Job, JobsResponse, RetrievalMetrics } from "@/lib/api/types";
+import type { CompareResponse, ConfigProfile, ConfigSetting, FeedbackReviewResponse, Job, JobsResponse, RetrievalMetrics } from "@/lib/api/types";
 
 type Draft = Record<string, string>;
 
@@ -70,6 +70,7 @@ export function ConfigView() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <Jobs />
+      <FeedbackReview />
       <Profiles
         disabled={busy}
         onApplied={(s) => (setSettings(s), setDraft({}), setErrors({}), setComparison(null))}
@@ -273,6 +274,7 @@ const JOB_LABELS: Record<string, string> = {
   drift_check: "Prediction drift check",
   retrain: "Retrain prediction models",
   refresh: "Refresh World Bank data",
+  feedback_review: "Review user feedback",
 };
 
 function jobSummary(j: Job): string {
@@ -281,6 +283,10 @@ function jobSummary(j: Job): string {
   if (!r) return j.reason;
   if (typeof r.why === "string") return r.why;
   if (typeof r.n === "number") return `trained on ${r.n} packages${r.reloaded ? ", backend reloaded" : ""}`;
+  if (r.items && typeof r.items === "object") {
+    const c = r.items as Record<string, number>;
+    return `${c.flagged_citation ?? 0} flagged citations, ${c.refused_question ?? 0} refused questions, ${c.not_useful ?? 0} not useful; ${r.demoted} demoted`;
+  }
   return r.reloaded ? "done, backend reloaded" : "done";
 }
 
@@ -337,6 +343,51 @@ function Jobs() {
                 <span className={`text-xs ${j.status === "failed" ? "text-risk-high" : "text-muted"}`}>{j.status}</span>
                 <span className="text-xs text-muted">{new Date(j.finished_at ?? j.created_at).toLocaleString()}</span>
                 <span className="w-full text-xs text-muted">{jobSummary(j)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+const REVIEW_LABELS: Record<string, string> = {
+  flagged_citation: "Citation flagged as wrong",
+  refused_question: "Question refused",
+  not_useful: "Rated not useful",
+};
+
+function FeedbackReview() {
+  const [data, setData] = useState<FeedbackReviewResponse | null>(null);
+  useEffect(() => {
+    api.feedbackReview().then(setData).catch(() => setData(null));
+  }, []);
+  if (!data) return null;
+  return (
+    <section>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Feedback to review</h2>
+      <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
+        <p className="text-xs text-muted">
+          Built by the feedback review job. Refused and not-useful questions are candidates for the evaluation set; a
+          passage flagged as a wrong citation on {data.demoteAfter} or more separate answers is moved to the end of search
+          results ({data.demoted.length} now).
+        </p>
+        {data.items.length === 0 ? (
+          <p className="text-sm text-muted">Nothing to review yet.</p>
+        ) : (
+          <ul className="divide-y divide-line text-sm">
+            {data.items.slice(0, 15).map((it) => (
+              <li key={`${it.kind}:${it.key}`} className="py-1.5">
+                <span className="font-medium">{REVIEW_LABELS[it.kind] ?? it.kind}</span>
+                <span className="text-xs text-muted">
+                  {" "}
+                  · {it.responses} response{it.responses === 1 ? "" : "s"}
+                  {it.kind === "flagged_citation" && <> · passage <span className="font-mono">{it.key}</span></>}
+                  {data.demoted.includes(it.key) && " · demoted"}
+                </span>
+                <p className="text-xs text-muted">{it.questions.join(" | ")}</p>
+                {it.comments.length > 0 && <p className="text-xs italic text-muted">“{it.comments.join("” “")}”</p>}
               </li>
             ))}
           </ul>

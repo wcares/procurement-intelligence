@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import config, evaluate, evidence, feedback, predict, rebid, stats
+from procintel import config, evaluate, evidence, feedback, feedback_review, predict, rebid, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.flag_evidence import FlagEvidence
 from procintel.jobs import store as jobs_store, worker as jobs_worker
@@ -177,6 +177,7 @@ class State:
         self.flag_evidence = FlagEvidence(db_path)
         con.close()
         self.retriever = Retriever(db_path)
+        self.retriever.demoted = feedback_review.load_demoted()  # flagged citations moved to the end of search results
         idf(self.retriever)  # term weights for picking answer sentences
         self.timeline_model = predict.load()  # None until `python -m procintel.predict` has been run
         self.region = {c["code"]: c["region"] for c in self.options["countries"]}
@@ -282,6 +283,7 @@ class FeedbackResponse(BaseModel):
 def post_feedback(req: FeedbackRequest) -> dict:
     try:
         fid = feedback.add(req.responseId, req.rating, req.citationId, req.comment)
+        jobs_store.enqueue("feedback_review", "new feedback")  # runs when the app is idle
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return {"ok": True, "feedbackId": fid}
@@ -386,7 +388,7 @@ def post_reload(request: Request) -> dict:
 
 
 class JobRequest(BaseModel):
-    kind: Literal["drift_check", "retrain", "refresh"]
+    kind: Literal["drift_check", "retrain", "refresh", "feedback_review"]
     reason: str = Field(default="queued from the Settings page", max_length=200)
 
 
@@ -403,6 +405,13 @@ def post_job(req: JobRequest, request: Request) -> dict:
         return JSONResponse({"error": "jobs can only be queued from this machine"}, status_code=403)
     jid = jobs_store.enqueue(req.kind, req.reason)
     return {"queued": jid, "note": None if jid else "a job of this kind is already waiting or running"}
+
+
+@app.get("/feedback/review")
+def get_feedback_review() -> dict:
+    """What feedback asks a person to look at, as of the last feedback_review job."""
+    return {"items": feedback_review.items(), "demoted": sorted(feedback_review.load_demoted()),
+            "demoteAfter": feedback_review.DEMOTE_MIN}
 
 
 @app.get("/health")

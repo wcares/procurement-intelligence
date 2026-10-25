@@ -86,6 +86,7 @@ class Retriever:
         self.rating_conflicts = ratings.load(con)  # doc_id -> note where the ICR outcome and last ISR rating disagree
         self.procurement_conflicts = procurement_rating.load(con)  # doc_id -> note where procurement rated below it
         self.project_family = sectors.project_families(con)  # project_id -> major sector (procintel.sectors)
+        self.demoted: set[str] = set()  # set by the backend from the feedback review
         con.close()
         if embed.available() and self.vectors is None:
             log.warning("PROCINTEL_EMBED_MODEL is set but chunk_vec is missing or stale; run `python -m procintel.embed`")
@@ -129,7 +130,10 @@ class Retriever:
                 fused[i] = fused.get(i, 0.0) + 1.0 / (RRF_K + rank + 1)
                 found_by.setdefault(i, []).append(name)
         hits = []
-        for i in sorted(fused, key=fused.get, reverse=True)[:k]:
+        order = sorted(fused, key=fused.get, reverse=True)
+        if self.demoted:  # passages users repeatedly flagged as wrong citations go last (procintel.feedback_review)
+            order.sort(key=lambda i: self.records[i]["chunk_id"] in self.demoted)
+        for i in order[:k]:
             rec = self.records[i]
             j = _project_index(rec, country)
             hits.append(Hit(

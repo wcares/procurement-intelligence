@@ -8,6 +8,7 @@ import type {
   ConfigResponse,
   ConfigUpdate,
   FeedbackRequest,
+  FeedbackReviewResponse,
   JobsResponse,
   FeedbackResponse,
   Options,
@@ -51,6 +52,7 @@ export const api = {
   /** search quality under the current settings and under the given values; the values are not applied */
   compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
   jobs: () => call<JobsResponse>("/jobs"),
+  feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
   queueJob: (kind: string) =>
     call<{ queued: string | null; note: string | null }>("/jobs", { method: "POST", body: JSON.stringify({ kind, reason: "queued from the Settings page" }) }),
 };

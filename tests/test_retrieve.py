@@ -122,3 +122,14 @@ def test_precedent_judge_is_not_the_decision_model(retriever, monkeypatch):
     monkeypatch.setattr(decide, "yes", lambda *a, **k: (_ for _ in ()).throw(AssertionError("decision model called")))
     precs, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
     assert precs  # measured worse than no check for precedents (eval/precedent_labels.json), so it is not consulted
+
+
+def test_demoted_citations_go_last_but_stay_retrievable(retriever):
+    before = [h.chunk_id for h in retriever.search("contract terminated cancelled", k=5)]
+    assert len(before) >= 2
+    retriever.demoted = {before[0]}
+    try:
+        after = [h.chunk_id for h in retriever.search("contract terminated cancelled", k=5)]
+    finally:
+        retriever.demoted = set()
+    assert after == before[1:] + before[:1]
