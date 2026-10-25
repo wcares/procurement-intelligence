@@ -8,7 +8,7 @@ pytestmark = pytest.mark.skipif(not DB_PATH.exists(), reason="needs data/procint
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
-    from procintel.api.server import app
+    from procintel.api.app import app
     with TestClient(app) as c:
         yield c
 

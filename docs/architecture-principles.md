@@ -40,7 +40,10 @@ and so that it scales beyond the prototype's data. docs/event-pipeline-design.md
 database and vector-store access, model clients), `ingestion` (Module 1), `prediction` (Module 2), `answering`
 (Module 3), `learning` (Module 4), plus `jobs`, `api` and `tools`. New code goes into the package of its area; a file
 that grows past a few hundred lines or mixes concerns is split in the same change (behaviour-identical moves in their
-own commit). Packages depend downwards: `api` and `jobs` on the module packages, those on `core`.
+own commit). Packages depend downwards: `api` and `jobs` on the module packages, those on `core`. The API is an app factory
+(`api/app.py`) assembled from `state.py` (data loaded from the database), `background.py` (job mode), `access.py`
+(administrative clients, a setting), `schemas.py` and `routes/` (one module per endpoint group, listed in
+`routes/ROUTERS`): a new endpoint group is a new route module and one line there.
 
 ## Scale and deployment (user, 2026-10-25)
 

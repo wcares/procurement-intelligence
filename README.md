@@ -101,7 +101,7 @@ under the folder named by `PROCINTEL_DATA_DIR`.
 ### 4. Run
 
 ```bash
-PYTHONPATH=src .venv/bin/uvicorn procintel.api.server:app --host 127.0.0.1 --port 8000
+PYTHONPATH=src .venv/bin/uvicorn procintel.api.app:app --host 127.0.0.1 --port 8000
 cd web && API_URL=http://localhost:8000 npm run dev    # http://localhost:3100 (no API_URL: in-app mock)
 ```
 
@@ -169,7 +169,7 @@ src/procintel/
   answering/     Module 3: hybrid retrieval, cited and checked answers
   learning/      Module 4: feedback, feedback review, evaluation, pilot KPIs
   jobs/          background job queue and workers
-  api/           FastAPI server and the runtime settings it exposes
+  api/           FastAPI app: state, background jobs, access, schemas, routes/ (one module per endpoint group), settings
   tools/         mock-fixture export for the web app
 tests/           pytest suite
 web/             Next.js app (Assess, Ask, Settings) with an in-app mock API
