@@ -61,13 +61,28 @@ def build(db_path: Path = DB_PATH) -> None:
     FROM projects""")
 
     # A notice belongs to a package. Package = (project_id, bid_ref); a notice with no bid_ref is its own package.
-    con.execute("""
+    # Some awards are filed under the tender's reference plus "-N" (e.g. ...-CW-RFB-3, likely the bidding round). Such
+    # an award is linked to the tender when the suffixed reference has no tender of its own, the base reference is a
+    # tender, and that tender has no dated award; `relinked` marks it so the link can be audited.
+    con.execute(f"""
     CREATE OR REPLACE TABLE notice_m AS
-    SELECT notice_id, project_id,
-           project_id || '/' || COALESCE(NULLIF(bid_ref,''), notice_id) AS package_id,
-           notice_type, notice_date, award_date, duration_days, notice_version,
-           price_currency, price_amount, proc_group, method_code, method_name, description, suppliers
-    FROM notices""")
+    WITH n AS (
+        SELECT notice_id, project_id,
+               project_id || '/' || COALESCE(NULLIF(bid_ref,''), notice_id) AS package_id,
+               notice_type, notice_date, award_date, duration_days, notice_version,
+               price_currency, price_amount, proc_group, method_code, method_name, description, suppliers
+        FROM notices),
+    tenders AS (SELECT DISTINCT package_id FROM n WHERE notice_type IN {PRE_AWARD}),
+    dated_awards AS (SELECT DISTINCT package_id FROM n WHERE notice_type = 'Contract Award' AND award_date IS NOT NULL),
+    relink AS (
+        SELECT DISTINCT package_id AS award_pkg, regexp_replace(package_id, '-[0-9]{{1,2}}$', '') AS base
+        FROM n
+        WHERE notice_type = 'Contract Award' AND regexp_matches(package_id, '-[0-9]{{1,2}}$')
+          AND package_id NOT IN (SELECT package_id FROM tenders)
+          AND regexp_replace(package_id, '-[0-9]{{1,2}}$', '') IN (SELECT package_id FROM tenders)
+          AND regexp_replace(package_id, '-[0-9]{{1,2}}$', '') NOT IN (SELECT package_id FROM dated_awards))
+    SELECT n.* REPLACE (COALESCE(r.base, n.package_id) AS package_id), r.base IS NOT NULL AS relinked
+    FROM n LEFT JOIN relink r ON n.package_id = r.award_pkg""")
 
     con.execute(f"""
     CREATE OR REPLACE TABLE package AS
@@ -79,7 +94,8 @@ def build(db_path: Path = DB_PATH) -> None:
         SELECT package_id, MIN(award_date) AS award_date, MAX(notice_version) AS max_notice_version,
                COUNT(*) AS n_award_notices, MAX(duration_days) AS contract_duration_days,
                arg_max(price_currency, notice_date) AS price_currency,
-               arg_max(price_amount, notice_date) AS price_amount
+               arg_max(price_amount, notice_date) AS price_amount,
+               bool_or(relinked) AS award_relinked
         FROM notice_m WHERE notice_type = 'Contract Award' GROUP BY package_id),
     base AS (
         SELECT package_id, any_value(project_id) AS project_id,
@@ -88,7 +104,7 @@ def build(db_path: Path = DB_PATH) -> None:
                COUNT(*) AS n_notices
         FROM notice_m WHERE notice_type <> 'General Procurement Notice' GROUP BY package_id)
     SELECT b.*, pre.tender_start, pre.first_stage, aw.award_date, aw.max_notice_version,
-           aw.n_award_notices, aw.contract_duration_days, aw.price_currency, aw.price_amount,
+           aw.n_award_notices, aw.contract_duration_days, aw.price_currency, aw.price_amount, aw.award_relinked,
            CASE WHEN pre.tender_start IS NOT NULL AND aw.award_date IS NOT NULL
                  AND aw.award_date >= pre.tender_start
                 THEN date_diff('day', pre.tender_start, aw.award_date) END AS tender_to_award_days

@@ -78,7 +78,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Recover missing awards before any censoring model: 107 tenders have an award notice under the same package id whose award date did not parse, 29 more have their award under the same id with a "-N" suffix; fixing both adds ~136 labelled packages (+12%) (added 2026-10-25, by me)
 - [ ] Re-bidding signal from reference suffixes: 68 award notices end in "<method>-N", likely re-bid numbering; confirm on a sample, then use as the re-bidding label (added 2026-10-25, by me)
 - [ ] Survival model for award time — DEFERRED 2026-10-25: of 859 tenders without an award, 805 are over 2 years old and ~723 have no award notice in the data at all (no-award shares 32-46% for every method, including open-bid works and goods that must publish awards), so they are mostly unpublished or unlinked awards, not open tenders; treating them as censored would inflate predicted times. Revisit after the two items above, if a reliable "still open" signal exists (added 2026-10-24, by me)
 - [ ] Contract value as a feature: convert local-currency prices to USD and use the planner's estimate (added 2026-10-24, by me)
@@ -90,6 +89,7 @@ _(empty)_
 
 ### Done
 
+- [x] Recover missing awards (partly): awards filed under a tender's reference plus "-N" (the bidding round; one award reads "Vandhoo-3rd Tender") are linked to their tender when safe, marked `award_relinked`; 10 packages, +9 labelled (1,169 → 1,178). The 107 award notices without a date cannot be recovered: their text has no date ("Contract Signature Date | null"), and the notice publication date is not a usable stand-in (it trails the award by a median 92 days, p90 843) — COMMIT — 8 of 8 sampled links read by hand are the same contract; relinked packages take a median 384 days (up to 1,512) vs 108 overall, so the previous metrics were flattering: retrained, typical-days MAE 82.0 vs baseline 84.5, >180 Brier 0.156 vs 0.168 (both still used), p90 model no longer beats its baseline and is switched off by the 2% rule; Kenya CW/RFB benchmark 195/113 → 198/116, test and mock data updated
 - [x] Prediction model: gradient-boosted trees (from scratch) for tender-to-award days p50/p90 and >180-day risk; /assess adds flags with basis "model" — db56ce2 — 5-fold CV grouped by project on 1,145 packages vs the app's median baseline: typical-days MAE 74.4 vs 81.2, p90 pinball 25.2 vs 26.0, >180 Brier 0.147 vs 0.167 (AUC 0.81 vs 0.74); a model is used only with ≥2% lower error. Live check: Kenya CW/RFB 102 days (history 113)
 - [x] Timeline benchmarks and risk flags from historical statistics, falling back to wider slices when thin — bf7f501 — Kenya/CW/RFB n=195 median 113, same as the mock
 - [x] BM25 retrieval via LlamaIndex with country / procurement-type / kind filters — ea742cf — tests/test_retrieve.py

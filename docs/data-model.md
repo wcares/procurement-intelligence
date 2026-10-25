@@ -19,7 +19,7 @@ erDiagram
     CHUNK }o--o{ PACKAGE : "soft link, confidence-scored (PLANNED)"
 
     PROJECT { string project_id PK  string country_code FK  string sector  double commitment_usd  date board_approval  date closing_date }
-    PACKAGE { string package_id PK  string project_id FK  string proc_group  string method_code  date tender_start  date award_date  int tender_to_award_days  int max_notice_version  string price_currency  double price_amount }
+    PACKAGE { string package_id PK  string project_id FK  string proc_group  string method_code  date tender_start  date award_date  int tender_to_award_days  bool award_relinked  int max_notice_version  string price_currency  double price_amount }
     NOTICE  { string notice_id PK  string package_id FK  string notice_type  date notice_date }
     SUPPLIER { int firm_id PK  string name  string name_key  int n_packages }
     DOCUMENT { string doc_id PK  string doc_type  date doc_date  string txt_url }
@@ -31,7 +31,7 @@ erDiagram
 | Table | Grain | Key | Source |
 |---|---|---|---|
 | `project` | one World Bank project | `project_id` | projects API |
-| `package` | one procurement package = all notices sharing `(project_id, bid_ref)`; a notice with no `bid_ref` is its own package | `package_id = project_id/bid_ref` | derived from notices |
+| `package` | one procurement package = all notices sharing `(project_id, bid_ref)`; a notice with no `bid_ref` is its own package. An award filed under the tender's reference plus "-N" (the bidding round, e.g. "...-CW-RFB-3", "Vandhoo-3rd Tender") is linked to that tender when the suffixed reference has no tender of its own and the tender has no dated award; `award_relinked` marks these (10 packages, median 384 days to award vs 108 overall) | `package_id = project_id/bid_ref` | derived from notices |
 | `notice_m` | one published notice | `notice_id` | procnotices API |
 | `supplier` | one Bank firm id | `firm_id` | parsed from award text |
 | `award_supplier` | package × firm | (`package_id`, `firm_id`) | parsed from award text |
