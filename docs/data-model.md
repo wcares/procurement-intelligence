@@ -37,6 +37,7 @@ erDiagram
 | `award_supplier` | package × firm | (`package_id`, `firm_id`) | parsed from award text |
 | `supplier_entity` | one Bank firm id | `firm_id` → `entity_id` | firm ids of the same firm merged (`procintel.entities`) |
 | `firm` | one firm | `entity_id` | most used name, its firm ids, packages won, countries |
+| `package_icr_link` | package × ICR | (`package_id`, `doc_id`) | `same_project`, or `same_sector_period`: another project in the same major sector running at the tender date (`procintel.sectors`) |
 | `document_m` / `document_project` | one document; **many-to-many** to projects | `doc_id` | WDS API |
 | `cpia` | country × year × indicator | — | indicators API |
 

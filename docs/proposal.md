@@ -43,7 +43,11 @@ The entity-relationship diagram, grain of every table and measured gaps are in `
 
 Supplier firm ids of the same firm are merged (4,702 ids into 4,344 firms; table `firm`).
 
-**Not done yet.** Links by sector and time proximity; tables are flattened in the text exports (page-image indexing with the multimodal embedding model is the
+Contracts are also linked to the completion reports of other projects in the same major sector that were running
+when they were tendered (table `package_icr_link`), and Assess draws same-sector lessons from other countries when a
+country's own reports come from a different sector.
+
+**Not done yet.** tables are flattened in the text exports (page-image indexing with the multimodal embedding model is the
 candidate fix); two sources were unavailable (Major Contract Awards returns HTML, the WGI code was not found).
 
 ## Module 2: Predictive and prescriptive engines

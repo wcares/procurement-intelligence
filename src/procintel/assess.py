@@ -7,7 +7,7 @@ import json
 import re
 from datetime import date
 
-from procintel import llm
+from procintel import llm, sectors
 from procintel.answer import citation, conflict_notes, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
@@ -86,7 +86,7 @@ def _relevant(hits: list, package: str) -> tuple[list, int]:
 def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str,
                country_name: str = "", method: str = "") -> tuple[list[dict], bool, str, list[str]]:
     """(precedents, widened, how they were retrieved, conflict notes): widened is True when the country had too few
-    passages and all countries were searched. With an answer LLM configured, it picks the candidates that are useful
+    passages, or none from the given sector's family, and other countries were searched. With an answer LLM configured, it picks the candidates that are useful
     lessons for the planned package (one call per shortlist, ~15 s with the local 27B model)."""
     query = f"{description} {sector} {PROC_GROUP_LABELS.get(group, '')} {_PRECEDENT_TERMS}"
     package = ", ".join(x for x in [f"{PROC_GROUP_LABELS.get(group, group)} by {method or 'unspecified method'}",
@@ -95,10 +95,20 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
     judged = {h.chunk_id for h in candidates}  # judged once: a rejected passage must not come back in the wider search
     hits, dropped = _relevant(candidates, package)
     hits = hits[:5]
-    widened = len(hits) < 3
+    fam = sectors.family(sector)
+    families = getattr(retriever, "project_family", {})
+    # widen when the country has too few lessons, or when a sector is given and none of its lessons come from that
+    # sector family (Tuvalu's only report is an ICT project: its lessons say little about planning rural roads)
+    off_sector = bool(fam) and bool(hits) and not any(families.get(h.project_id) == fam for h in hits)
+    widened = len(hits) < 3 or off_sector
     if widened:
-        more, d2 = _relevant([h for h in _lessons(retriever.search(query, k=16, proc_group=group)) if h.chunk_id not in judged], package)
-        hits += more[: 5 - len(hits)]
+        wider = [h for h in _lessons(retriever.search(query, k=16, proc_group=group)) if h.chunk_id not in judged]
+        if fam:  # other countries: projects in the same sector family first (procintel.sectors), keeping search order
+            wider.sort(key=lambda h: families.get(h.project_id) != fam)
+        if off_sector:
+            wider = [h for h in wider if families.get(h.project_id) == fam]
+        more, d2 = _relevant(wider, package)
+        hits = more[:3] + hits[: 5 - len(more[:3])] if off_sector else hits + more[: 5 - len(hits)]
         dropped += d2
     how = retrieval_note(hits) + (f" {llm.model_name()} set aside {dropped} retrieved passages as not a useful lesson "
                                   "for this package." if dropped else "")
@@ -110,6 +120,8 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
     for h in hits:
         matched = ["same country" if h.country_code == country else "other country",
                    f"{PROC_GROUP_LABELS.get(group, group)} terms"]
+        if fam and families.get(h.project_id) == fam:
+            matched.append(f"same sector family: {fam}")
         if h.problem:  # the problem/no-problem call is reliable (29 of 30 by hand); its kind is not shown (8 of 13 right)
             matched.append("describes a past problem")
         shared = sorted(want & terms(h.text))
@@ -219,7 +231,8 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
     if t and " via " not in t["scope"]:
         caveats.append("Too few packages for this exact method; the timeline uses a wider slice.")
     if widened:
-        caveats.append("Few evaluation passages for this country; precedents include other countries.")
+        caveats.append("Precedents include other countries: this country has few evaluation passages for the package, or "
+                       "none from projects in its sector.")
     caveats += conflicts
     flags = model_flags(model, req, region, gov, t)
     if flags:

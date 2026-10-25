@@ -23,7 +23,7 @@ from pathlib import Path
 import duckdb
 
 from procintel import (chunk, decide, embed, entities, evidence, fx, ingest, llm, model, predict, problem_tag,
-                       procurement_rating, ratings, tag)
+                       procurement_rating, ratings, sectors, tag)
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
 
@@ -87,6 +87,7 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
         if decide.available() and llm.available():
             counts["problems_tagged"] = step("two-step problem tags (new or changed passages)", problem_tag.build)
         step("supplier firms (entity resolution)", entities.build)
+        step("contract-to-report links by sector and time", sectors.build)
         step("ICR / ISR rating check", ratings.build)
         step("ICR procurement rating check", procurement_rating.build)
         step("re-bid and amendment evidence", lambda: evidence.build(evidence.KINDS))
