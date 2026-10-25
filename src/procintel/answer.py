@@ -40,6 +40,16 @@ SEARCH_K = 12  # passages retrieved per question before the evidence check
 MIN_EVIDENCE = 3  # fewer evidence passages than this triggers a second search with reformulated queries (needs an LLM)
 GROUNDING_MIN = 0.3  # word-overlap fallback: share of a sentence's content stems that must appear in the cited passage
 DECIDE_MIN = 0.5  # decision-model probability needed for "relevant" and "supported"
+# 1: the answer LLM picks the evidence passages in one call; 0: the decision model judges each passage. Measured on the
+# 20 evaluation questions plus a paraphrase (2026-10-25): precision vs the judged labels 0.95 vs 0.82 (recall 0.91 vs
+# 0.86), vs hand labels 0.89 vs 0.62; traps with any passage kept 0 of 5 vs 2 of 5; the paraphrase "Why did firms stop
+# showing up to bid?" kept 3 passages vs 1. Cost: about 14 s per question vs 0.4 s.
+LLM_GATE = 1
+
+_GATE_SYSTEM = ("You check search results for procurement planners. Given a question and numbered passages from World "
+                "Bank project evaluation reports, list the passages that contain information that helps answer the "
+                "question. A passage on a different topic that only shares words with the question does not count. "
+                'Reply with JSON only: {"relevant": [numbers]}, or {"relevant": []} if none helps.')
 
 
 def terms(text: str) -> set[str]:
@@ -57,9 +67,26 @@ def citation(h: Hit) -> dict:
             "countryCode": h.country_code}
 
 
+def llm_gate(question: str, hits: list[Hit]) -> list[Hit]:
+    """Hits the answer LLM lists as helping to answer the question, in retrieval order (one call for all hits).
+    Raises on a failed call or an unusable reply, so the caller can fall back."""
+    if not hits:
+        return []
+    numbered = "\n\n".join(f"[{i + 1}] {h.text}" for i, h in enumerate(hits))
+    raw = llm.complete(_GATE_SYSTEM, f"Question: {question}\n\nPassages:\n{numbered}", max_tokens=200)
+    picked = json.loads(re.search(r"\{.*\}", raw, re.S).group(0))["relevant"]
+    return [hits[i - 1] for i in sorted({int(i) for i in picked if 1 <= int(i) <= len(hits)})]
+
+
 def supporting(question: str, hits: list[Hit]) -> tuple[list[Hit], str]:
-    """(hits that count as evidence, how that was decided). The decision model judges each passage against the
-    question; without it, a passage must share min(2, |question terms|) content terms with the question."""
+    """(hits that count as evidence, how that was decided: "llm", "decision" or "terms"). With LLM_GATE the answer LLM
+    picks the passages; otherwise, or if that call fails, the decision model judges each passage; without it, a passage
+    must share min(2, |question terms|) content terms with the question."""
+    if LLM_GATE and llm.available():
+        try:
+            return llm_gate(question, hits)[:MAX_PASSAGES], "llm"
+        except Exception:  # model down, timeout or unparseable reply: the decision model judges instead
+            pass
     if decide.available():
         try:
             keep = [h for h in hits if decide.yes(f"Question: {question}\nPassage: {h.text}",
@@ -235,12 +262,13 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
             more, how2 = supporting(question, search_multi(retriever, [question] + queries, SEARCH_K, country, proc_group))
             if len(more) > len(hits):
                 hits, judged_by, second_search = more, how2, queries
-    use_decide = judged_by == "decision"
+    use_decide = judged_by in ("llm", "decision") and decide.available()  # sentences are checked by the decision model
     checker = f"the decision model {decide.api_base()}" if use_decide else "word overlap"
-    caveats = [] if use_decide or not decide.available() else [
+    caveats = [] if judged_by != "terms" or not decide.available() else [
         "Decision model unavailable; evidence and support were checked by word overlap instead."]
+    judge = {"llm": llm.model_name(), "decision": "The decision model"}.get(judged_by)
     if not hits:
-        why = ("The decision model judged none of the retrieved passages relevant to the question." if use_decide
+        why = (f"{judge} judged none of the retrieved passages relevant to the question." if judge
                else "No evaluation passage shares enough terms with the question to count as evidence.")
         return {"answer": [], "citations": [], "unsupported": True, "meta": meta(caveats + [why])}
     answer = None
@@ -267,7 +295,8 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
             caveats.append("Decision model failed while choosing quotes; quotes were chosen by word overlap.")
         caveats.append("Each sentence is quoted verbatim from the cited evaluation passage." if answer else
                        "Related passages were found, but no sentence in them answers the question directly.")
-    caveats.append(retrieval_note(hits) + (" Relevance judged by the decision model." if use_decide else ""))
+    caveats.append(retrieval_note(hits) + {"llm": f" Relevance judged by {llm.model_name()}.",
+                                           "decision": " Relevance judged by the decision model."}.get(judged_by, ""))
     if second_search:
         caveats.append("The first search found little evidence, so the question was searched again as: "
                        + "; ".join(f"'{q}'" for q in second_search) + ".")

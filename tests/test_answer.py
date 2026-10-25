@@ -13,7 +13,9 @@ HITS = [
 ]
 
 
-def test_question_words_are_not_evidence():
+def test_question_words_are_not_evidence(monkeypatch):
+    for v in ("PROCINTEL_LLM_MODEL", "PROCINTEL_DECIDE_API_BASE"):  # word-overlap rule only
+        monkeypatch.delenv(v, raising=False)
     assert answer.supporting("why were what", HITS) == ([], "terms")
     hits, how = answer.supporting("why were contracts terminated", HITS)
     assert [h.chunk_id for h in hits] == ["d:1"] and how == "terms"
@@ -79,6 +81,7 @@ def fake_decider(monkeypatch, rule):
     """Route decide.yes to rule(state) -> probability, and mark the decision model as configured."""
     from procintel import decide
     monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
+    monkeypatch.delenv("PROCINTEL_LLM_MODEL", raising=False)  # no answer LLM: the decision model is the gate
     monkeypatch.setattr(decide, "yes", lambda state, question, **kw: rule(state))
 
 
@@ -105,6 +108,7 @@ def test_decision_server_failure_falls_back_to_word_overlap(monkeypatch):
     def down(*a, **kw):
         raise ConnectionError("decision server not running")
     monkeypatch.setattr(decide, "yes", down)
+    monkeypatch.delenv("PROCINTEL_LLM_MODEL", raising=False)
     hits, how = answer.supporting("why were contracts terminated", HITS)
     assert how == "terms" and [h.chunk_id for h in hits] == ["d:1"]
 
@@ -139,3 +143,20 @@ def test_no_second_search_when_the_first_finds_enough(monkeypatch):
     monkeypatch.setattr(answer, "supporting", lambda q, hits: (hits * 2, "terms"))     # 4 >= MIN_EVIDENCE
     monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
     answer.ask(R(), "why were contracts terminated")
+
+
+def test_answer_llm_picks_evidence_in_one_call_and_falls_back_to_the_decision_model(monkeypatch):
+    calls = []
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    monkeypatch.setattr(answer.llm, "complete", lambda system, user, max_tokens: calls.append(user) or '{"relevant": [2, 9]}')
+    hits, how = answer.supporting("why did firms stop bidding", HITS)
+    assert how == "llm" and [h.chunk_id for h in hits] == ["d:2"] and len(calls) == 1   # out-of-range 9 ignored
+    monkeypatch.setattr(answer.llm, "complete", lambda *a, **kw: '{"relevant": []}')
+    assert answer.supporting("Who won the 2018 FIFA World Cup?", HITS) == ([], "llm")  # nothing helps: no evidence
+    monkeypatch.setattr(answer.llm, "complete", lambda *a, **kw: "Passage 2 looks relevant.")  # unusable reply
+    fake_decider(monkeypatch, lambda state: 0.9 if "eleven months" in state else 0.1)
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    assert answer.supporting("why did firms stop bidding", HITS)[1] == "decision"
+    monkeypatch.setattr(answer, "LLM_GATE", 0)                                               # switched off on /config
+    monkeypatch.setattr(answer.llm, "complete", lambda *a, **kw: (_ for _ in ()).throw(AssertionError("not called")))
+    assert answer.supporting("why did firms stop bidding", HITS)[1] == "decision"

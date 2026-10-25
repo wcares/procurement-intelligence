@@ -77,6 +77,9 @@ def _settings() -> list[Setting]:
                 "again (0 = never)", 0, 12),
         Setting("max_passages", "Evidence passages per answer", "Evidence", "int", *_attr(answer, "MAX_PASSAGES"),
                 "Passages kept as evidence and shown to the answer model", 1, 12),
+        Setting("llm_gate", "Evidence judged by the answer model", "Evidence", "int", *_attr(answer, "LLM_GATE"),
+                "1: the answer model picks the evidence passages in one call (more precise, ~14 s); 0: the decision "
+                "model judges each passage (~0.4 s)", 0, 1),
         Setting("decide_min", "Decision threshold", "Evidence", "float", *_attr(answer, "DECIDE_MIN"),
                 "Probability needed for 'relevant' and 'supported' (decision model)", 0.05, 0.99),
         Setting("grounding_min", "Word-overlap threshold", "Evidence", "float", *_attr(answer, "GROUNDING_MIN"),
