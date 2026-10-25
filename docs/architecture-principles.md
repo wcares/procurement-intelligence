@@ -77,6 +77,33 @@ and so that it scales beyond the prototype's data. docs/event-pipeline-design.md
 | models | answer, embedding, decision | llama.cpp on the host | GPU containers or hosted endpoints |
 | sign-in | username and password, roles | — | same; single sign-on optional later |
 
+### Demo target: the production stack on this Mac (user, 2026-10-25)
+
+The whole system runs as one Docker Compose stack here, so the presentation shows the production pipeline itself;
+scaling is more replicas of the same images plus managed services, with nothing rebuilt.
+
+| service | image | scales by |
+|---|---|---|
+| web | Next.js production build (standalone output), multi-stage Dockerfile | replicas (no state) |
+| api | backend image, `uvicorn` command | replicas (sessions in Postgres) |
+| worker | same backend image, worker command | `docker compose up --scale worker=N`; jobs claimed from Postgres so no two workers take the same job |
+| postgres · qdrant · minio | official images | managed services in production |
+| models | llama-server on the host, reached at `host.docker.internal` | GPU containers or hosted endpoints in production, by URL |
+
+Preconditions, in order:
+1. **UI address at run time.** `NEXT_PUBLIC_API_BASE` is written into the build (web/src/lib/api/client.ts:19), tying an
+   image to one backend. The browser instead calls the UI's own `/api/...`, and a Next.js server handler forwards to
+   `API_URL` read per request; this also keeps the login cookie on one address.
+2. **One data-location setting** (see the audit above).
+3. **Postgres and Qdrant behind the storage and vector interfaces.** DuckDB allows one writing process, so separate api
+   and worker containers, or several workers, cannot share it.
+4. **Worker as its own process.** Today it is a thread in the api process.
+
+Models in containers on a Mac run on the CPU only (Docker has no Apple GPU access), too slow for the 27B answer model;
+Docker Desktop's Model Runner, which runs models on the host GPU but declares them in Compose, is to be checked once
+Docker is installed (not verified). Docker is not installed on this Mac yet (checked 2026-10-25); the user chooses
+Docker Desktop, OrbStack or Colima.
+
 ## Order of the clean-up
 
 Done as part of the queued work, not as a separate rewrite: the data-location setting first (small, touches every
