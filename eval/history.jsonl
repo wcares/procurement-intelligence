@@ -8,3 +8,4 @@
 {"time": "2026-10-25 10:17 UTC", "judged_pairs": 1248, "unjudged_in_results": 11, "bm25_p5": 0.535, "hybrid_p5": 0.7, "bm25_r10": 0.551, "hybrid_r10": 0.777, "gate_prec": 0.903, "answered": 77, "answerable": 80, "supported_sentences": 277, "sentences": 285, "supported_independent": 282, "independent_judge": "openai/qwen3-vl-8b", "refused_traps": 20, "traps": 20, "median_seconds": 34.0}
 {"time": "2026-10-25 14:34 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.535, "hybrid_p5": 0.7, "bm25_r10": 0.551, "hybrid_r10": 0.777, "gate_prec": null}
 {"time": "2026-10-25 14:37 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.535, "hybrid_p5": 0.7, "bm25_r10": 0.551, "hybrid_r10": 0.777, "gate_prec": null}
+{"time": "2026-10-25 15:43 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.532, "hybrid_p5": 0.7, "bm25_r10": 0.553, "hybrid_r10": 0.777, "gate_prec": null}

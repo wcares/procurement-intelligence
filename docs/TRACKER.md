@@ -44,13 +44,13 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Tables: report text comes from the World Bank text files, so tables arrive flattened; parse them or index page images (added 2026-10-24, by me)
 - [ ] Data quality debts: 4 reports keep ~51% of their text; 137 packages have award before tender; data-sheet tables mixed with lessons (added 2026-10-24, by me)
 - [ ] Sources unavailable: Major Contract Awards (endpoint now returns HTML), WGI (indicator not found) (added 2026-10-24, by me)
 - [ ] Optional: wrap cleaner, embedder and tagger as a LlamaIndex IngestionPipeline (added 2026-10-24, by me)
 
 ### Done
 
+- [x] Tables (flattened in the text exports): the chunker now also marks as tables the chunks whose columns were flattened into running text (>= 30% numbers, or >= 20% with no sentence, or a "Table N." caption on a chunk with >= 10% numbers; chunk.is_flat_table), so they are left out of search, answers and precedents like other tables. Page-image indexing would need the 120 ICR PDFs downloaded (not done; ask first) — COMMIT_PENDING — rule set on 60 chunks labelled by hand and checked on 30 fresh ones (captioned prose such as "Table 6 compares ..." led to a verb rule); against the 688 passages judged relevant in the evaluation, two false tables (a one-sentence result with numbers, a table of written lessons) led to counting a final full stop and the 10% caption floor, leaving 1 (a restructuring-history table). 538 chunks moved to tables (17,602 text, 1,390 tables); retrieval unchanged (hybrid P@5 0.70, recall@10 0.78; BM25 P@5 0.54 -> 0.53); the Kenya assessment no longer shows the "TABLE 4: DISBURSEMENT BY CATEGORY" precedent. Known misses: data-sheet sector tables and short lists under 20% numbers; 109 tests pass (1 new)
 - [x] Links by sector and time: the 41 detailed project sectors mapped by hand to World Bank major sectors (procintel.sectors); table package_icr_link connects each package to its own project's ICR (7,081 links) and to ICRs of same-family projects running at its tender date (17,722 links, 2,100 packages; refresh step). Assess uses the families: when the search widens to other countries, same-family projects come first, and it now also widens when a sector is given and none of the country's lessons come from that family; such precedents are marked "same sector family" — d1a0f5c — 6 random links checked by hand (all follow the rule; some loose at family level, e.g. irrigation works to an agri-business project); live: Tuvalu roads (its only ICR is an ICT project) now leads with an India roads lesson on splitting civil works into packages, Kenya health goods leads with a health-family lesson on supply shortages; 108 tests pass (3 new; the family lookup tolerates a project table without sectors)
 - [x] Supplier entity resolution: procintel.entities merges Bank firm ids into firms (tables supplier_entity, firm; refresh step): same name after removing case, punctuation, legal-form words and the "M/S" prefix, within one country, or across countries when the name is clearly an organisation (legal form or words like UNITED NATIONS, GROUP, CONSULTING), so personal names stay apart across countries — 842b793 — 4,702 firm ids -> 4,344 firms, 282 merged groups (177 identical spellings, 99 differing, 6 cross-country); all 99 differing-spelling merges read by hand, none wrong (AGTECH PLC/PVT LTD, CHAMPA (PRIVATE) ENTERPRISE, HORIZON CONSTRUCTION (COMPANY) LTD not confirmable from the name); the 15 names in several countries were all international organisations, 13 now merged (SEURECA, CESI S.P.A stay split: no organisation word); data-model.md and the proposal updated (also a stale "no FX table" line); 105 tests pass (2 new)
 - [x] World Bank API client with caching and retries (projects, notices, WDS documents, CPIA) — 98ac4a5 — live calls 2026-10-23
@@ -141,7 +141,7 @@ _(empty)_
 
 ### Queue
 
-_(empty)_
+- [ ] Idle-time job queue, as its own module (user, 2026-10-25: "yeah we need this system built make sure its own module"): jobs stored in the database (survive restarts), drained by a backend worker only after a few minutes without requests, in small steps that pause when a request arrives; first jobs: prediction-drift check and retraining, then feedback jobs (flagged citations, refused/not-useful questions to the evaluation set); a queue view on the Settings page. Replaces the launchd schedule and the retraining-trigger item
 
 ### Improvements
 

@@ -1,4 +1,4 @@
-# Evaluation report (2026-10-25 14:37 UTC)
+# Evaluation report (2026-10-25 15:43 UTC)
 
 Models: answers and relevance judge `openai/saluki-27b`; embeddings `openai/embeddinggemma-2`; decision `http://127.0.0.1:8082`.
 80 answerable questions; 1248 judged (question, passage) pairs.
@@ -10,7 +10,7 @@ Faithfulness is judged by the answer model and by an independent model, `openai/
 
 | metric | now | previous run |
 |---|---|---|
-| BM25 precision@5 | 0.54 | 0.54 |
+| BM25 precision@5 | 0.53 | 0.54 |
 | Hybrid precision@5 | 0.70 | 0.70 |
 | BM25 recall@10 | 0.55 | 0.55 |
 | Hybrid recall@10 | 0.78 | 0.78 |
@@ -30,7 +30,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 
 ## User feedback
 
-38 responses logged.
+43 responses logged.
 
 | page | useful | not useful | citations flagged |
 |---|---|---|---|
@@ -88,7 +88,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 | q50 | What occupational health and safety problems occurred at work sites? | 8 | 0.60 | 1.00 | 0 / – | – |
 | q51 | What caused cost overruns? | 13 | 0.60 | 1.00 | 0 / – | – |
 | q52 | What changes came out of mid-term reviews? | 13 | 0.80 | 0.80 | 0 / – | – |
-| q53 | Why were closing dates extended? | 11 | 0.60 | 0.60 | 0 / – | – |
+| q53 | Why were closing dates extended? | 11 | 0.40 | 0.60 | 0 / – | – |
 | q54 | Why were project funds cancelled? | 10 | 1.00 | 1.00 | 0 / – | – |
 | q55 | What problems were caused by poorly prepared terms of reference for consultants? | 2 | 0.00 | 0.40 | 0 / – | – |
 | q56 | What contract disputes arose and how were they resolved? | 7 | 0.20 | 0.40 | 0 / – | – |

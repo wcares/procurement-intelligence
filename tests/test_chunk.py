@@ -187,3 +187,16 @@ def test_text_without_sentence_breaks_is_still_capped():
     chunks = chunk_document(text)
     assert len(chunks) > 1 and all(len(c.text) <= 1400 for c in chunks)
     assert " ".join(c.text for c in chunks).split() == (row * 60).split()  # nothing lost, nothing cut mid-word
+
+
+def test_flattened_tables_are_found_but_prose_with_numbers_is_not():
+    from procintel.chunk import is_flat_table
+    assert is_flat_table("Original Amount (US$) 57,000,000.00 25,000,000.00 7,000,000.00 25,000,000.00 57,000,000.00")
+    assert is_flat_table("TABLE 4: DISBURSEMENT BY CATEGORY No. Category Description Allocated ($) Disbursed ($) "
+                         "1 Consulting Services 379,500.00 438,206.07 -58,706.07")
+    assert not is_flat_table("Table 6 compares the results of the ex-ante and ex post economic analyses, with an EIRR "
+                             "of 30.1 percent at a discount rate of 9 percent.")
+    assert not is_flat_table("the project Grievance Redress Mechanism comprising 97 committees received 1,167 complaints, "
+                             "of which 1,164 (99.05%) were resolved prior to closure.")
+    assert not is_flat_table("Table 14: Operational Lessons and Implications for Future Operations Lesson area Key lesson "
+                             "What worked Shared design features and common templates sped up preparation")

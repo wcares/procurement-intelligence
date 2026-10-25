@@ -101,6 +101,34 @@ def strip_page_furniture(page: str) -> list[str]:
     return lines
 
 
+_NUMBER = re.compile(r"^[\(\[]?[-+]?(?:US\$|\$)?\d[\d,]*(?:\.\d+)?%?[\)\]]?[.,;:]?$")
+_SENTENCE_END = re.compile(r"[a-z]{3,}[.;] [A-Z]")
+_CAPTION = re.compile(r"^\s*(?:TABLE|Table)\s+[A-Z]?\d+(?:\.\d+)*\W*(\w+)")
+_CAPTION_VERBS = {"compares", "summarizes", "summarises", "presents", "shows", "lists", "provides", "reports",
+                  "describes", "illustrates", "gives", "indicates", "sets", "below", "above", "in", "and"}
+
+
+def is_flat_table(text: str) -> bool:
+    """A table whose columns were flattened into running text by the text export (no column gaps left).
+
+    Mostly numbers (>= 30% of tokens), or >= 20% numbers with no ordinary sentence boundary, or starting with a
+    caption ("Table 4. ...", not "Table 4 shows ...") on a chunk that is at least 10% numbers. Set on 60 chunks
+    labelled by hand and checked on 30 fresh ones (2026-10-25): flagged chunks were tables, lists, references or
+    header data; three captioned prose passages ("Table 6 compares ...") led to the caption verb rule; of 688
+    passages judged relevant in the evaluation, a one-sentence result with numbers and a table of written lessons
+    led to counting a final full stop and to the 10% floor for captions. Misses: data-sheet sector tables and short
+    lists with under 20% numbers."""
+    toks = text.split()
+    if not toks:
+        return False
+    num = sum(bool(_NUMBER.match(t)) for t in toks) / len(toks)
+    ends = len(_SENTENCE_END.findall(text)) + bool(re.search(r"[a-z]{3,}\.\s*$", text))  # a final full stop counts
+    sentences = 100 * ends / len(toks)
+    m = _CAPTION.match(text)
+    caption = bool(m) and m.group(1).lower() not in _CAPTION_VERBS and num >= 0.1  # tables of words stay searchable
+    return num >= 0.3 or (num >= 0.2 and sentences < 0.5) or caption
+
+
 def _is_table(lines: list[str]) -> bool:
     content = [l for l in lines if l.strip()]
     if not content:
@@ -165,7 +193,7 @@ def chunk_document(text: str) -> list[Chunk]:
         if len(body) < 80:
             return
         for piece in _split_long(body):
-            chunks.append(Chunk(section, para, kind, piece))
+            chunks.append(Chunk(section, para, "table" if kind == "table" or is_flat_table(piece) else "text", piece))
 
     for line in lines:
         if _TOC.search(line):
