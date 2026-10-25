@@ -17,7 +17,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.FEEDBACK_DB
 RATINGS = ("useful", "not_useful", "bad_citation")
@@ -27,7 +27,7 @@ _LOCK = threading.Lock()  # one writer at a time within the server process
 def _connect(db_path: Path | None) -> duckdb.DuckDBPyConnection:
     db_path = db_path or DB_PATH  # resolved per call, so tests can point DB_PATH at a temporary file
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS response_log (
         response_id VARCHAR PRIMARY KEY, kind VARCHAR, request JSON, response JSON, created_at TIMESTAMP)""")
     con.execute("""CREATE TABLE IF NOT EXISTS feedback (

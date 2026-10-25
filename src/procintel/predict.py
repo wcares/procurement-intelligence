@@ -33,7 +33,6 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
-import duckdb
 import joblib
 import numpy as np
 import pandas as pd
@@ -41,7 +40,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostin
 from sklearn.metrics import brier_score_loss, mean_absolute_error, mean_pinball_loss, roc_auc_score
 from sklearn.model_selection import GroupKFold
 
-from procintel import paths
+from procintel import db, paths
 from procintel import fx
 from procintel.stats import MIN_BENCH_N
 
@@ -79,7 +78,7 @@ GROUP BY ALL
 
 
 def load_frame(db_path: Path = DB_PATH) -> pd.DataFrame:
-    con = duckdb.connect(str(db_path), read_only=True)
+    con = db.connect(db_path, read_only=True)
     df = con.execute(_FRAME).fetch_df()
     table = fx.rates(con)
     con.close()

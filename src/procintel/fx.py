@@ -19,7 +19,7 @@ from statistics import median
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 from procintel import parse_notice as pn
 from procintel.wb_client import WBClient
 
@@ -37,7 +37,7 @@ def issuer(currency: str) -> str:
 
 
 def build(db_path: Path = DB_PATH) -> None:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     currencies = [c for (c,) in con.execute(
         "SELECT DISTINCT price_currency FROM notice_m WHERE price_currency IS NOT NULL AND price_currency <> 'USD'").fetchall()]
     client = WBClient()
@@ -79,7 +79,7 @@ def to_usd(amount: float | None, currency: str | None, year: int | None, table: 
 
 def check(db_path: Path = DB_PATH) -> list[tuple[str, int, float, float]]:
     """Notices stating a USD and a local amount: (currency, n, median implied rate, median WDI rate) per currency."""
-    con = duckdb.connect(str(db_path), read_only=True)
+    con = db.connect(db_path, read_only=True)
     table = rates(con)
     pairs: dict[str, list[tuple[float, float]]] = {}
     for text, year in con.execute("""SELECT n.text, year(m.notice_date::DATE) FROM notices n JOIN notice_m m USING (notice_id)

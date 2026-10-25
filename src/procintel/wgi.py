@@ -14,7 +14,7 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-from procintel import paths
+from procintel import db, paths
 from procintel.wb_client import WBClient
 
 DB_PATH = paths.DB_PATH
@@ -29,7 +29,7 @@ WGI_CODES = {
 
 
 def build(db_path: Path = DB_PATH, client: WBClient | None = None) -> dict:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     countries = [r[0] for r in con.execute("SELECT DISTINCT country_code FROM project WHERE country_code IS NOT NULL").fetchall()]
     con.close()  # not held during the requests
     c = client or WBClient()
@@ -40,7 +40,7 @@ def build(db_path: Path = DB_PATH, client: WBClient | None = None) -> dict:
                 if r.get("value") is not None:
                     rows.append({"country_code": cc, "year": int(r["date"]), "indicator": short, "value": float(r["value"])})
     df = pd.DataFrame(rows, columns=["country_code", "year", "indicator", "value"])
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("CREATE OR REPLACE TABLE wgi AS SELECT * FROM df")
     covered = con.execute("SELECT count(DISTINCT country_code) FROM wgi").fetchone()[0]
     con.close()

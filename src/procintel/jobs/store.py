@@ -14,7 +14,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.JOBS_DB
 MAX_ATTEMPTS = 3
@@ -28,7 +28,7 @@ def _now() -> datetime:
 def _connect(db_path: Path | None) -> duckdb.DuckDBPyConnection:
     path = db_path or DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
-    con = duckdb.connect(str(path))
+    con = db.connect(path)
     con.execute("""CREATE TABLE IF NOT EXISTS jobs (
         id VARCHAR PRIMARY KEY, kind VARCHAR, params JSON, reason VARCHAR, status VARCHAR, created_at TIMESTAMP,
         started_at TIMESTAMP, finished_at TIMESTAMP, cursor JSON, result JSON, error VARCHAR, attempts INTEGER,

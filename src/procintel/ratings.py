@@ -20,7 +20,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.DB_PATH
 SCALE = {"Highly Unsatisfactory": 1, "Unsatisfactory": 2, "Moderately Unsatisfactory": 3,
@@ -90,7 +90,7 @@ def check(parsed: dict) -> dict | None:
 
 
 def build(db_path: Path = DB_PATH) -> None:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     rows = []
     for doc_id, text in con.execute("SELECT doc_id, text FROM documents").fetchall():
         c = check(parse(text))

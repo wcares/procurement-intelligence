@@ -11,9 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import duckdb
-
-from procintel import paths
+from procintel import db, paths
 from procintel.stats import MIN_BENCH_N
 
 DB_PATH = paths.DB_PATH
@@ -27,7 +25,7 @@ CPIA_CODES = {"transparency_corruption": ("IQ.CPA.TRAN.XQ", "CPIA transparency, 
 
 class FlagEvidence:
     def __init__(self, db_path: Path = DB_PATH):
-        con = duckdb.connect(str(db_path), read_only=True)
+        con = db.connect(db_path, read_only=True)
         q = con.execute("""
             SELECT k.package_id, k.project_id, p.country_code, k.proc_group, k.method_code, k.description,
                    k.tender_to_award_days, year(k.award_date::DATE) AS award_year,

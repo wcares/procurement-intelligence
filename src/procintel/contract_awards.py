@@ -19,10 +19,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import duckdb
 import requests  # as procintel.wb_client: it carries its own certificate bundle
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.DB_PATH
 API = "https://datacatalogapi.worldbank.org/dexapps/fone/api/apiservice"
@@ -51,7 +50,7 @@ def _date(s: str | None) -> str | None:
 
 
 def build(db_path: Path = DB_PATH, pause: float = 0.2) -> dict:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     projects = [p for (p,) in con.execute("SELECT project_id FROM project ORDER BY 1").fetchall()]
     con.close()  # not held during the ~2 minutes of requests
     rows, failed = [], []
@@ -65,7 +64,7 @@ def build(db_path: Path = DB_PATH, pause: float = 0.2) -> dict:
     for r in rows:
         r[3], r[12] = _date(r[3]), _date(r[12])
         r.append(int(r[8]) if str(r[8] or "").isdigit() else None)  # Bank firm id; some supplier ids are hex keys
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE OR REPLACE TABLE contract_award (project_id VARCHAR, contract_ref VARCHAR, description VARCHAR,
         signing_date DATE, category VARCHAR, method VARCHAR, review_type VARCHAR, supplier VARCHAR, supplier_id VARCHAR,
         supplier_country VARCHAR, amount_usd DOUBLE, wb_contract_number VARCHAR, as_of_date DATE, firm_id BIGINT)""")
@@ -88,7 +87,7 @@ _MATCH = """
 
 def fill_award_dates(db_path: Path = DB_PATH) -> int:
     """Give packages without an award date the contract signing date (only when it is after the tender start)."""
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     try:
         if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'contract_award'").fetchone():
             return 0

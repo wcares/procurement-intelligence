@@ -10,8 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import duckdb
-
+from procintel import db
 from procintel import feedback
 
 
@@ -19,7 +18,7 @@ def weekly(db_path: Path | None = None) -> list[dict]:
     path = db_path or feedback.DB_PATH
     if not Path(path).exists():
         return []
-    con = duckdb.connect(str(path), read_only=True)
+    con = db.connect(path, read_only=True)
     try:
         rows = con.execute("""
             WITH r AS (

@@ -23,7 +23,7 @@ from pathlib import Path
 import duckdb
 import numpy as np
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.DB_PATH
 BATCH = 64
@@ -90,7 +90,7 @@ def build(db_path: Path = DB_PATH) -> int:
     m, d = model_name(), dim()
     if m is None:
         raise SystemExit("set PROCINTEL_EMBED_MODEL (and PROCINTEL_EMBED_API_BASE) first")
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS chunk_vec (
         chunk_id VARCHAR, model VARCHAR, dim INTEGER, text_hash VARCHAR, vec FLOAT[])""")
     chunks = con.execute("SELECT chunk_id, section, text FROM chunk").fetchall()
@@ -120,7 +120,7 @@ def build_packages(db_path: Path = DB_PATH) -> int:
     m, d = model_name(), dim()
     if m is None:
         raise SystemExit("set PROCINTEL_EMBED_MODEL (and PROCINTEL_EMBED_API_BASE) first")
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS package_vec (
         package_id VARCHAR, model VARCHAR, dim INTEGER, text_hash VARCHAR, vec FLOAT[])""")
     rows = con.execute("""SELECT package_id, proc_group, description FROM package

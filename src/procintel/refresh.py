@@ -20,9 +20,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import duckdb
-
-from procintel import paths
+from procintel import db, paths
 from procintel import (chunk, contract_awards, decide, embed, entities, evidence, fx, ingest, llm, model, predict,
                        problem_tag, procurement_rating, ratings, sectors, tag, wgi)
 
@@ -31,7 +29,7 @@ DB_PATH = paths.DB_PATH
 
 def snapshot(db_path: Path = DB_PATH) -> dict:
     """What the change log compares: document text hashes, notice ids, project statuses, sizes, model metrics."""
-    con = duckdb.connect(str(db_path), read_only=True)
+    con = db.connect(db_path, read_only=True)
     try:
         docs = {d: hashlib.sha256(t.encode()).hexdigest()[:16] for d, t in con.execute("SELECT doc_id, text FROM documents").fetchall()}
         notices = {n for (n,) in con.execute("SELECT notice_id FROM notices").fetchall()}
@@ -106,7 +104,7 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
         status, error = "failed", f"{type(e).__name__}: {e}"
     after = snapshot(db_path) if status == "ok" else before
     changes = diff(before, after) | counts
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS refresh_log (started_at TIMESTAMP, finished_at TIMESTAMP, status VARCHAR,
         fetched BOOLEAN, steps JSON, changes JSON, error VARCHAR)""")
     con.execute("INSERT INTO refresh_log VALUES (?, ?, ?, ?, ?, ?, ?)",

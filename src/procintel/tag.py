@@ -23,9 +23,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-import duckdb
-
-from procintel import paths
+from procintel import db, paths
 from procintel import decide
 from procintel.embed import text_hash
 
@@ -52,7 +50,7 @@ def build(db_path: Path = DB_PATH) -> int:
     if not decide.available():
         raise SystemExit("set PROCINTEL_DECIDE_API_BASE first")
     m = model_id()
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS chunk_tag (
         chunk_id VARCHAR, model VARCHAR, text_hash VARCHAR, tag VARCHAR, confidence DOUBLE, probs JSON)""")
     chunks = con.execute("SELECT chunk_id, section, text FROM chunk WHERE kind = 'text'").fetchall()

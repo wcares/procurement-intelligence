@@ -26,7 +26,7 @@ import numpy as np
 from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
-from procintel import paths
+from procintel import db, paths
 from procintel import embed, procurement_rating, ratings, sectors
 from procintel.stats import GROUP_TERMS
 
@@ -75,7 +75,7 @@ class Hit:
 
 class Retriever:
     def __init__(self, db_path: Path = DB_PATH):
-        con = duckdb.connect(str(db_path), read_only=True)
+        con = db.connect(db_path, read_only=True)
         rows = con.execute(_QUERY).fetchall()
         cols = [d[0] for d in con.description]
         if not rows:

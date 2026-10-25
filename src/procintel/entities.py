@@ -21,9 +21,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import duckdb
-
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.DB_PATH
 LEGAL = {"CO", "COMPANY", "COMPANIES", "LTD", "LIMITED", "PVT", "PVTLTD", "PRIVATE", "LLC", "LLP", "INC",
@@ -78,7 +76,7 @@ def resolve(rows: list[tuple[int, str, str, int]]) -> dict[int, int]:
 
 
 def build(db_path: Path = DB_PATH) -> dict:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     rows = con.execute("""
         SELECT s.firm_id, s.name, coalesce(p.country_code, '?') AS country, count(DISTINCT a.package_id)
         FROM supplier s JOIN award_supplier a USING (firm_id) JOIN package k USING (package_id)

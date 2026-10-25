@@ -22,7 +22,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 from procintel.ratings import SCALE
 
 DB_PATH = paths.DB_PATH
@@ -83,7 +83,7 @@ def check(parsed: dict | None, outcome: str | None, last_ip: str | None) -> dict
 
 
 def build(db_path: Path = DB_PATH) -> None:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     passages: dict[str, list[str]] = {}
     for doc_id, text in con.execute("""SELECT doc_id, text FROM chunk WHERE kind = 'text'
                                        AND regexp_matches(section, 'Fiduciary', 'i') ORDER BY doc_id, chunk_id""").fetchall():

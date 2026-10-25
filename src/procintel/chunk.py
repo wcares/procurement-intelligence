@@ -15,10 +15,9 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import duckdb
 import pandas as pd
 
-from procintel import paths
+from procintel import db, paths
 
 ROOT = paths.ROOT
 DB_PATH = paths.DB_PATH
@@ -290,7 +289,7 @@ def remap_files(mapping: dict[str, str], files=None) -> int:
 
 
 def build(db_path: Path = DB_PATH) -> None:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     has_chunks = con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk'").fetchone()
     old = dict(con.execute("SELECT chunk_id, text FROM chunk").fetchall()) if has_chunks else {}
     rows = []

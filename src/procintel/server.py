@@ -12,13 +12,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
-import duckdb
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from procintel import db
 from procintel import config, evaluate, evidence, feedback, feedback_review, predict, rebid, stats, wgi
 from procintel.answer import ask as run_ask, idf
 from procintel.flag_evidence import FlagEvidence
@@ -167,7 +167,7 @@ class State:
     """Everything derived from the database, loaded once at startup."""
 
     def __init__(self, db_path: Path):
-        con = duckdb.connect(str(db_path), read_only=True)
+        con = db.connect(db_path, read_only=True)
         self.options = stats.options(con)
         self.bench = stats.benchmarks(con)
         self.governance = stats.governance(con)

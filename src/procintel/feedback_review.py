@@ -16,8 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import duckdb
-
+from procintel import db
 from procintel import feedback
 
 DEMOTE_MIN = 2  # separate responses that must flag a passage before search demotes it (Settings page)
@@ -89,7 +88,7 @@ def load_demoted(db_path: Path | None = None) -> set[str]:
     path = db_path or feedback.DB_PATH
     if not Path(path).exists():
         return set()
-    con = duckdb.connect(str(path), read_only=True)
+    con = db.connect(path, read_only=True)
     try:
         if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'demoted_citations'").fetchone():
             return set()
@@ -102,7 +101,7 @@ def items(db_path: Path | None = None, limit: int = 50) -> list[dict]:
     path = db_path or feedback.DB_PATH
     if not Path(path).exists():
         return []
-    con = duckdb.connect(str(path), read_only=True)
+    con = db.connect(path, read_only=True)
     try:
         if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'review_items'").fetchone():
             return []

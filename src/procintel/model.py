@@ -14,7 +14,7 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-from procintel import paths
+from procintel import db, paths
 from .wb_client import WBClient
 
 DB_PATH = paths.DB_PATH
@@ -48,7 +48,7 @@ def build_cpia(con: duckdb.DuckDBPyConnection) -> int:
 
 
 def build(db_path: Path = DB_PATH) -> None:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
 
     con.execute("""
     CREATE OR REPLACE TABLE country AS

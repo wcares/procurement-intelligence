@@ -11,9 +11,7 @@ from __future__ import annotations
 import json
 import re
 
-import duckdb
-
-from procintel import paths
+from procintel import db, paths
 from procintel import stats
 from procintel.stats import GROUP_TERMS, PROC_TERMS
 
@@ -59,7 +57,7 @@ def clean_paragraphs(text: str) -> list[tuple[str, str]]:
 
 
 def main() -> None:
-    con = duckdb.connect(str(DB_PATH), read_only=True)
+    con = db.connect(DB_PATH, read_only=True)
     q = lambda s, *a: con.execute(s, *a).fetchall()  # noqa: E731
 
     opts = stats.options(con)

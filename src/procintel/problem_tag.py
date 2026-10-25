@@ -26,9 +26,7 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-import duckdb
-
-from procintel import paths
+from procintel import db, paths
 from procintel import llm
 from procintel.embed import text_hash
 from procintel.tag import NONE, TAGS
@@ -61,7 +59,7 @@ def build(db_path: Path = DB_PATH) -> int:
     if not llm.available():
         raise SystemExit("set PROCINTEL_LLM_MODEL first")
     m = llm.model_name()
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS chunk_problem (
         chunk_id VARCHAR, model VARCHAR, text_hash VARCHAR, problem BOOLEAN, kind VARCHAR)""")
     candidates = con.execute("""SELECT c.chunk_id, c.section, c.text FROM chunk c JOIN chunk_tag t USING (chunk_id)
@@ -81,7 +79,7 @@ def build(db_path: Path = DB_PATH) -> int:
         if i % 100 == 0:
             print(f"  {i}/{len(todo)}  {time.time() - t0:.0f}s", flush=True)
     if rows:  # nothing to write when every passage failed (or none was due)
-        con = duckdb.connect(str(db_path))
+        con = db.connect(db_path)
         con.executemany("DELETE FROM chunk_problem WHERE chunk_id = ? AND model = ?", [(r[0], r[1]) for r in rows])
         con.executemany("INSERT INTO chunk_problem VALUES (?, ?, ?, ?, ?)", rows)
         con.close()

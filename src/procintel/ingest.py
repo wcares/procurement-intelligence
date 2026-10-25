@@ -9,11 +9,10 @@ from __future__ import annotations
 
 import argparse
 
-import duckdb
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from procintel import paths
+from procintel import db, paths
 from . import parse_notice as pn
 from .wb_client import ICR_TYPE, WBClient
 
@@ -78,7 +77,7 @@ def run(n_icrs: int, fresh: bool = False, keep_existing: bool = False) -> None:
     documents: list[dict] = []
     notices: list[dict] = []
     if keep_existing and DB_PATH.exists():
-        con = duckdb.connect(str(DB_PATH), read_only=True)
+        con = db.connect(DB_PATH, read_only=True)
         cols = "doc_id, project_id, doc_type, strftime(doc_date, '%Y-%m-%dT%H:%M:%SZ') AS doc_date, title, pdf_url, txt_url"
         documents = [dict(zip(["doc_id", "project_id", "doc_type", "doc_date", "title", "pdf_url", "txt_url"], r))
                      for r in con.execute(f"SELECT {cols} FROM documents").fetchall()]
@@ -116,7 +115,7 @@ def run(n_icrs: int, fresh: bool = False, keep_existing: bool = False) -> None:
             d["text"] = c.document_text(d["txt_url"])
     documents = [d for d in documents if d.get("text")]
 
-    con = duckdb.connect(str(DB_PATH))
+    con = db.connect(DB_PATH)
     for name, rows in (("projects", list(projects.values())), ("documents", documents), ("notices", notices)):
         df = pd.DataFrame(rows)
         con.execute(f"CREATE OR REPLACE TABLE {name} AS SELECT * FROM df")

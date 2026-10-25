@@ -17,7 +17,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.DB_PATH
 
@@ -82,7 +82,7 @@ def project_families(con: duckdb.DuckDBPyConnection) -> dict[str, str]:
 
 
 def build(db_path: Path = DB_PATH) -> dict:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     fam = project_families(con)
     con.execute("CREATE OR REPLACE TEMP TABLE pfam (project_id VARCHAR, family VARCHAR)")
     con.executemany("INSERT INTO pfam VALUES (?, ?)", list(fam.items()))

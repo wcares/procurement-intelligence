@@ -12,10 +12,9 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-import duckdb
 import numpy as np
 
-from procintel import paths
+from procintel import db, paths
 from procintel import embed, fx
 from procintel.answer import terms
 
@@ -25,7 +24,7 @@ POOL = 50
 
 class Similar:
     def __init__(self, db_path: Path = DB_PATH):
-        con = duckdb.connect(str(db_path), read_only=True)
+        con = db.connect(db_path, read_only=True)
         self.rows: list[dict] = []
         self.vectors = None
         if embed.available() and con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'package_vec'").fetchone():

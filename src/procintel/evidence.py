@@ -15,7 +15,7 @@ from pathlib import Path
 
 import duckdb
 
-from procintel import paths
+from procintel import db, paths
 
 DB_PATH = paths.DB_PATH
 
@@ -46,7 +46,7 @@ def _quote(kind: Kind, text: str) -> str:
 
 
 def build(kinds: list[Kind], db_path: Path = DB_PATH) -> None:
-    con = duckdb.connect(str(db_path))
+    con = db.connect(db_path)
     con.execute("""CREATE TABLE IF NOT EXISTS project_evidence (kind VARCHAR, project_id VARCHAR, source VARCHAR,
                    ref VARCHAR, quote VARCHAR)""")
     total = con.execute("SELECT count(*) FROM project").fetchone()[0]
