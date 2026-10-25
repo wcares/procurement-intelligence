@@ -37,8 +37,8 @@ export default function DataHandling() {
       <section>
         <h2 className="font-semibold">How long it is kept</h2>
         <p>
-          Planned: 30 days, or the length of the pilot if that is longer, then deleted automatically. The automatic
-          deletion is being built and will run before the pilot starts; until then the records are kept.
+          30 days, then deleted by a daily job. While a pilot runs, your entries, the responses and your ratings are
+          kept until the pilot ends (its measures cover its whole length), and deleted 30 days after.
         </p>
       </section>
       <section>

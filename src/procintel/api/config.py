@@ -12,12 +12,13 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any, Callable
 
 from procintel.answering import answer, retrieve
 from procintel.core import embed, llm, paths
 from procintel.ingestion import chunk
-from procintel.jobs import handlers, worker as jobs_worker
+from procintel.jobs import handlers, retention, worker as jobs_worker
 from procintel.learning import feedback_review
 from procintel.prediction import assess
 
@@ -30,7 +31,7 @@ class Setting:
     key: str
     label: str
     group: str
-    type: str  # "str" | "url" | "json" | "int" | "float"
+    type: str  # "str" | "url" | "json" | "int" | "float" | "date"
     get: Callable[[], Any]
     set: Callable[[Any], None] | None  # None: read-only
     note: str
@@ -118,6 +119,12 @@ def _settings() -> list[Setting]:
         Setting("drift_error_ratio", "Drift check: error ratio", "Background jobs", "float",
                 *_attr(handlers, "ERROR_RATIO"), "Retrain when the error on new packages exceeds the cross-validated "
                 "error by this factor", 1.0, 10.0),
+        Setting("retention_days", "Keep logs and history (days)", "Background jobs", "int", *_attr(retention, "RETENTION_DAYS"),
+                "Event history, finished jobs, cached API responses, refresh logs, unpromoted shadow builds and the "
+                "response log and feedback older than this are deleted by the daily retention job", 1, 3650),
+        Setting("pilot_until", "Pilot runs until (YYYY-MM-DD)", "Background jobs", "date", *_attr(retention, "PILOT_UNTIL"),
+                "While a pilot runs, the response log and feedback are kept whole (its KPIs span its length); empty: "
+                "no pilot"),
         Setting("chunk_max_chars", "Passage size limit (characters)", "Index", "int", *_attr(chunk, "MAX_CHARS"),
                 "Longer paragraphs are split; applies at the next refresh (the passages are rebuilt and re-embedded)",
                 300, 4000),
@@ -152,6 +159,8 @@ def _coerce(s: Setting, v: Any) -> Any:
             raise ValueError("expected an http:// or https:// URL")
         if s.type == "json" and v:
             json.loads(v)  # raises ValueError on bad JSON
+        if s.type == "date" and v:
+            date.fromisoformat(v)  # raises ValueError unless YYYY-MM-DD
     if s.min is not None and v < s.min or s.max is not None and v > s.max:
         raise ValueError(f"must be between {s.min:g} and {s.max:g}")
     return v

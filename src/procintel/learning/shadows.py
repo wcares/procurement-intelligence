@@ -38,6 +38,7 @@ def _now() -> datetime:
 def _state_table(con) -> None:
     con.execute("""CREATE TABLE IF NOT EXISTS shadow (name VARCHAR PRIMARY KEY, status VARCHAR, built_at TIMESTAMP,
                    evaluated_at TIMESTAMP, metrics VARCHAR, note VARCHAR)""")
+    con.execute("ALTER TABLE shadow ADD COLUMN IF NOT EXISTS promoted_at TIMESTAMP")  # retention of __previous tables
 
 
 def set_state(name: str, **fields) -> None:
@@ -53,6 +54,9 @@ def set_state(name: str, **fields) -> None:
 
 
 def states() -> list[dict]:
+    from procintel.core import paths
+    if db.backend() == "duckdb" and not paths.DB_PATH.exists():
+        return []
     con = db.connect(read_only=True)
     try:
         if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'shadow'").fetchone():
@@ -63,8 +67,8 @@ def states() -> list[dict]:
         for r in q.fetchall():
             d = dict(zip(cols, r))
             d["metrics"] = json.loads(d["metrics"]) if d["metrics"] else None
-            for k in ("built_at", "evaluated_at"):
-                d[k] = d[k].isoformat() + "Z" if d[k] else None
+            for k in ("built_at", "evaluated_at", "promoted_at"):
+                d[k] = d[k].isoformat() + "Z" if d.get(k) else None
             d["label"] = SHADOWS[d["name"]].label if d["name"] in SHADOWS else d["name"]
             out.append(d)
         return out
@@ -174,7 +178,8 @@ def promote(name: str) -> str:
         con.execute(f"DROP TABLE chunk_parent__{name}")
     finally:
         con.close()
-    set_state(name, status="promoted", note=f"promoted {_now():%Y-%m-%d %H:%M} UTC; previous tables kept as __previous")
+    set_state(name, status="promoted", promoted_at=_now(),
+              note=f"promoted {_now():%Y-%m-%d %H:%M} UTC; previous tables kept as __previous")
     return name
 
 

@@ -16,3 +16,11 @@ def test_index_and_drift_thresholds_are_settings_that_take_effect(monkeypatch):
     assert config.update({"drift_min_new": 5}) == {} and handlers.MIN_NEW == 5
     assert "drift_growth" in config.update({"drift_growth": 3})      # outside its range: refused
     config.update({"flat_numbers": 0.3, "flat_numbers_no_sentence": 0.2, "chunk_max_chars": 1400, "drift_min_new": 20})
+
+
+def test_retention_settings_validate():
+    from procintel.jobs import retention
+    assert "pilot_until" in config.update({"pilot_until": "next spring"})
+    assert config.update({"pilot_until": "2027-03-31", "retention_days": 45}) == {}
+    assert retention.PILOT_UNTIL == "2027-03-31" and retention.RETENTION_DAYS == 45
+    config.update({"pilot_until": "", "retention_days": 30})

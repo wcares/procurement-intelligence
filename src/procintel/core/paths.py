@@ -22,4 +22,5 @@ CONFIG_FILE = DATA_DIR / "config.json"           # settings saved from the Setti
 PROFILES_FILE = DATA_DIR / "config_profiles.json"
 MODEL_DIR = DATA_DIR / "models"                  # trained prediction models
 HTTP_CACHE = DATA_DIR / "cache" / "http"         # World Bank API responses
+LOG_DIR = DATA_DIR / "logs"                      # logs of the refresh script
 EVAL_DIR = ROOT / "eval"                         # evaluation questions, labels and reports (kept with the code)

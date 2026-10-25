@@ -168,7 +168,7 @@ class ConfigSetting(BaseModel):
     key: str
     label: str
     group: str
-    type: Literal["str", "url", "json", "int", "float"]
+    type: Literal["str", "url", "json", "int", "float", "date"]
     value: str | int | float
     default: str | int | float
     editable: bool

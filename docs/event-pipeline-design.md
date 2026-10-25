@@ -227,7 +227,11 @@ index's results, which can favour it; judging the shadow's new top results would
 | Response log and feedback | 30 days by default; for the length of a pilot while one runs (its KPIs span a quarter) |
 | Derived knowledge (tables, passages, vectors, models) and evaluation labels | while in use; superseded versions 30 days |
 
-A daily background job deletes what is past its retention and logs what it removed.
+A daily background job deletes what is past its retention and logs what it removed. **Built (2026-10-25):** `procintel.jobs.retention`
+(targets: change-detection history, finished jobs, response log and feedback with the pilot exception, HTTP cache,
+refresh logs, unpromoted shadow builds and `__previous` tables), job `retention` queued daily, dry run by default from
+the command line (`python -m procintel.jobs.retention`, `--apply` to delete), settings `retention_days` and
+`pilot_until` on the Settings page.
 
 ## 7. Detection schedule
 

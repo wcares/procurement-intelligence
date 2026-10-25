@@ -116,7 +116,7 @@ export interface ConfigSetting {
   key: string;
   label: string;
   group: string;
-  type: "str" | "url" | "json" | "int" | "float";
+  type: "str" | "url" | "json" | "int" | "float" | "date";
   value: string | number;
   /** value when the backend started */
   default: string | number;

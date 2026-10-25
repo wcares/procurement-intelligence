@@ -32,7 +32,8 @@ log = logging.getLogger(__name__)
 IDLE_SECONDS = 300  # tunable on the Settings page
 POLL_SECONDS = 10
 # queued automatically, and how often (detect_changes: procintel.pipeline; the weekly refresh reconciles)
-SCHEDULE = {"drift_check": timedelta(days=1), "refresh": timedelta(days=7), "detect_changes": timedelta(hours=1)}
+SCHEDULE = {"drift_check": timedelta(days=1), "refresh": timedelta(days=7), "detect_changes": timedelta(hours=1),
+            "retention": timedelta(days=1)}
 
 
 class Activity:

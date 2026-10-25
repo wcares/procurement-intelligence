@@ -17,6 +17,7 @@ which is passed back in to resume after a pause or restart; its return value is 
                   (procintel.learning.prompt_eval); background, one question per step
     detect_changes   read each due source, record what changed, queue a pipeline_batch for it (procintel.pipeline)
     pipeline_batch   run the actions the rules ask for, one per step, then reload
+    retention        delete what is past its retention (procintel.jobs.retention); background, queued daily
 """
 from __future__ import annotations
 
@@ -174,3 +175,11 @@ def detect_changes(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dic
 def pipeline_batch(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     from procintel.pipeline import detect
     return (yield from detect.batch_steps(params, cursor, ctx))
+
+
+@handler("retention", priority="background")
+def retention(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.jobs import retention as r
+    out = r.apply(dry=bool(params.get("dry")))
+    yield {"step": "applied"}
+    return out

@@ -40,8 +40,8 @@ the reports are added to the evaluation set, so the fixed set keeps up with what
 
 ## Needed before the pilot
 
-**Built (2026-10-25):** all four, below; the deletion after 30 days (retention job) is the remaining item and must run
-before the pilot starts.
+**Built (2026-10-25):** all four, below, and the deletion after 30 days (retention job; set `pilot_until` on the
+Settings page so the pilot's responses and feedback are kept for its whole length).
 
 1. **Pseudonymous user id** in each logged response (from the sign-in in front of the app), for active users and
    per-user rating patterns. No names in the logs.
