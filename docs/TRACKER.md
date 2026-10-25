@@ -21,7 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
-_(none)_
+- [ ] Sources unavailable: Major Contract Awards (endpoint now returns HTML), WGI (indicator not found) (added 2026-10-24, by me)
 
 ## MVP (in order)
 
@@ -44,7 +44,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Sources unavailable: Major Contract Awards (endpoint now returns HTML), WGI (indicator not found) (added 2026-10-24, by me)
 - [ ] Optional: wrap cleaner, embedder and tagger as a LlamaIndex IngestionPipeline (added 2026-10-24, by me)
 
 ### Done
@@ -141,7 +140,7 @@ _(empty)_
 
 ### Queue
 
-_(empty)_
+- [ ] Event-driven update pipeline (user, 2026-10-25: a state and event system, "certain events change the states ... only those specific events trigger certain actions ... so it doesn't need to run the full pipeline", with generic hooks/rules editable through the UI): design in docs/event-pipeline-design.md (entity states, typed events, action registry on the job queue, default rules plus UI-editable rules with guardrails, hourly change detection, weekly refresh kept as reconciliation); build in the four steps of its section 10 after the user's review
 
 ### Improvements
 
