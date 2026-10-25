@@ -9,6 +9,7 @@ from procintel.answering.answer import idf
 from procintel.answering.retrieve import DB_PATH, Retriever
 from procintel.core import db
 from procintel.ingestion import wgi
+from procintel.insights.dashboard import Dashboard
 from procintel.learning import feedback_review
 from procintel.prediction import evidence, predict, rebid, stats
 from procintel.prediction.flag_evidence import FlagEvidence
@@ -30,6 +31,7 @@ class State:
         self.similar = Similar(db_path)
         self.flag_evidence = FlagEvidence(db_path)
         con.close()
+        self.dashboard = Dashboard(db_path)  # home page: rankings, trends, heat map (procintel.insights)
         self.retriever = Retriever(db_path)
         self.retriever.demoted = feedback_review.load_demoted()  # flagged citations moved to the end of search results
         idf(self.retriever)  # term weights for picking answer sentences

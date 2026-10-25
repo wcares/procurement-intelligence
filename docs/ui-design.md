@@ -27,6 +27,14 @@ projects, with every number linked to the records behind it.
 Every chart element is clickable and opens the records it counts: packages with their notices, report passages with
 citations.
 
+**Built (2026-10-25)** as the home page: headline numbers, a worst-first ranking (TanStack Table) by country, sector
+family or method for six measures (median award time, awards over 6 months, re-tendering, amendments, procurement rated
+below satisfactory, problem passages per report), award time by tender year with the years after the 18-month
+follow-up shaded incomplete (Recharts), country x method heat map (ECharts), problem mix with its reliability note,
+and the records behind any row or cell. Data from `procintel.insights.dashboard`, `/dashboard` endpoints (planner role).
+Not yet: governance as a ranking measure, problems by closing year as a chart, the "what changed recently" block
+(event log), mock data for the in-app mock.
+
 **Cautions the dashboard must show, not hide:**
 
 - *Recent years look fast*: only awarded tenders have an award time, and slow recent tenders are not awarded yet
@@ -183,6 +191,12 @@ considered: SVAR React Gantt supports React 19 but is GPLv3 and aimed at editabl
 fallback; the read-only stage timeline is built with ECharts.
 
 Before installing: list exact names and versions for the user's approval (installing downloads packages from npm).
+
+**Installed (2026-10-25):** recharts 3.10.1, @tanstack/react-table 9.3.1 (v9 API: `useTable`, `tableFeatures`),
+echarts 6.1.0 used directly through a small hook (`web/src/lib/use-echarts.ts`), not echarts-for-react. **shadcn/ui is
+not initialised yet:** its theme reuses the variable names `--muted` and `--accent` with other meanings than this app's
+(text colour and primary colour), so `shadcn init` would recolour every page; adopting it needs those tokens renamed
+first, as a separate change.
 
 ## 5. Backend work the UI needs
 

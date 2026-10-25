@@ -1,4 +1,8 @@
 import type {
+  DashboardResponse,
+  DashRecords,
+  HeatmapResponse,
+  RankingResponse,
   Account,
   AuthUser,
   AskRequest,
@@ -52,6 +56,11 @@ async function send<T>(path: string, method: string, body: unknown): Promise<T |
 
 export const api = {
   /** null when not signed in */
+  dashboard: () => call<DashboardResponse>("/dashboard"),
+  ranking: (measure: string, group: string) => call<RankingResponse>(`/dashboard/ranking?measure=${measure}&group=${group}`),
+  heatmap: (measure: string) => call<HeatmapResponse>(`/dashboard/heatmap?measure=${measure}`),
+  records: (group: string, key: string, measure: string, method?: string) =>
+    call<DashRecords>(`/dashboard/records?group=${group}&key=${encodeURIComponent(key)}&measure=${measure}${method ? `&method=${encodeURIComponent(method)}` : ""}`),
   me: async (): Promise<AuthUser | null> => {
     const res = await fetch(`${API_BASE}/auth/me`);
     return res.ok ? ((await res.json()) as AuthUser) : null;

@@ -1,16 +1,16 @@
-import { AssessView } from "./assess-view";
+import { DashboardView } from "./dashboard-view";
 
 export default function Home() {
   return (
     <>
-      <div className="mb-8 max-w-2xl">
-        <h1 className="text-2xl font-semibold tracking-tight">Assess a procurement package</h1>
+      <div className="mb-6 max-w-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight">What went wrong in past procurement</h1>
         <p className="mt-2 text-muted">
-          See how comparable World Bank–financed packages actually went, and what past evaluations say went wrong, with every
-          lesson quoted from its source.
+          Where and when World Bank–financed procurement was slow, re-tendered or rated poorly, worst first, from the
+          projects with a completion report. Every number opens the records behind it.
         </p>
       </div>
-      <AssessView />
+      <DashboardView />
     </>
   );
 }

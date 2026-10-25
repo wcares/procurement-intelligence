@@ -370,3 +370,39 @@ export interface Account {
   createdAt: string | null;
   lastLogin: string | null;
 }
+
+/** Home dashboard (GET /dashboard and friends; procintel.insights.dashboard). */
+export interface DashMeasure {
+  key: string;
+  label: string;
+  unit: "days" | "share" | "per project";
+  level: "package" | "project";
+  higherIsWorse: boolean;
+  note: string;
+  groups?: string[];
+}
+
+export interface DashboardResponse {
+  summary: { projects: number; countries: number; packages: number; awarded: number; median_days: number | null; long_share: number | null; rebid_projects: number; amendment_projects: number };
+  measures: DashMeasure[];
+  groups: Record<string, string>;
+  trends: {
+    award: { year: number; median_days: number; long_share: number; n: number; incomplete: boolean }[];
+    problems: { year: number; per_project: number; projects: number }[];
+    completeUntil: number;
+    note: string;
+  };
+  problemMix: { kinds: { kind: string; passages: number }[]; note: string };
+  fewProjects: number;
+}
+
+export interface RankingRow { key: string; label: string; value: number; n: number; projects: number; few: boolean }
+export interface RankingResponse { measure: DashMeasure; group: string; groupLabel: string; rows: RankingRow[] }
+export interface HeatmapResponse {
+  measure: DashMeasure;
+  minN: number;
+  cells: { country: string; countryLabel: string; method: string; value: number; n: number }[];
+}
+export type DashRecords =
+  | { kind: "packages"; records: { packageId: string; projectId: string; method: string; description: string; days: number; tenderStart: string | null; url: string }[] }
+  | { kind: "projects"; records: { projectId: string; name: string; country: string; rebid: boolean; amendment: boolean; procurementBelowSatisfactory: boolean | null; problemPassages: number | null; url: string }[] };

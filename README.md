@@ -191,7 +191,7 @@ src/procintel/
   api/           FastAPI app: state, background jobs, access, schemas, routes/ (one module per endpoint group), settings
   tools/         mock-fixture export for the web app
 tests/           pytest suite
-web/             Next.js app (Assess, Ask, Settings) with an in-app mock API
+web/             Next.js app (Overview dashboard, Assess, Ask, Settings) with an in-app mock API
 eval/            questions, relevance judgments, hand check, report, history
 docs/            data model, work tracker
 data/            DuckDB files, HTTP cache, trained model (not in git)

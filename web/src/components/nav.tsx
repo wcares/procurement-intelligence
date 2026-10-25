@@ -5,7 +5,8 @@ import { api } from "@/lib/api/client";
 import { useAuth } from "./auth";
 
 const NAV = [
-  { href: "/", label: "Assess a package", admin: false },
+  { href: "/", label: "Overview", admin: false },
+  { href: "/assess", label: "Assess a package", admin: false },
   { href: "/ask", label: "Ask the evidence", admin: false },
   { href: "/config", label: "Settings", admin: true },
 ] as const;
