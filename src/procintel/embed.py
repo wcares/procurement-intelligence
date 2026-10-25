@@ -112,6 +112,31 @@ def build(db_path: Path = DB_PATH) -> int:
     return len(todo)
 
 
+def build_packages(db_path: Path = DB_PATH) -> int:
+    """Embed the description of every awarded package (table package_vec), only new or changed ones; returns how many
+    were embedded. Used to show planners the most similar past contracts and how they went."""
+    m, d = model_name(), dim()
+    if m is None:
+        raise SystemExit("set PROCINTEL_EMBED_MODEL (and PROCINTEL_EMBED_API_BASE) first")
+    con = duckdb.connect(str(db_path))
+    con.execute("""CREATE TABLE IF NOT EXISTS package_vec (
+        package_id VARCHAR, model VARCHAR, dim INTEGER, text_hash VARCHAR, vec FLOAT[])""")
+    rows = con.execute("""SELECT package_id, proc_group, description FROM package
+                          WHERE description IS NOT NULL AND (award_date IS NOT NULL OR price_amount IS NOT NULL)""").fetchall()
+    have = {(p, h) for p, h in con.execute("SELECT package_id, text_hash FROM package_vec WHERE model = ? AND dim = ?", [m, d]).fetchall()}
+    todo = [(p, text_hash(g or "", t), t) for p, g, t in rows if (p, text_hash(g or "", t)) not in have]
+    print(f"package_vec: {len(rows) - len(todo)} up to date, {len(todo)} to embed")
+    for i in range(0, len(todo), 1024):
+        part = todo[i:i + 1024]
+        vecs = embed([format_document(t, None) for _, _, t in part])
+        con.execute("DELETE FROM package_vec WHERE model = ? AND dim = ? AND package_id IN (SELECT unnest(?))",
+                    [m, d, [p for p, _, _ in part]])
+        con.executemany("INSERT INTO package_vec VALUES (?, ?, ?, ?, ?)", [(p, m, d, h, v.tolist()) for (p, h, _), v in zip(part, vecs)])
+    con.execute("DELETE FROM package_vec WHERE package_id NOT IN (SELECT package_id FROM package)")
+    con.close()
+    return len(todo)
+
+
 def load(con: duckdb.DuckDBPyConnection, chunk_ids: list[str]) -> np.ndarray | None:
     """Matrix aligned with chunk_ids for the configured model and dim, or None if any chunk lacks a current vector."""
     m, d = model_name(), dim()
@@ -126,3 +151,4 @@ def load(con: duckdb.DuckDBPyConnection, chunk_ids: list[str]) -> np.ndarray | N
 
 if __name__ == "__main__":
     build()
+    build_packages()

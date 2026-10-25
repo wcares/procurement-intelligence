@@ -21,6 +21,7 @@ from procintel import config, evidence, feedback, predict, rebid, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
+from procintel.similar import Similar
 
 ProcGroup = Literal["GO", "CW", "CS", "NC"]
 
@@ -109,11 +110,24 @@ class ResponseMeta(BaseModel):
     responseId: str  # used to attach feedback to exactly this response
 
 
+class SimilarPackage(BaseModel):
+    packageId: str
+    projectId: str
+    projectName: str
+    countryCode: str
+    method: str
+    description: str
+    tenderToAwardDays: int | None
+    valueUsd: int | None
+    rebid: bool
+
+
 class AssessResponse(BaseModel):
     timeline: TimelineBenchmark | None
     risks: list[RiskFlag]
     governance: list[GovernanceScore]
     precedents: list[Precedent]
+    similarPackages: list[SimilarPackage] = []
     meta: ResponseMeta
 
 
@@ -146,6 +160,7 @@ class State:
         self.rebid = rebid.by_country(con)
         self.rebid_cost = rebid.cost(con)
         self.amendments = evidence.by_country(con, "amendment")
+        self.similar = Similar(db_path)
         con.close()
         self.retriever = Retriever(db_path)
         idf(self.retriever)  # term weights for picking answer sentences
@@ -190,6 +205,10 @@ def post_assess(req: AssessRequest) -> dict:
     body = req.model_dump()
     out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
                      s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments)
+    try:
+        out["similarPackages"] = s.similar.search(body.get("description") or "", body["procGroup"])
+    except Exception:  # embedding server down: the assessment stands without this section
+        out["similarPackages"] = []
     feedback.log_response("assess", body, out)
     return out
 

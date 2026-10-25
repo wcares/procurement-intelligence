@@ -79,6 +79,7 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
         step("chunks", chunk.build)
         if embed.available():
             counts["embedded"] = step("embeddings (new or changed passages)", embed.build)
+            counts["packages_embedded"] = step("package description embeddings", embed.build_packages)
         if decide.available():
             counts["tagged"] = step("tags (new or changed passages)", tag.build)
         step("ICR / ISR rating check", ratings.build)

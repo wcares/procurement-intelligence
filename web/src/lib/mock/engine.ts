@@ -130,6 +130,7 @@ export function assess(req: AssessRequest): AssessResponse {
     risks: risks(req, t, gov),
     governance: gov,
     precedents: precedents(req),
+    similarPackages: [],
     meta: meta([
       "Mock response: numbers are real historical statistics from the 120-ICR sample; precedents are ranked by a simple keyword match, not the production retriever.",
       ...(gov.length ? [] : ["No CPIA governance scores are available for this country."]),

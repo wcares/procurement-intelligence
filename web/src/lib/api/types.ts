@@ -128,11 +128,28 @@ export interface FeedbackResponse {
   feedbackId: string;
 }
 
+/** A past awarded contract whose description is close to the planned package's. */
+export interface SimilarPackage {
+  packageId: string;
+  projectId: string;
+  projectName: string;
+  countryCode: string;
+  method: string;
+  description: string;
+  /** null when the tender or award date is not in the data */
+  tenderToAwardDays: number | null;
+  valueUsd: number | null;
+  /** the package was re-tendered (procintel.rebid evidence) */
+  rebid: boolean;
+}
+
 export interface AssessResponse {
   timeline: TimelineBenchmark | null;
   risks: RiskFlag[];
   governance: GovernanceScore[];
   precedents: Precedent[];
+  /** empty when no description was given or embeddings are not configured */
+  similarPackages: SimilarPackage[];
   meta: ResponseMeta;
 }
 
