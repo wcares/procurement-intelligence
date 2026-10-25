@@ -163,7 +163,7 @@ _(empty)_
 
 ### Done
 
-- [x] MVP write-up per module (docs/proposal.md): what is built, design choices, measured evidence and gaps for each of the four modules, the conflicting-evidence method, and a proposed three-phase pilot with KPIs and how each is computed — COMMIT — every figure cross-checked against TRACKER Done entries, commit messages and eval/report.md; pilot sizes and durations marked as proposals
+- [x] MVP write-up per module (docs/proposal.md): what is built, design choices, measured evidence and gaps for each of the four modules, the conflicting-evidence method, and a proposed three-phase pilot with KPIs and how each is computed — 7f1ee44 — every figure cross-checked against TRACKER Done entries, commit messages and eval/report.md; pilot sizes and durations marked as proposals
 - [x] README: what it is, quick look on mock data, Python and model setup (llama.cpp commands, idle sleep), data build steps with measured times, refresh, run, architecture, evaluation summary, limitations, layout; requirements.txt corrected (dropped unused networkx and rank-bm25, marked anthropic optional, added bm25s, PyStemmer, joblib and httpx that are imported) plus requirements.lock — 8722ed8 — every command checked to have an entry point; a fresh venv from requirements.txt alone passes all 66 tests
 
 ### Improvements
