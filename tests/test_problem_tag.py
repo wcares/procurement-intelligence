@@ -24,3 +24,15 @@ def test_unusable_first_reply_raises(monkeypatch):
     replies(monkeypatch, "Possibly")
     with pytest.raises(RuntimeError):
         pt.classify("x")
+
+
+def test_a_kind_reply_that_runs_on_keeps_the_problem_with_unknown_kind(monkeypatch):
+    calls = iter(["yes"])
+
+    def complete(system, user, max_tokens):
+        try:
+            return next(calls)
+        except StopIteration:
+            raise RuntimeError("model output hit max_tokens=20 before finishing")
+    monkeypatch.setattr(pt.llm, "complete", complete)
+    assert pt.classify("x") == (True, None)

@@ -23,3 +23,4 @@ web/next-env.d.ts
 !.env.example
 data/models/
 data/config*.json
+data/logs/

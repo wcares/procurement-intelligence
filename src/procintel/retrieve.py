@@ -169,7 +169,7 @@ def _load_problems(con: duckdb.DuckDBPyConnection) -> dict[str, str]:
     """chunk_id -> problem kind, for passages the two-step tagger found to describe a problem in their current text."""
     if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk_problem'").fetchone():
         return {}
-    return dict(con.execute("""SELECT p.chunk_id, p.kind FROM chunk_problem p JOIN chunk c USING (chunk_id)
+    return dict(con.execute("""SELECT p.chunk_id, coalesce(p.kind, 'unknown kind') FROM chunk_problem p JOIN chunk c USING (chunk_id)
         WHERE p.problem AND p.text_hash = sha256(c.section || chr(0) || c.text)[:16]
         QUALIFY row_number() OVER (PARTITION BY p.chunk_id ORDER BY p.model) = 1""").fetchall())
 

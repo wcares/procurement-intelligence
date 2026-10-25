@@ -42,13 +42,16 @@ _STEP2 = ("You classify a passage from a World Bank project completion report by
 
 
 def classify(text: str) -> tuple[bool, str | None]:
-    """(describes a problem, which kind or None). Raises on an unusable reply."""
+    """(describes a problem, which kind or None if unknown). Raises on an unusable first reply."""
     a = llm.complete(_STEP1, text, max_tokens=4).strip().lower()
     if not a.startswith(("yes", "no")):
         raise RuntimeError(f"step 1 replied {a!r}")
     if a.startswith("no"):
         return False, None
-    b = llm.complete(_STEP2, text, max_tokens=20).strip().lower().rstrip(".")
+    try:
+        b = llm.complete(_STEP2, text, max_tokens=20).strip().lower().rstrip(".")
+    except RuntimeError:  # the kind reply ran on past the limit (seen on 1 of 3,154 passages): the problem call stands
+        return True, None
     return True, next((k for k in KINDS if k in b), "another kind of problem")
 
 
@@ -76,10 +79,11 @@ def build(db_path: Path = DB_PATH) -> int:
         rows.append((cid, m, h, problem, kind))
         if i % 100 == 0:
             print(f"  {i}/{len(todo)}  {time.time() - t0:.0f}s", flush=True)
-    con = duckdb.connect(str(db_path))
-    con.executemany("DELETE FROM chunk_problem WHERE chunk_id = ? AND model = ?", [(r[0], r[1]) for r in rows])
-    con.executemany("INSERT INTO chunk_problem VALUES (?, ?, ?, ?, ?)", rows)
-    con.close()
+    if rows:  # nothing to write when every passage failed (or none was due)
+        con = duckdb.connect(str(db_path))
+        con.executemany("DELETE FROM chunk_problem WHERE chunk_id = ? AND model = ?", [(r[0], r[1]) for r in rows])
+        con.executemany("INSERT INTO chunk_problem VALUES (?, ?, ?, ?, ?)", rows)
+        con.close()
     print(f"done in {time.time() - t0:.0f}s; {failed} failed (retried on the next run)", flush=True)
     return len(todo) - failed
 

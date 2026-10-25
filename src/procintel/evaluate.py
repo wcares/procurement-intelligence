@@ -131,11 +131,12 @@ def run(r: Retriever, answers: bool = True) -> tuple[str, dict]:
         R = rel[q["id"]]
         bm = [h.chunk_id for h in _search(r, q["question"], POOL_K, False)]
         hy = [h.chunk_id for h in _search(r, q["question"], 12, True)]
-        gated, how = answer.supporting(q["question"], _search(r, q["question"], 12, True))
+        # the gate asks the answer LLM (~14 s a question), so it runs only with the answers
+        gated, how = answer.supporting(q["question"], _search(r, q["question"], 12, True)) if answers else ([], "")
         gate = [h.chunk_id for h in gated]
         unjudged = [c for c in set(bm[:5] + hy[:5] + gate) if (q["id"], c) not in js]
         m = {"bm25_p5": _prec(bm[:5], R), "hybrid_p5": _prec(hy[:5], R), "bm25_r10": _rec(bm[:10], R),
-             "hybrid_r10": _rec(hy[:10], R), "gate_prec": _prec(gate, R), "gate_n": len(gate)}
+             "hybrid_r10": _rec(hy[:10], R), "gate_prec": _prec(gate, R) if answers else None, "gate_n": len(gate)}
         rows.append((q, len(R), m, how, unjudged))
         for k, v in m.items():
             if v is not None:
@@ -223,7 +224,10 @@ def _report(rows, totals, ans, n_judged, h: dict, prev: dict | None, fb: dict) -
     ]
     for k, label in [("bm25_p5", "BM25 precision@5"), ("hybrid_p5", "Hybrid precision@5"), ("bm25_r10", "BM25 recall@10"),
                      ("hybrid_r10", "Hybrid recall@10"), ("gate_prec", "Evidence gate precision")]:
-        lines.append(f"| {label} | {f(h[k])} | {f(prev.get(k)) if prev else '–'} |")
+        now = f(h[k])
+        if h[k] is None and k == "gate_prec" and last_answers and last_answers.get(k) is not None:
+            now = f"{f(last_answers[k])} (not re-run; from {last_answers['time']})"  # the gate runs with the answers
+        lines.append(f"| {label} | {now} | {f(prev.get(k)) if prev else '–'} |")
     lines += ["", "## Answers", ""]
     if a is None:
         lines.append("Not evaluated yet (run `python -m procintel.evaluate run`).")

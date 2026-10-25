@@ -5,8 +5,9 @@
 """
 from __future__ import annotations
 
+import threading
+import time
 from contextlib import asynccontextmanager
-from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -180,9 +181,27 @@ class State:
         self.country_name = {c["code"]: c["name"] for c in self.options["countries"]}
 
 
-@lru_cache(maxsize=1)
+_state: State | None = None
+_reload_lock = threading.Lock()
+
+
 def state(db_path: Path = DB_PATH) -> State:
-    return State(db_path)
+    global _state
+    if _state is None:
+        with _reload_lock:
+            if _state is None:
+                _state = State(db_path)
+    return _state
+
+
+def reload_state(db_path: Path = DB_PATH) -> float:
+    """Rebuild everything derived from the database and swap it in; seconds taken. Requests keep using the old state
+    while the new one builds. Settings (procintel.config) live in the modules, so they are kept."""
+    global _state
+    t = time.time()
+    with _reload_lock:
+        _state = State(db_path)
+    return time.time() - t
 
 
 @asynccontextmanager
@@ -337,6 +356,18 @@ def post_compare(req: CompareRequest) -> dict:
     if "errors" in out:
         return JSONResponse({"error": "invalid settings", "detail": out["errors"]}, status_code=400)
     return out
+
+
+@app.post("/admin/reload")
+def post_reload(request: Request) -> dict:
+    """Load refreshed data without restarting (procintel.refresh calls this when given --reload-url). Only from this
+    machine: it rebuilds the search index and models, about a minute of work."""
+    if request.client is None or request.client.host not in ("127.0.0.1", "::1"):
+        return JSONResponse({"error": "reload is only accepted from this machine"}, status_code=403)
+    if _reload_lock.locked():
+        return JSONResponse({"error": "a reload is already running"}, status_code=409)
+    secs = reload_state()
+    return {"ok": True, "seconds": round(secs, 1), "passages": len(state().retriever.records)}
 
 
 @app.get("/health")

@@ -2,13 +2,14 @@
 
     python -m procintel.refresh                # fetch new listings, then rebuild what depends on them
     python -m procintel.refresh --skip-fetch   # rebuild from the data already in the database
+    python -m procintel.refresh --reload-url http://127.0.0.1:8000/admin/reload   # then load it into the running backend
 
 Steps: ingest (listings re-fetched, existing ICRs kept, document texts cached) → model tables → chunks → embeddings
 (new or changed passages only) → tags (same) → ICR/ISR rating check → prediction models (retrained, metrics compared)
 → evaluation report (retrieval metrics and user feedback; eval/report.md, eval/history.jsonl).
 Embedding and tagging are the slow steps and are incremental; the others rebuild in seconds to a minute.
 Each run appends a row to table refresh_log with the changes and per-step times. A running backend keeps its old
-data in memory until it is restarted.
+data in memory until it reloads: pass --reload-url to have the refresh ask it to (scripts/refresh-nightly.sh does).
 """
 from __future__ import annotations
 
@@ -128,12 +129,27 @@ def _print(changes: dict, steps: list, status: str, error: str | None) -> None:
           f"embedded {c.get('embedded', '-')}, tagged {c.get('tagged', '-')}")
     for k, (b, a) in c["model_metrics"].items():
         print(f"  {k:20s} {b if b is None else round(b, 3)} -> {round(a, 3)}")
-    print("restart the backend to serve the refreshed data")
+    print("a running backend serves the refreshed data after a reload (--reload-url, or POST /admin/reload) or restart")
+
+
+def reload_backend(url: str) -> bool:
+    """Ask a running backend to load the refreshed data (POST /admin/reload); False if it is not reachable."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, method="POST"), timeout=600) as r:
+            print(f"backend reloaded: {json.load(r)}")
+            return True
+    except Exception as e:  # backend not running or busy: the data is in the database and loads on its next start
+        print(f"backend not reloaded ({e}); it will load the refreshed data when it next starts")
+        return False
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--icrs", type=int, default=120, help="how many of the newest ICRs to list (already-known ones are kept)")
     ap.add_argument("--skip-fetch", action="store_true", help="rebuild from data already in the database")
+    ap.add_argument("--reload-url", help="after the refresh, POST here so a running backend loads the new data")
     a = ap.parse_args()
     run(a.icrs, fetch=not a.skip_fetch)
+    if a.reload_url:
+        reload_backend(a.reload_url)

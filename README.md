@@ -85,7 +85,19 @@ After the first build, one command keeps everything current:
 ```
 
 It logs every run (documents and notices added, passages embedded and tagged, model metrics before and after) to the
-`refresh_log` table. Measured: 2.9 min with fetching, 6 s without.
+`refresh_log` table. Measured: 2.9 min with fetching, 6 s without. Add
+`--reload-url http://127.0.0.1:8000/admin/reload` to have a running backend load the new data when it finishes.
+
+**Scheduled refresh (optional, not installed by default).** `scripts/refresh-nightly.sh` runs the refresh with the
+reload and writes a log to `data/logs/`. To run it every night at 02:30 with launchd:
+
+```bash
+sed "s|REPO_DIR|$PWD|g" deploy/com.procintel.refresh.plist > ~/Library/LaunchAgents/com.procintel.refresh.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.procintel.refresh.plist
+# remove: launchctl bootout gui/$(id -u)/com.procintel.refresh && rm ~/Library/LaunchAgents/com.procintel.refresh.plist
+```
+
+The Mac must be awake at that time, and the model servers running (they wake from idle sleep on the first request).
 
 ### 4. Run
 
@@ -96,7 +108,8 @@ cd web && NEXT_PUBLIC_API_BASE=http://localhost:8000 npm run dev    # http://loc
 
 The backend serves `/options`, `/assess`, `/ask`, `/feedback` and `/config` (`/health` for checks). It listens on
 127.0.0.1 only, and its CORS rules let browsers call it only from the web app's origin; `/config` can change model
-endpoints, so do not expose it beyond localhost. Restart it after a refresh to load the new data.
+endpoints, so do not expose it beyond localhost. After a refresh, `POST /admin/reload` (accepted only from this
+machine) loads the new data without a restart; requests keep using the old data until the new one is ready.
 
 ## How it works
 
