@@ -73,6 +73,22 @@ the report page.
 Precedents placed on the same stage timeline and on a small map or list by country, with "same sector" and "describes
 a past problem" markers; similar contracts as dots on a time axis (award time vs value), coloured by re-tendering.
 
+## 2.4 Alerts, recommendations and trends next to the query (user, 2026-10-25)
+
+On the page where the planner asks or assesses, a compact side panel with three parts, each linking to a full
+**Insights** page with the details:
+
+| part | shows (compact) | full Insights page |
+|---|---|---|
+| **Alerts** | new risks on what the planner watches: e.g. "2 new re-tenders in Kenyan civil works this month", "award times for RFB in your region rose 20%" | all alerts with their evidence, filters, watch-list management |
+| **Recommendations** | 2-3 actions for the package being planned, each with its source: method or packaging options, mitigations taken in past projects for the flagged risks | every recommendation with the precedents and passages behind it; accept / dismiss (feeds back like a rating) |
+| **Trends** | one small chart relevant to the query (e.g. award time for this method and region over years) | the dashboard's trend views, pre-filtered |
+
+- Alerts come from the event pipeline: a rule on new events (re-tender evidence, award times, ratings) matched against
+  a planner's **watch-list** (countries, sectors, methods, projects). In-app first; email later.
+- Recommendations are generated only from retrieved precedents and statistics, with citations, the same way answers
+  are; with no supporting evidence, none is shown.
+
 ## 3. Pipeline and settings pages
 
 The Settings page grows into an operations area, using the event pipeline design:
@@ -181,6 +197,7 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | decided (section 4, Components); applies to U2-U4 |
 | U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | queued (section 3b) |
 | U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | queued (section 3c), before the pre-pilot logging |
+| U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | queued (section 2.4) |
 
 ## 7. Open questions
 

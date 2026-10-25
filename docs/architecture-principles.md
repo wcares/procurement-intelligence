@@ -34,6 +34,17 @@ and so that it scales beyond the prototype's data. docs/event-pipeline-design.md
 | Pipeline order | fixed sequence in `refresh.py` | actions and rules registries (event design) |
 | UI components | page code; no component library yet | shadcn/ui, Recharts, ECharts, React Flow, TanStack Table (UI design); visuals driven by API data and registered chart types |
 
+## Scale and deployment (user, 2026-10-25)
+
+- **Local default, production by configuration.** Locally: DuckDB for tables and in-memory search over vectors stored in
+  DuckDB. Production: Postgres for tables and a vector database (Qdrant, or Postgres with pgvector) for vectors, each
+  plugged in behind the storage and vector-index interfaces by configuration.
+- **Containers.** The backend (API and job worker), the web app and, in production, the databases each run as a Docker
+  container; Docker Compose starts the whole system with one command, and every endpoint (models, databases,
+  connectors) is an environment setting, so the same images connect to local or remote services.
+- **Models.** On a Mac, containers cannot use the Apple GPU, so locally the model servers keep running on the host and
+  containers reach them by URL; in production they run as GPU containers or a hosted endpoint, again by URL.
+
 ## Order of the clean-up
 
 Done as part of the queued work, not as a separate rewrite: the data-location setting first (small, touches every

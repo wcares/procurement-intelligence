@@ -144,6 +144,8 @@ _(empty)_
 - [ ] Configurable and scalable by design (user, 2026-10-25, standing rule: "nothing hardcoded or need code change to change to different configuration or models"): principles and audit in docs/architecture-principles.md; first a single data-location setting replacing the path repeated in ~22 modules, then prompts as editable files, then storage and vector-index interfaces with the event pipeline
 - [ ] Event-driven update pipeline (user, 2026-10-25: a state and event system, "certain events change the states ... only those specific events trigger certain actions ... so it doesn't need to run the full pipeline", with generic hooks/rules editable through the UI): design in docs/event-pipeline-design.md (entity states, typed events, action registry on the job queue, default rules plus UI-editable rules with guardrails, hourly change detection, weekly refresh kept as reconciliation); build in the four steps of its section 10 after the user's review
 - [ ] Pre-pilot logging (user, 2026-10-25): what docs/pilot-plan.md phase 0 needs before a pilot can measure its KPIs: (1) a pseudonymous user id on every logged response (adoption: weekly active users, repeat use); (2) an optional tender reference field in Assess, so a prediction can later be checked against the real award time; (3) response time in the response log; (4) a short data-handling note for participants (what is logged, retention, models run locally); then procintel.kpi reports the new measures (after U7 Sign-in and roles, which provides the user id)
+- [ ] Containers and production storage (user, 2026-10-25): Docker images for the backend (API + job worker) and web app, Docker Compose for one-command start, every endpoint an environment setting; Postgres and a vector database (Qdrant or pgvector) as configurable alternatives to DuckDB behind the storage and vector-index interfaces; model servers stay on the host on a Mac (no GPU in containers); design in docs/architecture-principles.md
+- [ ] Retention job: daily background job applying 30-day retention (event log, job history, raw items, shadow builds, HTTP cache; response log and feedback 30 days or the pilot's length); design in docs/event-pipeline-design.md section 6d
 
 ### Improvements
 
@@ -177,6 +179,7 @@ _(empty)_
 - [ ] U3 Interactive visuals for results (user, 2026-10-25): besides the text report, a tender stage timeline with risks placed and coloured by stage, clickable to their evidence; answer map for Ask; design in docs/ui-design.md section 2
 - [ ] U4 Pipeline pages (user, 2026-10-25): connectors, event log, rules, upload, as part of the event pipeline build; design in docs/ui-design.md section 3 and docs/event-pipeline-design.md
 - [ ] U6 Evaluation page (user, 2026-10-25): quality over time, live-vs-shadow and model comparisons with promote/discard, prediction-model history, labelling queue for judge checks and new evaluation questions; design in docs/ui-design.md section 3b
+- [ ] U8 Alerts, recommendations and trends beside the query (user, 2026-10-25): a compact panel on the query page linking to a full Insights page; alerts from event rules matched to a planner's watch-list; recommendations only from cited precedents and statistics; design in docs/ui-design.md section 2.4
 
 ### Improvements
 

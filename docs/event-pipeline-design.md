@@ -181,7 +181,8 @@ Every connector declares how changes reach us; after that no person starts anyth
 | **subscribe** | we hold a subscription and are notified that something changed, then re-read it and diff | MCP servers with resource subscriptions; database change logs (change data capture, e.g. Postgres logical replication) | reconciliation poll |
 | **upload** | a person adds a file in our UI | ad hoc documents | none needed |
 
-A connector's configuration (Settings page; credentials stay in the environment and are never shown): mode, interval
+Only admins add, edit or remove connectors (user, 2026-10-25). A connector's configuration (Settings page; credentials
+stay in the environment and are never shown): mode, interval
 or webhook address, cursor, rate limit, retry with backoff, last success and last error. A failing connector is shown
 there and backs off; it does not stop the pipeline. Connector runs are jobs in the existing queue, so polling also waits
 for idle time unless a connector is marked urgent.
@@ -205,6 +206,16 @@ live index. A background evaluation then compares live and shadow on the evaluat
 The result is shown on the Evaluation page with Promote / Discard; promoting switches in one step and queues the
 follow-on work (re-tagging) in the background. First candidate: semantic chunking with EmbeddingGemma (sentence
 embeddings cached by fingerprint, boundaries at similarity drops) for unstructured documents and over-long paragraphs.
+
+## 6d. Retention (user, 2026-10-25: 30 days)
+
+| data | kept |
+|---|---|
+| Event log, job history, raw items after processing, shadow builds, HTTP cache | 30 days |
+| Response log and feedback | 30 days by default; for the length of a pilot while one runs (its KPIs span a quarter) |
+| Derived knowledge (tables, passages, vectors, models) and evaluation labels | while in use; superseded versions 30 days |
+
+A daily background job deletes what is past its retention and logs what it removed.
 
 ## 7. Detection schedule
 
