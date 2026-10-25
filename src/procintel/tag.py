@@ -10,8 +10,9 @@ Measured reliability on the full run (2026-10-24, Laya Q8_0, 18,140 passages, 65
 reliable enough to show as facts. A hand check of 3 random passages per type found about 7 of 18 right, with wrong
 labels up to 0.82 confidence ("capacity building" read as contractor capacity, a project named "Disaster
 Resilience" read as an external shock). Only the "none of these" label is used, as a precedent filter at a high
-confidence (assess.NOT_A_LESSON_MIN). A two-step question (is a problem described? then which) is the next thing
-to try.
+confidence (assess.NOT_A_LESSON_MIN). The two-step question (is a problem described? then which) was measured
+with both models: the decision model was no better, the answer LLM was (procintel.problem_tag, which uses these tags
+only to choose which passages to ask about).
 
     python -m procintel.tag            # needs PROCINTEL_DECIDE_API_BASE
 """

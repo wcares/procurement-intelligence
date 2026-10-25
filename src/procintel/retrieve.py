@@ -69,6 +69,7 @@ class Hit:
     via: str = "bm25"  # "bm25", "vector" or "bm25+vector"
     tag: str | None = None  # main problem type from procintel.tag, if the passage was tagged
     tag_confidence: float = 0.0
+    problem: str | None = None  # problem kind from procintel.problem_tag when the passage describes one, else None
 
 
 class Retriever:
@@ -81,6 +82,7 @@ class Retriever:
             raise ValueError("no chunks to index; run `python -m procintel.chunk` first")
         self.vectors = embed.load(con, [r[0] for r in rows]) if embed.available() else None
         tags = _load_tags(con)
+        problems = _load_problems(con)
         self.rating_conflicts = ratings.load(con)  # doc_id -> note where the ICR outcome and last ISR rating disagree
         self.procurement_conflicts = procurement_rating.load(con)  # doc_id -> note where procurement rated below it
         con.close()
@@ -92,6 +94,7 @@ class Retriever:
             r["country_codes"] = [c or "" for c in r["country_codes"]]  # aligned with project_ids
             r["groups"] = {g for g, rx in GROUP_TERMS.items() if rx.search(r["text"])}
             r["tag"], r["tag_confidence"] = tags.get(r["chunk_id"], (None, 0.0))
+            r["problem"] = problems.get(r["chunk_id"])
 
         nodes = []
         for r in self.records:
@@ -133,7 +136,7 @@ class Retriever:
                 url=rec["pdf_url"], section=rec["section"], para=rec["para"], kind=rec["kind"], text=rec["text"],
                 project_id=rec["project_ids"][j], project_name=rec["project_names"][j] or "",
                 country_code=rec["country_codes"][j], score=fused[i], via="+".join(found_by[i]),
-                tag=rec["tag"], tag_confidence=rec["tag_confidence"],
+                tag=rec["tag"], tag_confidence=rec["tag_confidence"], problem=rec["problem"],
             ))
         return hits
 
@@ -160,6 +163,15 @@ def _load_tags(con: duckdb.DuckDBPyConnection) -> dict[str, tuple[str, float]]:
         WHERE t.text_hash = sha256(c.section || chr(0) || c.text)[:16]
         QUALIFY row_number() OVER (PARTITION BY t.chunk_id ORDER BY t.model) = 1""").fetchall()
     return {c: (t, conf) for c, t, conf in rows}
+
+
+def _load_problems(con: duckdb.DuckDBPyConnection) -> dict[str, str]:
+    """chunk_id -> problem kind, for passages the two-step tagger found to describe a problem in their current text."""
+    if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk_problem'").fetchone():
+        return {}
+    return dict(con.execute("""SELECT p.chunk_id, p.kind FROM chunk_problem p JOIN chunk c USING (chunk_id)
+        WHERE p.problem AND p.text_hash = sha256(c.section || chr(0) || c.text)[:16]
+        QUALIFY row_number() OVER (PARTITION BY p.chunk_id ORDER BY p.model) = 1""").fetchall())
 
 
 def _project_index(rec: dict, country: str | None) -> int:

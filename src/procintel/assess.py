@@ -110,6 +110,8 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
     for h in hits:
         matched = ["same country" if h.country_code == country else "other country",
                    f"{PROC_GROUP_LABELS.get(group, group)} terms"]
+        if h.problem:  # the problem/no-problem call is reliable (29 of 30 by hand); its kind is not shown (8 of 13 right)
+            matched.append("describes a past problem")
         shared = sorted(want & terms(h.text))
         if shared:
             matched.append("terms: " + ", ".join(shared[:4]))
