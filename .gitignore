@@ -9,6 +9,8 @@ data/cache/
 data/*.duckdb
 data/*.duckdb.wal
 data/raw/
+# prompt versions saved from the Settings page (runtime state)
+data/prompts/
 
 # Next.js (web/ also has its own .gitignore)
 web/node_modules/
