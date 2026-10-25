@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import type { AskResponse, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
+import { AnswerMap } from "@/components/ask/answer-map";
 
 type Turn = { id: number; question: string; response?: AskResponse; error?: string };
 
@@ -70,7 +71,7 @@ export function AskView() {
             <div className="ml-auto w-fit max-w-[85%] rounded-xl bg-accent px-4 py-2 text-sm text-white dark:text-black">{t.question}</div>
             {!t.response && !t.error && <p className="text-sm text-muted">Searching the evaluations…</p>}
             {t.error && <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{t.error}</p>}
-            {t.response && <Answer turnId={t.id} r={t.response} />}
+            {t.response && <Answer turnId={t.id} r={t.response} question={t.question} />}
           </div>
         ))}
         <div ref={bottom} />
@@ -117,7 +118,14 @@ export function AskView() {
   );
 }
 
-function Answer({ turnId, r }: { turnId: number; r: AskResponse }) {
+function Answer({ turnId, r, question }: { turnId: number; r: AskResponse; question: string }) {
+  const [asMap, setAsMap] = useState(false);
+  const toSource = (i: number) => {
+    const el = document.getElementById(`t${turnId}-c${i}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.classList.add("ring-2", "ring-accent", "rounded-xl");
+    setTimeout(() => el?.classList.remove("ring-2", "ring-accent"), 1500);
+  };
   if (r.unsupported) {
     return (
       <div className="space-y-2">
@@ -132,6 +140,8 @@ function Answer({ turnId, r }: { turnId: number; r: AskResponse }) {
   }
   return (
     <div className="space-y-3">
+      <button className="text-xs text-muted underline" onClick={() => setAsMap(!asMap)}>{asMap ? "Show as text" : "Show as map"}</button>
+      {asMap && <AnswerMap r={r} question={question} onSource={toSource} />}
       <div className="rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-relaxed">
         {r.answer.map((s, i) => (
           <span key={i}>
