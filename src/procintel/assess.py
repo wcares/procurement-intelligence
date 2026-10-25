@@ -117,6 +117,31 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
     return out, widened, how, conflict_notes(retriever, hits)
 
 
+def rebid_flag(info: dict[str, dict], country: str, country_name: str, cost: tuple[float, float] | None = None) -> dict | None:
+    """Lower-bound re-bidding evidence for the country, against all projects (procintel.rebid). Both sources miss
+    cases (ICRs summarise; few agencies number re-tenders), so this says "at least", never a rate."""
+    if not info or country not in info:
+        return None
+    c = info[country]
+    total_p = sum(v["projects"] for v in info.values())
+    total_r = sum(v["with_rebid"] for v in info.values())
+    overall = f"across all {total_p} projects in the data, at least {total_r} ({total_r / total_p:.0%})"
+    cost = (f"Re-tendered packages took a median of {cost[0]:.0f} days from tender to award, against {cost[1]:.0f} for all "
+            "packages." if cost else "")
+    where = country_name or country
+    if c["with_rebid"] == 0:
+        return {"id": "rebid", "label": "Re-tendering: no evidence for this country", "level": "low", "basis": "statistic",
+                "detail": f"No re-tendering found in the {c['projects']} past project(s) for {where} ({overall} re-tendered "
+                          f"contracts). Completion reports do not mention every re-tender, so this is not evidence of "
+                          f"absence. {cost}"}
+    share = c["with_rebid"] / c["projects"]
+    example = f' Example ({c["example"][0]}): "…{c["example"][1][:220]}…"' if c.get("example") else ""
+    return {"id": "rebid", "label": f"Re-tendering in past projects: at least {c['with_rebid']} of {c['projects']}",
+            "level": "high" if share >= 0.5 else "medium", "basis": "statistic",
+            "detail": f"At least {c['with_rebid']} of {c['projects']} past projects in {where} re-tendered contracts, from "
+                      f"their completion reports or re-tender references in notices ({overall}). {cost}{example}"}
+
+
 def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[dict], t: dict | None) -> list[dict]:
     """Risk flags from the trained timeline model (procintel.predict), only for targets where it beat the baseline."""
     if not bundle:
@@ -152,7 +177,8 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
 
 
 def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model: dict | None = None,
-           region: str | None = None, country_name: str = "") -> dict:
+           region: str | None = None, country_name: str = "", rebid_info: dict | None = None,
+           rebid_cost: tuple[float, float] | None = None) -> dict:
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
     t = timeline(bench, group, method)
@@ -173,5 +199,6 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
     if flags:
         caveats.append(f"Flags marked 'model' come from gradient-boosted trees trained on {model['n']} past packages "
                        "(procurement type, method, region, sector, year, CPIA). They are estimates, not commitments.")
-    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags, "governance": gov,
+    rb = rebid_flag(rebid_info or {}, country, country_name, rebid_cost)
+    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags + ([rb] if rb else []), "governance": gov,
             "precedents": precs, "meta": meta(caveats)}
