@@ -9,3 +9,4 @@
 {"time": "2026-10-25 14:34 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.535, "hybrid_p5": 0.7, "bm25_r10": 0.551, "hybrid_r10": 0.777, "gate_prec": null}
 {"time": "2026-10-25 14:37 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.535, "hybrid_p5": 0.7, "bm25_r10": 0.551, "hybrid_r10": 0.777, "gate_prec": null}
 {"time": "2026-10-25 15:43 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.532, "hybrid_p5": 0.7, "bm25_r10": 0.553, "hybrid_r10": 0.777, "gate_prec": null}
+{"time": "2026-10-25 15:58 UTC", "judged_pairs": 1248, "unjudged_in_results": 0, "bm25_p5": 0.532, "hybrid_p5": 0.7, "bm25_r10": 0.553, "hybrid_r10": 0.777, "gate_prec": null}

@@ -1,4 +1,4 @@
-# Evaluation report (2026-10-25 15:43 UTC)
+# Evaluation report (2026-10-25 15:58 UTC)
 
 Models: answers and relevance judge `openai/saluki-27b`; embeddings `openai/embeddinggemma-2`; decision `http://127.0.0.1:8082`.
 80 answerable questions; 1248 judged (question, passage) pairs.
@@ -10,7 +10,7 @@ Faithfulness is judged by the answer model and by an independent model, `openai/
 
 | metric | now | previous run |
 |---|---|---|
-| BM25 precision@5 | 0.53 | 0.54 |
+| BM25 precision@5 | 0.53 | 0.53 |
 | Hybrid precision@5 | 0.70 | 0.70 |
 | BM25 recall@10 | 0.55 | 0.55 |
 | Hybrid recall@10 | 0.78 | 0.78 |
@@ -30,7 +30,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 
 ## User feedback
 
-43 responses logged.
+44 responses logged.
 
 | page | useful | not useful | citations flagged |
 |---|---|---|---|
