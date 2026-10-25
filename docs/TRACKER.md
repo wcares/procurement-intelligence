@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **M2** Prediction model: gradient-boosted trees trained from scratch on packages for tender-to-award days (median, p90) and >180-day risk; project-grouped CV against the median baseline; shown in /assess as basis "model" only if it beats it (added 2026-10-24, by me)
 - [ ] **M3** Conflict check: compare each ICR's procurement verdict with its ISR ratings (both in the report); show disagreements with both sources (added 2026-10-24, by me)
 - [ ] **M3** Small evaluation set (~20 questions, labelled relevant passages) with retrieval precision/recall and answer faithfulness (added 2026-10-24, by me)
 - [ ] **M4** Feedback capture: useful / wrong / bad citation buttons on answers and assessments, stored in the database with the response (added 2026-10-24, by me)
@@ -86,6 +85,8 @@ _(empty)_
 
 ### Improvements
 
+- [ ] Survival model for award time that uses never-awarded tenders as censored rows (recent tenders look fast because slow ones are unawarded; the current model still gives Kenya CW/RFB 17% >180 days where 37% of comparable past packages took that long) (added 2026-10-24, by me)
+- [ ] Contract value as a feature: convert local-currency prices to USD and use the planner's estimate (added 2026-10-24, by me)
 - [ ] Precedents: decision model checks each candidate is a lesson relevant to the package (Kenya/CW/RFB still shows a disbursement table and an indicator list) (added 2026-10-24, by me)
 - [ ] Re-bidding label per project from ICRs via the decision model, then re-bidding risk (added 2026-10-24, by me)
 - [ ] Amendment probability from notice versions, after confirming what a version number means (added 2026-10-24, by me)
@@ -94,6 +95,7 @@ _(empty)_
 
 ### Done
 
+- [x] Prediction model: gradient-boosted trees (from scratch) for tender-to-award days p50/p90 and >180-day risk; /assess adds flags with basis "model" — COMMIT — 5-fold CV grouped by project on 1,145 packages vs the app's median baseline: typical-days MAE 74.4 vs 81.2, p90 pinball 25.2 vs 26.0, >180 Brier 0.147 vs 0.167 (AUC 0.81 vs 0.74); a model is used only with ≥2% lower error. Live check: Kenya CW/RFB 102 days (history 113)
 - [x] Timeline benchmarks and risk flags from historical statistics, falling back to wider slices when thin — bf7f501 — Kenya/CW/RFB n=195 median 113, same as the mock
 - [x] BM25 retrieval via LlamaIndex with country / procurement-type / kind filters — ea742cf — tests/test_retrieve.py
 - [x] Hybrid retrieval: BM25 + EmbeddingGemma vectors, reciprocal rank fusion, BM25 fallback — a36f209 — 3 tests with a fake embedder; 4-question comparison in the commit
@@ -146,6 +148,7 @@ _(empty)_
 
 - [x] Embeddings and tags re-run only for new or changed passages (text hash per model) — a36f209, d19a6e8 — re-run embeds 0
 - [x] All models swappable by configuration; documented in .env.example — b8d7c0e — backend starts from it
+- [x] Idle model servers release memory: --sleep-idle-seconds 300 on all three llama-servers — 911f037 — Saluki wired memory 12.6 → 3.6 GB after idle, 1.4 s to wake
 
 ---
 

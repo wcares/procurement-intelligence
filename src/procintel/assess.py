@@ -8,6 +8,7 @@ from datetime import date
 from procintel.answer import citation, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
+from procintel.predict import LONG_DAYS, predict_one
 from procintel.tag import NONE
 
 # A passage tagged "none of these" at this confidence describes no problem and is not offered as a precedent.
@@ -80,7 +81,39 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
     return out, widened, retrieval_note(hits)
 
 
-def assess(retriever: Retriever, bench: dict, governance: dict, req: dict) -> dict:
+def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[dict], t: dict | None) -> list[dict]:
+    """Risk flags from the trained timeline model (procintel.predict), only for targets where it beat the baseline."""
+    if not bundle:
+        return []
+    use, m = bundle["use"], bundle["metrics"]
+    if not (use.get("days_p50") or use.get("over_180")):
+        return []
+    row = {"proc_group": req["procGroup"], "method_code": req["methodCode"], "region": region,
+           "sector": req.get("sector") or None, "tender_start": date.today().isoformat()}
+    row.update({f"cpia_{g['indicator']}": g["value"] for g in gov})
+    p = predict_one(bundle, row)
+    tested = f"tested on {bundle['n']} past packages from projects it had not seen"
+    out = []
+    if use.get("days_p50"):
+        days = round(p["p50"])
+        vs = f"; the historical median for comparable packages is {round(t['median'])}" if t else ""
+        out.append({"id": "model-timeline", "label": f"Predicted award time: about {days} days", "basis": "model",
+                    "level": "high" if days > LONG_DAYS else "medium" if days > 120 else "low",
+                    "detail": f"Model estimate for this package{vs}."
+                              + (f" Slow case (1 in 10 take longer): about {round(p['p90'])} days." if use.get("days_p90") else "")
+                              + f" Typical error {m['days_p50_mae'][0]:.0f} days, "
+                              f"vs {m['days_p50_mae'][1]:.0f} for the historical median ({tested})."})
+    if use.get("over_180"):
+        pl = p["p_long"]
+        out.append({"id": "model-long", "label": f"Risk award takes longer than 6 months: {pl:.0%}", "basis": "model",
+                    "level": "high" if pl > 0.35 else "medium" if pl > 0.2 else "low",
+                    "detail": f"Model probability for this package. It ranks slow packages better than the historical "
+                              f"share (AUC {m['over_180_auc'][0]:.2f} vs {m['over_180_auc'][1]:.2f}; {tested})."})
+    return out
+
+
+def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model: dict | None = None,
+           region: str | None = None) -> dict:
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
     t = timeline(bench, group, method)
@@ -95,5 +128,9 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict) -> di
         caveats.append("Too few packages for this exact method; the timeline uses a wider slice.")
     if widened:
         caveats.append("Few evaluation passages for this country; precedents include other countries.")
-    return {"timeline": t, "risks": risks(bench, group, method, t, gov), "governance": gov,
+    flags = model_flags(model, req, region, gov, t)
+    if flags:
+        caveats.append(f"Flags marked 'model' come from gradient-boosted trees trained on {model['n']} past packages "
+                       "(procurement type, method, region, sector, year, CPIA). They are estimates, not commitments.")
+    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags, "governance": gov,
             "precedents": precs, "meta": meta(caveats)}

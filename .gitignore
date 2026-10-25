@@ -21,3 +21,4 @@ web/next-env.d.ts
 .env.*
 .venv-py39
 !.env.example
+data/models/

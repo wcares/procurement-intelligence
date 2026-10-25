@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import stats
+from procintel import predict, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
@@ -145,6 +145,8 @@ class State:
         con.close()
         self.retriever = Retriever(db_path)
         idf(self.retriever)  # term weights for picking answer sentences
+        self.timeline_model = predict.load()  # None until `python -m procintel.predict` has been run
+        self.region = {c["code"]: c["region"] for c in self.options["countries"]}
 
 
 @lru_cache(maxsize=1)
@@ -178,7 +180,8 @@ def get_options() -> dict:
 @app.post("/assess", response_model=AssessResponse)
 def post_assess(req: AssessRequest) -> dict:
     s = state()
-    return run_assess(s.retriever, s.bench, s.governance, req.model_dump())
+    body = req.model_dump()
+    return run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]))
 
 
 @app.post("/ask", response_model=AskResponse)
