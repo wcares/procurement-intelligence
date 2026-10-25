@@ -163,6 +163,26 @@ _(empty)_
 
 ---
 
+## UI (web app)
+
+> Design and the user's UI request log: docs/ui-design.md. Each request is logged there (U1, U2 ...) and queued here.
+
+### Queue
+
+- [ ] U2 Home dashboard (user, 2026-10-25): graphs of the riskiest things that happened in past projects, worst to best, and trends over time, every number clickable to its records; design in docs/ui-design.md section 1 (with its cautions on recent years and problem kinds)
+- [ ] U3 Interactive visuals for results (user, 2026-10-25): besides the text report, a tender stage timeline with risks placed and coloured by stage, clickable to their evidence; answer map for Ask; design in docs/ui-design.md section 2
+- [ ] U4 Pipeline pages (user, 2026-10-25): connectors, event log, rules, upload, as part of the event pipeline build; design in docs/ui-design.md section 3 and docs/event-pipeline-design.md
+
+### Improvements
+
+_(empty)_
+
+### Done
+
+- [x] U1 Configuration dashboard (Settings page, profiles, search-quality check) — see Module 4
+
+---
+
 ## Proposal (the written deliverable)
 
 ### Queue
