@@ -140,6 +140,7 @@ _(empty)_
 
 ### Queue
 
+- [ ] Job priorities and shadow builds (user, 2026-10-25): high / normal / background priorities in the job queue; alternatives (first: semantic chunking with EmbeddingGemma for unstructured documents and over-long paragraphs) built as background shadows next to the live index and promoted only after the evaluation compares them; design in docs/event-pipeline-design.md section 6c
 - [ ] Configurable and scalable by design (user, 2026-10-25, standing rule: "nothing hardcoded or need code change to change to different configuration or models"): principles and audit in docs/architecture-principles.md; first a single data-location setting replacing the path repeated in ~22 modules, then prompts as editable files, then storage and vector-index interfaces with the event pipeline
 - [ ] Event-driven update pipeline (user, 2026-10-25: a state and event system, "certain events change the states ... only those specific events trigger certain actions ... so it doesn't need to run the full pipeline", with generic hooks/rules editable through the UI): design in docs/event-pipeline-design.md (entity states, typed events, action registry on the job queue, default rules plus UI-editable rules with guardrails, hourly change detection, weekly refresh kept as reconciliation); build in the four steps of its section 10 after the user's review
 
@@ -173,6 +174,7 @@ _(empty)_
 - [ ] U2 Home dashboard (user, 2026-10-25): graphs of the riskiest things that happened in past projects, worst to best, and trends over time, every number clickable to its records; design in docs/ui-design.md section 1 (with its cautions on recent years and problem kinds)
 - [ ] U3 Interactive visuals for results (user, 2026-10-25): besides the text report, a tender stage timeline with risks placed and coloured by stage, clickable to their evidence; answer map for Ask; design in docs/ui-design.md section 2
 - [ ] U4 Pipeline pages (user, 2026-10-25): connectors, event log, rules, upload, as part of the event pipeline build; design in docs/ui-design.md section 3 and docs/event-pipeline-design.md
+- [ ] U6 Evaluation page (user, 2026-10-25): quality over time, live-vs-shadow and model comparisons with promote/discard, prediction-model history, labelling queue for judge checks and new evaluation questions; design in docs/ui-design.md section 3b
 
 ### Improvements
 

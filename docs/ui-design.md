@@ -87,6 +87,19 @@ The Settings page grows into an operations area, using the event pipeline design
 | **Rules** | rule list, editor (event, condition, actions), dry run, reset to defaults | event pipeline step 3 |
 | **Upload** | add a file; follow it through extraction, classification and linking | event pipeline (intake) |
 
+## 3b. Evaluation page (admins)
+
+No page yet: results go to eval/report.md, eval/history.jsonl and logs; only the Settings "Check search quality"
+compares before and after a change. The page:
+
+| block | shows | from |
+|---|---|---|
+| Quality over time | search precision and recall, evidence-check precision, answers given, traps refused, sentences supported (answer model and independent judge), median time; each run marked with the refresh, retrain or promotion before it | eval/history.jsonl |
+| Comparisons | live vs shadow, model A vs B: each measure side by side, Promote / Discard | shadow evaluations, comparison runs (e.g. eval/report-qwen3-8b-q4.md) |
+| Prediction models | cross-validated error vs baseline per retrain, drift-check results, error on newly awarded packages | model bundle, jobs |
+| Labelling queue | random judge labels to confirm (agreement shown, 54/60 today); refused and not-useful real questions to turn into evaluation questions; judge disagreements | judgments, feedback review |
+| Run | queue a full evaluation or a quick search-quality check (background priority) | job queue |
+
 ## 4. Visual language
 
 - One colour scale for risk everywhere: red high, amber medium, grey low; green only for "better than typical". The
@@ -146,6 +159,7 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U3 | 2026-10-25 | Interactive visual for query results besides the text report: risks at each tender stage, with colours, clickable | queued |
 | U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | queued, after event pipeline step 1 |
 | U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | decided (section 4, Components); applies to U2-U4 |
+| U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | queued (section 3b) |
 
 ## 7. Open questions
 

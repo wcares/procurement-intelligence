@@ -186,6 +186,26 @@ or webhook address, cursor, rate limit, retry with backoff, last success and las
 there and backs off; it does not stop the pipeline. Connector runs are jobs in the existing queue, so polling also waits
 for idle time unless a connector is marked urgent.
 
+## 6c. Job priorities and shadow builds
+
+**Priorities** (user, 2026-10-25: "all the jobs will be prioritized"). Every job has a priority; the worker always takes
+the highest pending one, and every job pauses between steps when a request or a higher-priority job arrives.
+
+| priority | examples | runs |
+|---|---|---|
+| high | process a pushed or uploaded item, reload | first, as soon as the app is idle |
+| normal | refresh, drift check, retrain, feedback review | after high |
+| background | re-chunking experiments, re-judging, shadow builds, evaluations of shadows | only when nothing else waits and the app is idle; may span many idle periods (resumable per document) |
+
+Rules may set the priority of the jobs they queue; defaults come from the action.
+
+**Shadow builds with an evaluation gate.** An alternative (a semantic chunker, another embedding model, a new tagging
+prompt, different chunk sizes) is built as a background job into separate tables next to the live ones; users keep the
+live index. A background evaluation then compares live and shadow on the evaluation set (new passages judged first).
+The result is shown on the Evaluation page with Promote / Discard; promoting switches in one step and queues the
+follow-on work (re-tagging) in the background. First candidate: semantic chunking with EmbeddingGemma (sentence
+embeddings cached by fingerprint, boundaries at similarity drops) for unstructured documents and over-long paragraphs.
+
 ## 7. Detection schedule
 
 - A **change detection job** queued every hour (configurable) asks each source only for what is new since the last
