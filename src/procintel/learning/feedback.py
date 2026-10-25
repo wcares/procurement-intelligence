@@ -33,6 +33,9 @@ def _connect(db_path: Path | None) -> duckdb.DuckDBPyConnection:
     con.execute("""CREATE TABLE IF NOT EXISTS feedback (
         feedback_id VARCHAR PRIMARY KEY, response_id VARCHAR, rating VARCHAR, citation_id VARCHAR, comment VARCHAR,
         created_at TIMESTAMP)""")
+    # pseudonymous id of the signed-in user (procintel.auth.service.pseudonym): the pilot's adoption measures
+    con.execute("ALTER TABLE response_log ADD COLUMN IF NOT EXISTS user_id VARCHAR")
+    con.execute("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS user_id VARCHAR")
     return con
 
 
@@ -40,15 +43,16 @@ def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-def log_response(kind: str, request: dict, response: dict, db_path: Path | None = None) -> str:
+def log_response(kind: str, request: dict, response: dict, db_path: Path | None = None,
+                 user_id: str | None = None) -> str:
     """Store a response and return its id (also put into response['meta']['responseId'])."""
     rid = uuid.uuid4().hex
     response["meta"]["responseId"] = rid
     with _LOCK:
         con = _connect(db_path)
         try:
-            con.execute("INSERT INTO response_log VALUES (?, ?, ?, ?, ?)",
-                        [rid, kind, json.dumps(request), json.dumps(response), _now()])
+            con.execute("INSERT INTO response_log (response_id, kind, request, response, created_at, user_id) "
+                        "VALUES (?, ?, ?, ?, ?, ?)", [rid, kind, json.dumps(request), json.dumps(response), _now(), user_id])
         finally:
             con.close()
     return rid
@@ -60,7 +64,7 @@ def _cited_ids(response: dict) -> set[str]:
 
 
 def add(response_id: str, rating: str, citation_id: str | None = None, comment: str | None = None,
-        db_path: Path | None = None) -> str:
+        db_path: Path | None = None, user_id: str | None = None) -> str:
     """Store one rating. ValueError for an unknown response, a citation the response did not show, or a bad rating."""
     if rating not in RATINGS:
         raise ValueError(f"rating must be one of {RATINGS}")
@@ -75,8 +79,9 @@ def add(response_id: str, rating: str, citation_id: str | None = None, comment: 
             if citation_id and citation_id not in _cited_ids(json.loads(row[0])):
                 raise ValueError("that citation was not part of this response")
             fid = uuid.uuid4().hex
-            con.execute("INSERT INTO feedback VALUES (?, ?, ?, ?, ?, ?)",
-                        [fid, response_id, rating, citation_id, (comment or "").strip()[:1000] or None, _now()])
+            con.execute("INSERT INTO feedback (feedback_id, response_id, rating, citation_id, comment, created_at, "
+                        "user_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        [fid, response_id, rating, citation_id, (comment or "").strip()[:1000] or None, _now(), user_id])
         finally:
             con.close()
     return fid

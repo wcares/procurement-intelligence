@@ -1,4 +1,6 @@
 import type {
+  Account,
+  AuthUser,
   AskRequest,
   AskResponse,
   AssessRequest,
@@ -22,12 +24,16 @@ import type {
 // Calls go to this app's own server, which forwards them to the backend named by API_URL (read per request, so the
 // built app is not tied to one backend; see src/app/api/backend). Without API_URL the in-app mock answers.
 export const API_BASE = "/api/backend";
+export const SIGNED_OUT = "procintel:signed-out";
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
+  if (res.status === 401 && typeof window !== "undefined" && !path.startsWith("/auth/")) {
+    window.dispatchEvent(new Event(SIGNED_OUT)); // the session ended: AuthProvider re-checks and shows the sign-in page
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`${init?.method ?? "GET"} ${path} failed: ${res.status} ${body.slice(0, 200)}`);
@@ -35,7 +41,28 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/** POST/PATCH whose 400 answer is an error message the form shows in place. */
+async function send<T>(path: string, method: string, body: unknown): Promise<T | { error: string }> {
+  const res = await fetch(`${API_BASE}${path}`, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const out = await res.json().catch(() => ({}));
+  if (res.ok) return out as T;
+  if (res.status === 400 || res.status === 401 || res.status === 429) return { error: out.error ?? `failed (${res.status})` };
+  throw new Error(`${method} ${path} failed: ${res.status}`);
+}
+
 export const api = {
+  /** null when not signed in */
+  me: async (): Promise<AuthUser | null> => {
+    const res = await fetch(`${API_BASE}/auth/me`);
+    return res.ok ? ((await res.json()) as AuthUser) : null;
+  },
+  login: (username: string, password: string) => send<AuthUser>("/auth/login", "POST", { username, password }),
+  logout: () => call<{ ok: boolean }>("/auth/logout", { method: "POST" }),
+  users: () => call<{ users: Account[] }>("/auth/users"),
+  createUser: (username: string, password: string, role: string) =>
+    send<{ users: Account[] }>("/auth/users", "POST", { username, password, role }),
+  updateUser: (username: string, change: { role?: string; active?: boolean; password?: string }) =>
+    send<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, "PATCH", change),
   options: () => call<Options>("/options"),
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),

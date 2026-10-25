@@ -13,23 +13,26 @@ from __future__ import annotations
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from procintel.api import background, config
+from procintel.api import background, config, security
 from procintel.api.routes import ROUTERS
 from procintel.api.state import state
+from procintel.auth import service
 
 CORS_DEFAULT = "http://localhost:3100,http://127.0.0.1:3100"
-QUIET_PATHS = {("GET", "/health"), ("GET", "/jobs")}  # requests that do not postpone background jobs
+QUIET_PATHS = {("GET", "/health"), ("GET", "/jobs"), ("GET", "/auth/me")}  # do not postpone background jobs
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     for key, err in config.load_saved().items():  # saved settings from the configuration page
         print(f"config: saved value for {key} ignored: {err}")
+    if admin := service.ensure_first_admin():  # no accounts yet: the admin named in the environment
+        print(f"auth: created the first admin account {admin!r}")
     state()  # build the index before the first request rather than during it
     background.start()
     yield
@@ -55,8 +58,8 @@ def create_app() -> FastAPI:
         errors = [{"loc": e["loc"], "msg": e["msg"]} for e in exc.errors()]
         return JSONResponse({"error": "invalid request", "detail": errors}, status_code=400)
 
-    for router in ROUTERS:
-        api.include_router(router)
+    for router, role in ROUTERS:
+        api.include_router(router, dependencies=[Depends(security.require(role))] if role else [])
     return api
 
 

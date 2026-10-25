@@ -5,6 +5,7 @@ from procintel.api.app import app
 
 
 def test_reload_swaps_state_and_is_refused_from_other_hosts(monkeypatch):
+    monkeypatch.setenv("PROCINTEL_AUTH", "local")   # no session: only an administrative client address may reload
     built = []
 
     class Fake:

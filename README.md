@@ -110,6 +110,11 @@ The backend serves `/options`, `/assess`, `/ask`, `/feedback` and `/config` (`/h
 endpoints, so do not expose it beyond localhost. After a refresh, `POST /admin/reload` (accepted only from this
 machine) loads the new data without a restart; requests keep using the old data until the new one is ready.
 
+Sign-in: the backend asks for a username and password (`PROCINTEL_AUTH=local`). Put the first admin in a local
+`.env` (not in git; see `.env.example`), start the backend with both files loaded
+(`set -a; . ./.env.example; . ./.env; set +a`), then add planners on the Settings page. `PROCINTEL_AUTH=off` turns
+sign-in off for a one-person install.
+
 ### 5. Run as containers (the production layout)
 
 ```bash

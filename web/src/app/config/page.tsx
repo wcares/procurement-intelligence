@@ -1,3 +1,4 @@
+import { AdminOnly } from "@/components/auth";
 import { ConfigView } from "./config-view";
 
 export default function ConfigPage() {
@@ -10,7 +11,9 @@ export default function ConfigPage() {
           environment and never shown here.
         </p>
       </div>
-      <ConfigView />
+      <AdminOnly>
+        <ConfigView />
+      </AdminOnly>
     </>
   );
 }

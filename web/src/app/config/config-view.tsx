@@ -7,6 +7,7 @@ import { FeedbackReview } from "./feedback-review";
 import { Jobs } from "./jobs-panel";
 import { Pipeline } from "./pipeline-panel";
 import { Prompts } from "./prompts-panel";
+import { Users } from "./users-panel";
 
 type Draft = Record<string, string>;
 
@@ -73,6 +74,7 @@ export function ConfigView() {
   const input = "w-full rounded-md border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-accent";
   return (
     <div className="mx-auto max-w-3xl space-y-8">
+      <Users />
       <Jobs />
       <Pipeline />
       <FeedbackReview />

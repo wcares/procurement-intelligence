@@ -350,3 +350,19 @@ export interface DryRunResponse {
   candidate: DryRunSide;
   current: DryRunSide;
 }
+
+/** The signed-in user (GET /auth/me). mode "off": sign-in disabled, everyone is an admin. */
+export interface AuthUser {
+  username: string;
+  role: "planner" | "admin";
+  mode: "local" | "off";
+}
+
+/** An account (GET /auth/users, admins). */
+export interface Account {
+  username: string;
+  role: "planner" | "admin";
+  active: boolean;
+  createdAt: string | null;
+  lastLogin: string | null;
+}

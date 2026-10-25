@@ -139,6 +139,12 @@ admin users who run the pipeline ... exactly the role based").
   (docs/pilot-plan.md, phase 0).
 - **Navigation by role**: planners see the planner app; admins also see an Admin area.
 
+**Built (2026-10-25):** `procintel.auth` (scrypt hashes, sessions stored as token hashes in an HTTP-only cookie, five
+failed attempts per name or address in 15 minutes lock further tries, first admin from the environment, accounts on
+the Settings page or `python -m procintel.auth`), `PROCINTEL_AUTH` = local | off, roles per endpoint group in the
+backend (`procintel.api.routes.ROUTERS`), a pseudonymous user id on every logged response and feedback, a sign-in
+page, navigation by role and a Users panel.
+
 ## 4. Visual language
 
 - One colour scale for risk everywhere: red high, amber medium, grey low; green only for "better than typical". The

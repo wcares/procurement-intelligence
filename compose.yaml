@@ -12,7 +12,10 @@
 x-backend: &backend
   build: .
   image: procintel-api:dev
-  env_file: .env.example
+  env_file:
+    - .env.example
+    - path: .env              # local settings such as the first admin (not in git); optional
+      required: false
   environment: &backend-env
     PROCINTEL_DB_URL: postgresql://procintel:procintel@postgres:5432/procintel
     PROCINTEL_VECTOR_URL: http://qdrant:6333

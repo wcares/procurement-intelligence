@@ -204,3 +204,20 @@ class PromptActivate(BaseModel):
 
 class RuleSet(BaseModel):
     rules: list[dict] = Field(max_length=200)  # [{id, on, fields, do, enabled}], validated by procintel.pipeline.rules
+
+
+class Login(BaseModel):
+    username: str = Field(min_length=1, max_length=60)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class NewUser(BaseModel):
+    username: str = Field(min_length=1, max_length=60)
+    password: str = Field(min_length=1, max_length=200)
+    role: Literal["planner", "admin"] = "planner"
+
+
+class UserUpdate(BaseModel):
+    role: Literal["planner", "admin"] | None = None
+    active: bool | None = None
+    password: str | None = Field(default=None, max_length=200)

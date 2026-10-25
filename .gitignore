@@ -13,6 +13,8 @@ data/raw/
 data/prompts/
 # pipeline rules edited on the Settings page (runtime state; absent = the defaults)
 data/pipeline_rules.json
+# salt of the pseudonymous user ids in the logs (secret: with it the ids could be linked back to usernames)
+data/auth_salt
 
 # Next.js (web/ also has its own .gitignore)
 web/node_modules/

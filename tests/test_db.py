@@ -15,7 +15,7 @@ def test_postgres_url_selects_postgres_only_for_the_known_databases(monkeypatch,
     con = db.connect(tmp_path / "scratch.duckdb")   # not one of the three databases: stays a DuckDB file
     assert con.execute("SELECT 1").fetchone() == (1,)
     con.close()
-    assert set(db.SCHEMAS) == {paths.DB_PATH, paths.FEEDBACK_DB, paths.JOBS_DB, paths.PIPELINE_DB}
+    assert sorted(db.SCHEMAS.values()) == ["auth", "feedback", "jobs", "pipeline", "public"]
 
 
 def test_suppliers_read_from_json_text_and_from_older_struct_lists():
