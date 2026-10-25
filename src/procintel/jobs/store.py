@@ -26,7 +26,11 @@ from procintel.core import db, paths
 
 DB_PATH = paths.JOBS_DB
 MAX_ATTEMPTS = 3
-STALE = timedelta(minutes=30)  # longer than any single step (a refresh with fetching is one step of a few minutes)
+STALE = timedelta(minutes=30)
+# lower number runs first; a job pauses between steps when a job of a lower number waits (docs/event-pipeline-design.md 6c)
+PRIORITIES = {"high": 0, "normal": 1, "background": 2}
+DEFAULT_PRIORITY: dict[str, str] = {}  # job kind -> priority name, filled where the kinds are registered (jobs.handlers)
+ORDER = "coalesce(priority, 1), created_at"  # longer than any single step (a refresh with fetching is one step of a few minutes)
 _LOCK = threading.Lock()
 
 
@@ -46,6 +50,7 @@ def _connect(db_path: Path | None) -> duckdb.DuckDBPyConnection:
         steps INTEGER)""")
     con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS worker VARCHAR")
     con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS heartbeat_at TIMESTAMP")
+    con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS priority INTEGER")
     con.execute("CREATE TABLE IF NOT EXISTS meta (key VARCHAR PRIMARY KEY, value VARCHAR)")
     return con
 
@@ -64,8 +69,18 @@ def _row(cols: list[str], r: tuple) -> dict:
     return d
 
 
-def enqueue(kind: str, reason: str, params: dict | None = None, dedupe: bool = True, db_path: Path | None = None) -> str | None:
-    """Add a job; with dedupe, nothing is added when a job of the same kind is already pending or running (None)."""
+def priority_of(kind: str, priority: str | None = None) -> int:
+    name = priority or DEFAULT_PRIORITY.get(kind, "normal")
+    if name not in PRIORITIES:
+        raise ValueError(f"unknown priority {name!r}; one of {', '.join(PRIORITIES)}")
+    return PRIORITIES[name]
+
+
+def enqueue(kind: str, reason: str, params: dict | None = None, dedupe: bool = True, db_path: Path | None = None,
+            priority: str | None = None) -> str | None:
+    """Add a job; with dedupe, nothing is added when a job of the same kind is already pending or running (None).
+    The priority defaults to the one registered for the kind."""
+    prio = priority_of(kind, priority)
     with _LOCK:
         con = _connect(db_path)
         try:
@@ -73,9 +88,9 @@ def enqueue(kind: str, reason: str, params: dict | None = None, dedupe: bool = T
                                       [kind]).fetchone():
                 return None
             jid = uuid.uuid4().hex[:12]
-            con.execute("INSERT INTO jobs (id, kind, params, reason, status, created_at, attempts, steps) "
-                        "VALUES (?, ?, ?, ?, 'pending', ?, 0, 0)",
-                        [jid, kind, json.dumps(params or {}), reason, _now()])
+            con.execute("INSERT INTO jobs (id, kind, params, reason, status, created_at, attempts, steps, priority) "
+                        "VALUES (?, ?, ?, ?, 'pending', ?, 0, 0, ?)",
+                        [jid, kind, json.dumps(params or {}), reason, _now(), prio])
             return jid
         finally:
             con.close()
@@ -83,7 +98,7 @@ def enqueue(kind: str, reason: str, params: dict | None = None, dedupe: bool = T
 
 _CLAIM = """UPDATE jobs.jobs SET status = 'running', worker = '{w}', started_at = coalesce(started_at, now() at time zone 'utc'),
     heartbeat_at = now() at time zone 'utc'
-    WHERE id = (SELECT id FROM jobs.jobs WHERE status = 'pending' ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1)
+    WHERE id = (SELECT id FROM jobs.jobs WHERE status = 'pending' ORDER BY {order} FOR UPDATE SKIP LOCKED LIMIT 1)
     RETURNING id"""
 
 
@@ -111,13 +126,13 @@ def next_pending(db_path: Path | None = None, worker: str = "local") -> dict | N
         con = _connect(db_path)
         try:
             if _shared(db_path):
-                sql = _CLAIM.format(w=worker.replace("'", "")).replace("'", "''")
+                sql = _CLAIM.format(w=worker.replace("'", ""), order=ORDER).replace("'", "''")
                 r = _claim(con, sql)
                 if r is None:
                     return None
                 q = con.execute("SELECT * FROM jobs WHERE id = ?", [r[0]])
                 return _row([d[0] for d in q.description], q.fetchone())
-            q = con.execute("SELECT * FROM jobs WHERE status = 'pending' ORDER BY created_at LIMIT 1")
+            q = con.execute(f"SELECT * FROM jobs WHERE status = 'pending' ORDER BY {ORDER} LIMIT 1")
             r = q.fetchone()
             if r is None:
                 return None
@@ -136,6 +151,16 @@ def _update(jid: str, sql: str, params: list, db_path: Path | None) -> None:
             con.execute(f"UPDATE jobs SET {sql} WHERE id = ?", params + [jid])
         finally:
             con.close()
+
+
+def higher_waiting(priority: int | None, db_path: Path | None = None) -> bool:
+    """True when a pending job has a higher priority (lower number) than `priority`."""
+    con = _connect(db_path)
+    try:
+        return bool(con.execute("SELECT 1 FROM jobs WHERE status = 'pending' AND coalesce(priority, 1) < ? LIMIT 1",
+                                [1 if priority is None else priority]).fetchone())
+    finally:
+        con.close()
 
 
 def checkpoint(jid: str, cursor: dict, db_path: Path | None = None) -> None:

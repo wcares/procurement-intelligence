@@ -27,12 +27,15 @@ def post_reload(request: Request) -> dict:
 
 @router.get("/jobs")
 def get_jobs() -> dict:
-    return {"jobs": jobs_store.recent()} | background.status()
+    names = {v: k for k, v in jobs_store.PRIORITIES.items()}
+    jobs = [j | {"priority": names.get(j.get("priority"), "normal")} for j in jobs_store.recent()]
+    kinds = {k: jobs_store.DEFAULT_PRIORITY.get(k, "normal") for k in sorted(jobs_store.DEFAULT_PRIORITY)}
+    return {"jobs": jobs, "kinds": kinds} | background.status()
 
 
 @router.post("/jobs")
 def post_job(req: JobRequest, request: Request) -> dict:
     if not access.is_admin_client(request):
         return access.refuse("queueing a job")
-    jid = jobs_store.enqueue(req.kind, req.reason)
+    jid = jobs_store.enqueue(req.kind, req.reason, priority=req.priority)
     return {"queued": jid, "note": None if jid else "a job of this kind is already waiting or running"}

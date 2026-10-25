@@ -97,7 +97,8 @@ def run_one(job: dict, activity: Activity, ctx: dict, db_path=None) -> str:
         while True:
             cursor = next(gen)
             store.checkpoint(job["id"], cursor, db_path)
-            if activity.last != started:  # a request came in during the step: give the machine back
+            # a request came in during the step, or a more urgent job is waiting: give the machine back
+            if activity.last != started or store.higher_waiting(job.get("priority"), db_path):
                 store.pause(job["id"], db_path)
                 return "pending"
     except StopIteration as done:

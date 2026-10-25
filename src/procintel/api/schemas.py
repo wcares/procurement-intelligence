@@ -190,3 +190,4 @@ class CompareRequest(BaseModel):
 class JobRequest(BaseModel):
     kind: Literal["drift_check", "retrain", "refresh", "feedback_review"]
     reason: str = Field(default="queued from the Settings page", max_length=200)
+    priority: Literal["high", "normal", "background"] | None = None  # default: the kind's registered priority

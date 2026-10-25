@@ -57,7 +57,9 @@ export function Jobs() {
         <p className="text-xs text-muted">
           Jobs run only after {data.runAfterIdleSeconds} s without requests and pause when someone uses the app. Idle now:{" "}
           {data.idleSeconds} s{data.running ? ` · running: ${JOB_LABELS[data.running] ?? data.running}` : ""}
-          {!data.workerOn && " · worker is off (PROCINTEL_JOBS=0)"}.
+          {!data.workerOn && " · worker is off (PROCINTEL_JOBS=0)"}
+          {data.workerMode === "external" && " · separate worker processes"}. High-priority jobs run first, background
+          jobs only when nothing else waits; a running job pauses between steps when a more urgent one arrives.
         </p>
         <div className="flex flex-wrap gap-2">
           {Object.entries(JOB_LABELS).map(([kind, label]) => (
@@ -75,6 +77,7 @@ export function Jobs() {
               <li key={j.id} className="flex flex-wrap items-baseline gap-x-2 py-1.5">
                 <span className="font-medium">{JOB_LABELS[j.kind] ?? j.kind}</span>
                 <span className={`text-xs ${j.status === "failed" ? "text-risk-high" : "text-muted"}`}>{j.status}</span>
+                {j.priority !== "normal" && <span className="rounded border border-line px-1 text-xs text-muted">{j.priority}</span>}
                 <span className="text-xs text-muted">{new Date(j.finished_at ?? j.created_at).toLocaleString()}</span>
                 <span className="w-full text-xs text-muted">{jobSummary(j)}</span>
               </li>

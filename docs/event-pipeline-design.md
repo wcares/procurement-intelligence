@@ -198,7 +198,9 @@ the highest pending one, and every job pauses between steps when a request or a 
 | normal | refresh, drift check, retrain, feedback review | after high |
 | background | re-chunking experiments, re-judging, shadow builds, evaluations of shadows | only when nothing else waits and the app is idle; may span many idle periods (resumable per document) |
 
-Rules may set the priority of the jobs they queue; defaults come from the action.
+Rules may set the priority of the jobs they queue; defaults come from the action. **Built (2026-10-25):** `procintel.jobs` stores a priority per job
+(registered default per kind, overridable when queueing), claims the highest first in both engines and pauses a
+running job between steps when a more urgent one waits.
 
 **Shadow builds with an evaluation gate.** An alternative (a semantic chunker, another embedding model, a new tagging
 prompt, different chunk sizes) is built as a background job into separate tables next to the live ones; users keep the

@@ -24,9 +24,12 @@ Handler = Callable[[dict, dict | None, dict], Iterator[dict]]
 REGISTRY: dict[str, Handler] = {}
 
 
-def handler(kind: str) -> Callable[[Handler], Handler]:
+def handler(kind: str, priority: str = "normal") -> Callable[[Handler], Handler]:
+    """Register a job kind with its default priority (high, normal or background)."""
+    store.priority_of(kind, priority)  # rejects an unknown priority name
     def register(f: Handler) -> Handler:
         REGISTRY[kind] = f
+        store.DEFAULT_PRIORITY[kind] = priority
         return f
     return register
 

@@ -111,3 +111,36 @@ def test_activity_publisher_writes_at_most_once_per_interval(tmp_path, monkeypat
         clock.t = t
         p.touch()
     assert writes == [0, 10, 25]
+
+
+def test_priorities_order_the_queue_and_pause_lower_jobs(tmp_path, monkeypatch):
+    db = tmp_path / "jobs.duckdb"
+    monkeypatch.setitem(store.DEFAULT_PRIORITY, "shadow_test", "background")
+    bg = store.enqueue("shadow_test", "t", db_path=db)
+    normal = store.enqueue("refresh", "t", db_path=db)
+    high = store.enqueue("reload_test", "t", db_path=db, priority="high")
+    assert [store.next_pending(db)["id"] for _ in range(3)] == [high, normal, bg]   # high, then normal, then background
+
+    clock = Clock()
+    activity = worker.Activity(clock)
+    db2 = tmp_path / "jobs2.duckdb"
+    steps = []
+
+    def slow(params, cursor, ctx):
+        for i in range((cursor or {}).get("i", 0), 3):
+            steps.append(i)
+            if i == 0:
+                store.enqueue("urgent", "t", db_path=db2, priority="high")   # a more urgent job arrives
+            yield {"i": i + 1}
+        return {}
+    monkeypatch.setitem(handlers.REGISTRY, "slow", slow)
+    monkeypatch.setitem(store.DEFAULT_PRIORITY, "slow", "background")
+    store.enqueue("slow", "t", db_path=db2)
+    assert worker.run_one(store.next_pending(db2), activity, {}, db2) == "pending"   # paused after its first step
+    assert steps == [0] and store.next_pending(db2)["kind"] == "urgent"             # the urgent job goes first
+
+
+def test_unknown_priority_is_refused(tmp_path):
+    import pytest
+    with pytest.raises(ValueError):
+        store.enqueue("refresh", "t", db_path=tmp_path / "j.duckdb", priority="urgent")

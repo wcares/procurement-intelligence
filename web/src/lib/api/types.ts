@@ -221,14 +221,25 @@ export interface Job {
   error: string | null;
   attempts: number;
   steps: number;
+  /** high runs first; a running job pauses between steps when a higher one waits */
+  priority: JobPriority;
+  worker: string | null;
 }
+
+export type JobPriority = "high" | "normal" | "background";
 
 export interface JobsResponse {
   jobs: Job[];
+  /** default priority of each job kind */
+  kinds: Record<string, JobPriority>;
   idleSeconds: number;
   runAfterIdleSeconds: number;
   running: string | null;
   workerOn: boolean;
+  /** thread: worker inside the backend; external: separate worker processes; off */
+  workerMode: "thread" | "external" | "off";
+  /** data version this backend has loaded (external mode) */
+  dataVersion: string | null;
 }
 
 /** Something user feedback asks a person to look at (built by the feedback_review job). */
