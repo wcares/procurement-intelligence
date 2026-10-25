@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { PipelineResponse } from "@/lib/api/types";
-import { RulesEditor } from "./rules-editor";
+import { RulesEditor } from "@/components/pipeline/rules-editor";
 
 const when = (iso: string) => new Date(iso).toLocaleString();
 
