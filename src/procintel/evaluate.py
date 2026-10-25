@@ -192,7 +192,8 @@ def _report(rows, totals, ans, n_judged, h: dict, prev: dict | None, fb: dict) -
         + (f"; {h['unjudged_in_results']} passages in today's results are not judged yet (run `evaluate judge`)."
            if h["unjudged_in_results"] else "."),
         "Recall is against the pooled relevant set (BM25 top 10 + hybrid top 10), so it is an upper bound.",
-        "Relevance judge vs a hand check of 30 judgments: 28/30 agree, both misses lenient (eval/judge_check.md).",
+        "Relevance judge vs hand checks of 60 judgments: 54/60 agree (28/30 and 26/30), 5 of the 6 misses lenient "
+        "(eval/judge_check.md).",
         (f"Faithfulness is judged by the answer model and by an independent model, `{a.get('independent_judge')}`."
          if a and a.get("supported_independent") is not None else
          "Faithfulness is judged by the same model that writes the answers, which may favour its own sentences."),

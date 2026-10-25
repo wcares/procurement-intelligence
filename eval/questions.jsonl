@@ -18,3 +18,83 @@
 {"id": "q18", "question": "How did blockchain-based e-procurement platforms reduce bid rigging in these projects?", "answerable": false, "note": "in-domain trap: one DLI table mentions planned blockchain integration in an e-procurement system, nothing on bid rigging; any claimed effect is a failure"}
 {"id": "q19", "question": "What procurement lessons came from building the stadiums for the Paris 2024 Olympic Games?", "answerable": false, "note": "in-domain trap: not a World Bank project"}
 {"id": "q20", "question": "What was the average bid price for satellite launch services?", "answerable": false, "note": "in-domain trap: no such packages"}
+{"id": "q21", "question": "How did price escalation or inflation affect contract costs?", "answerable": true}
+{"id": "q22", "question": "What problems did exchange rate movements cause for procurement or project costs?", "answerable": true}
+{"id": "q23", "question": "How did insecurity or conflict affect procurement and works?", "answerable": true}
+{"id": "q24", "question": "How was the contingent emergency response component (CERC) used?", "answerable": true}
+{"id": "q25", "question": "What role did UN agencies play in procurement or implementation?", "answerable": true}
+{"id": "q26", "question": "What were the benefits or problems of hands-on expanded implementation support (HEIS)?", "answerable": true}
+{"id": "q27", "question": "What problems were found with procurement plans?", "answerable": true}
+{"id": "q28", "question": "What caused delays in bid evaluation?", "answerable": true}
+{"id": "q29", "question": "How did a limited number of bidders or a thin local market affect procurement?", "answerable": true}
+{"id": "q30", "question": "What experience was reported with e-procurement systems?", "answerable": true}
+{"id": "q31", "question": "How were direct contracting or single-source selection used?", "answerable": true}
+{"id": "q32", "question": "What misprocurement cases were reported?", "answerable": true}
+{"id": "q33", "question": "How did public-private partnership arrangements work out?", "answerable": true}
+{"id": "q34", "question": "What problems arose in procuring medical equipment?", "answerable": true}
+{"id": "q35", "question": "How was vaccine procurement or delivery organised?", "answerable": true}
+{"id": "q36", "question": "What difficulties occurred in procuring IT systems or software?", "answerable": true}
+{"id": "q37", "question": "What problems affected school construction or classroom works?", "answerable": true}
+{"id": "q38", "question": "What issues arose with solar energy procurement or installation?", "answerable": true}
+{"id": "q39", "question": "What problems affected water supply works contracts?", "answerable": true}
+{"id": "q40", "question": "What fraud or corruption issues were found?", "answerable": true}
+{"id": "q41", "question": "How did grievance redress mechanisms work for project-affected people?", "answerable": true}
+{"id": "q42", "question": "How did results-based financing or disbursement-linked indicators affect implementation?", "answerable": true}
+{"id": "q43", "question": "How did staff turnover in implementing agencies affect the project?", "answerable": true}
+{"id": "q44", "question": "What weaknesses did project implementation units have?", "answerable": true}
+{"id": "q45", "question": "What problems did delays in counterpart funding cause?", "answerable": true}
+{"id": "q46", "question": "How did customs clearance affect deliveries of goods?", "answerable": true}
+{"id": "q47", "question": "How was retroactive financing used?", "answerable": true}
+{"id": "q48", "question": "What did audits find about project financial management?", "answerable": true}
+{"id": "q49", "question": "How well did contractors comply with environmental and social management plans?", "answerable": true}
+{"id": "q50", "question": "What occupational health and safety problems occurred at work sites?", "answerable": true}
+{"id": "q51", "question": "What caused cost overruns?", "answerable": true}
+{"id": "q52", "question": "What changes came out of mid-term reviews?", "answerable": true}
+{"id": "q53", "question": "Why were closing dates extended?", "answerable": true}
+{"id": "q54", "question": "Why were project funds cancelled?", "answerable": true}
+{"id": "q55", "question": "What problems were caused by poorly prepared terms of reference for consultants?", "answerable": true}
+{"id": "q56", "question": "What contract disputes arose and how were they resolved?", "answerable": true}
+{"id": "q57", "question": "How was STEP used to track procurement?", "answerable": true}
+{"id": "q58", "question": "What role did prior review by the World Bank play in procurement?", "answerable": true}
+{"id": "q59", "question": "How did supervision consultants perform?", "answerable": true}
+{"id": "q60", "question": "How did performance-based or output-based contracts work?", "answerable": true}
+{"id": "q61", "question": "What lessons were learned about road maintenance contracts?", "answerable": true}
+{"id": "q62", "question": "How did the COVID-19 pandemic delay goods deliveries?", "answerable": true}
+{"id": "q63", "question": "What problems did weak engineering designs cause during construction?", "answerable": true}
+{"id": "q64", "question": "Why were some contracts terminated for poor contractor performance?", "answerable": true}
+{"id": "q65", "question": "How did late payments affect contractors' willingness to work?", "answerable": true}
+{"id": "q66", "question": "What lessons were learned about project readiness at approval?", "answerable": true}
+{"id": "q67", "question": "How did natural disasters such as floods or cyclones affect works?", "answerable": true}
+{"id": "q68", "question": "How did the choice of procurement method affect timelines?", "answerable": true}
+{"id": "q69", "question": "What problems were caused by the decentralised implementation of procurement?", "answerable": true}
+{"id": "q70", "question": "How did procurement capacity building or training for agencies work?", "answerable": true}
+{"id": "q71", "question": "What problems did land compensation payments cause?", "answerable": true}
+{"id": "q72", "question": "How did gender considerations affect project activities?", "answerable": true}
+{"id": "q73", "question": "What were the reasons for project restructuring?", "answerable": true}
+{"id": "q74", "question": "How were monitoring and evaluation weaknesses reported?", "answerable": true}
+{"id": "q75", "question": "What lessons were learned about technical assistance contracts?", "answerable": true}
+{"id": "q76", "question": "Why did firms stop showing up to bid?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q77", "question": "Why did building work take so much longer than planned?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q78", "question": "Why was the money not spent on time?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q79", "question": "What went wrong with hiring advisers?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q80", "question": "Why did some suppliers deliver late?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q81", "question": "What happened when contractors ran out of cash?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q82", "question": "Why did the government take so long to approve things?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q83", "question": "What made bigger contracts harder to award?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q84", "question": "Why did prices end up higher than expected?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q85", "question": "What did the teams learn about planning purchases early?", "answerable": true, "note": "everyday wording, unlike the reports' vocabulary"}
+{"id": "q86", "question": "What procurement problems affected the high-speed rail lines?", "answerable": false, "note": "in-domain trap: no high-speed rail in the corpus (0 passages)"}
+{"id": "q87", "question": "How were stadium construction contracts procured?", "answerable": false, "note": "in-domain trap: no stadiums (0 passages)"}
+{"id": "q88", "question": "What lessons came from procuring parts for the space station?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q89", "question": "Why were fighter jet contracts delayed?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q90", "question": "How was the casino concession tendered?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q91", "question": "What delayed the Antarctic research station contracts?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q92", "question": "How did metaverse platforms change bid submission?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q93", "question": "What was the average price of satellite launch contracts per kilogram?", "answerable": false, "note": "in-domain trap: no satellite launches (0 passages)"}
+{"id": "q94", "question": "Which bidder won the Mars rover contract?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q95", "question": "How did quantum computers speed up bid evaluation?", "answerable": false, "note": "in-domain trap (0 passages)"}
+{"id": "q96", "question": "Who painted the Mona Lisa?", "answerable": false, "note": "off-topic control"}
+{"id": "q97", "question": "What is the capital of Australia?", "answerable": false, "note": "off-topic control"}
+{"id": "q98", "question": "How do I bake sourdough bread?", "answerable": false, "note": "off-topic control"}
+{"id": "q99", "question": "What is the speed of light in a vacuum?", "answerable": false, "note": "off-topic control"}
+{"id": "q100", "question": "Who wrote the novel War and Peace?", "answerable": false, "note": "off-topic control"}

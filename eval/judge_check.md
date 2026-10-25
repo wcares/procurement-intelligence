@@ -38,3 +38,20 @@ Judge: `openai/saluki-27b` (Underdog-Saluki-27B-1.0 IQ2, thinking off). Labels b
 | 28 | q11 why contracts re-tendered | 40109765:77 | rel | rel | "several re-biddings because of procurement capacity gaps" |
 | 29 | q11 why contracts re-tendered | 40111933:86 | rel | rel | mentions re-tendering terminated contracts (weak) |
 | 30 | q15 restructuring and procurement plans | 40114321:49 | rel | rel | subprojects cancelled at restructuring |
+
+# Hand check of the relevance judge on the 80 added questions (2026-10-25)
+
+30 random judgments (seed 11) from the 1,016 pairs judged for questions q21–q100, same judge. Labels are mine.
+
+**Agreement: 26 / 30 (87%).** Three disagreements are lenient (judge relevant, mine not) and one strict, so
+precision figures from these labels are again likely a little optimistic.
+
+| # | question | passage | judge | mine | note |
+|---|---|---|---|---|---|
+| 8 | q50 occupational health and safety problems | 40112901:68 | rel | **not** | says no significant issues arose; lists risks only |
+| 10 | q76 why firms stopped showing up to bid | 40113710:44 | not | **rel** | communes "unable to recruit construction firms at all"; firms left sites |
+| 11 | q59 performance of supervision consultants | 40110408:98 | rel | **not** | World Bank supervision rating, not supervision consultants |
+| 14 | q73 reasons for restructuring | 40113549:144 | rel | **not** | indicator table; a target raised at restructuring, no reason for it |
+
+The other 26 agree (e.g. STEP tracking 40108298:83 rel; PPP "no private capital participation" 40110408:60 not; COVID
+learning events 40113730:271 not).
