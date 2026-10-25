@@ -21,7 +21,8 @@ relational model joined on `project_id`:
 | Projects API | JSON records | `project` (121 rows), with country, sector, instrument, dates |
 | Procurement notices API | JSON + HTML notice text | `notice_m` (10,370), `package` (7,002 tenders keyed `project/bid_ref`, with tender-to-award days), `supplier` (4,702), `award_supplier` (5,913) |
 | Documents API (WDS) | ICR plain-text exports, 100+ pages | `document_m` (120), `chunk` (18,992 citable passages), `chunk_vec` (vectors), `chunk_tag` (labels), `rating_check` (ICR vs ISR) |
-| Indicators API | CPIA series | `cpia` (5,598 country-year-indicator rows) |
+| Indicators API | CPIA and WGI series | `cpia` (5,598 country-year-indicator rows), `wgi` (11,104 rows, 69 of 72 countries) |
+| Finances One data catalog (DS00005) | signed contracts | `contract_award` (16,414 contracts, 96 of 121 projects; the rest are policy and results-based operations) |
 
 The entity-relationship diagram, grain of every table and measured gaps are in `docs/data-model.md`.
 
@@ -52,7 +53,11 @@ when they were tendered (table `package_icr_link`), and Assess draws same-sector
 country's own reports come from a different sector.
 
 **Not done yet.** tables are flattened in the text exports (page-image indexing with the multimodal embedding model is the
-candidate fix); two sources were unavailable (Major Contract Awards returns HTML, the WGI code was not found).
+candidate fix); the two sources missing at first were found under new addresses (2026-10-25): contract awards in the Finances One
+data catalog, whose signing dates give 114 packages a missing award date (tender-to-award times 1,178 -> 1,292; signing
+follows the award notice by a median of 2 days), and WGI under the codes `GOV_WGI_<x>.EST`, shown in Assess for the 20
+countries without CPIA (CPIA covers IDA countries only). WGI was tried as a model input and left out: day error
+improved (MAE 76.1 -> 74.6) but the >180-day risk scores got slightly worse (Brier 0.152 -> 0.157, AUC 0.798 -> 0.793).
 
 ## Module 2: Predictive and prescriptive engines
 

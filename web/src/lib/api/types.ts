@@ -180,6 +180,8 @@ export interface AssessResponse {
   timeline: TimelineBenchmark | null;
   risks: RiskFlag[];
   governance: GovernanceScore[];
+  /** Worldwide Governance Indicators (estimate, 0 = world average, about -2.5 to +2.5); filled where CPIA is missing */
+  wgi?: GovernanceScore[];
   precedents: Precedent[];
   /** empty when no description was given or embeddings are not configured */
   similarPackages: SimilarPackage[];

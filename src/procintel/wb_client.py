@@ -6,9 +6,10 @@ Endpoints and field names here were checked against live responses on 2026-10-23
   documents     https://search.worldbank.org/api/v3/wds           (rows, os, docty_exact, projectid, fl ...)
   indicators    https://api.worldbank.org/v2/country/<iso3>/indicator/<code>  (CPIA: IQ.CPA.*)
 
-Not available / unresolved (see README): the Major Contract Awards Socrata endpoint
-(finances.worldbank.org/resource/kdui-wcs3.json) now returns an HTML page, and the WGI code
-GE.EST returned "indicator not found" on the default source.
+Replacements found 2026-10-25: the Major Contract Awards Socrata endpoint
+(finances.worldbank.org/resource/kdui-wcs3.json) now returns an HTML page; contract awards come from the Finances One
+data catalog instead (procintel.contract_awards). The old WGI codes (GE.EST, CC.EST) return "indicator not found"; the
+current codes are GOV_WGI_<x>.EST (procintel.wgi).
 """
 from __future__ import annotations
 

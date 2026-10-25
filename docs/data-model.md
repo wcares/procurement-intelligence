@@ -40,6 +40,8 @@ erDiagram
 | `package_icr_link` | package × ICR | (`package_id`, `doc_id`) | `same_project`, or `same_sector_period`: another project in the same major sector running at the tender date (`procintel.sectors`) |
 | `document_m` / `document_project` | one document; **many-to-many** to projects | `doc_id` | WDS API |
 | `cpia` | country × year × indicator | — | indicators API |
+| `wgi` | country × year × indicator | — | indicators API, codes `GOV_WGI_<x>.EST` (`procintel.wgi`) |
+| `contract_award` | one signed contract | `project_id`, `contract_ref` | Finances One DS00005 (`procintel.contract_awards`); matched to `package` on the bid reference; fills `package.award_date` where missing (`award_from_contract`) |
 
 ## How the three data types connect
 
@@ -71,5 +73,7 @@ erDiagram
 - **Linkage is partial.** Only packages whose pre-award and award notices share a `bid_ref` get a tender duration.
 - **Slice bias.** The slice is projects that already have an ICR (closed or closing), so it over-represents completed
   projects. Not representative of the 22,729-project portfolio.
-- **WGI is not included**: the indicator code tried (`GE.EST`) returned "not found" and the right source was not found.
-- Major Contract Awards (`finances.worldbank.org/resource/kdui-wcs3.json`) no longer returns JSON; award notices stand in for it.
+- **WGI** uses the codes `GOV_WGI_<x>.EST`; the older `GE.EST` / `CC.EST` return "not found". 69 of 72 countries covered
+  (the 3 missing are regional codes). Shown where CPIA is missing (20 countries, 258 labelled packages); not a model input.
+- **Contract awards**: the old Major Contract Awards endpoint (`finances.worldbank.org/resource/kdui-wcs3.json`) returns
+  HTML; the Finances One catalog (DS00005, since FY2020) replaces it. 4,341 of 6,990 packages match a contract.

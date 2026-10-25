@@ -20,6 +20,8 @@ from procintel.tag import NONE
 NOT_A_LESSON_MIN = 0.9
 
 STALE_CPIA_YEARS = 5
+# WGI estimates are scaled to mean 0, standard deviation 1 across countries (about -2.5 to +2.5)
+WGI_FLAG_HIGH, WGI_FLAG_MEDIUM = -1.0, -0.5
 # planners describe the package; the ICR passages that help them talk about what went wrong
 _PRECEDENT_TERMS = "procurement delays contract bidding tender award"
 
@@ -52,6 +54,19 @@ def risks(bench: dict, group: str, method: str, t: dict | None, gov: list[dict])
                     "level": "high" if tran["value"] < 2.5 else "medium", "basis": "statistic",
                     "detail": f"CPIA transparency/corruption rating {tran['value']} ({tran['year']}) on a 1–6 scale. Consider more prior review."})
     return out
+
+
+def wgi_flag(gov: list, wgi: list) -> dict | None:
+    """Corruption flag from WGI for countries without a CPIA rating (CPIA covers IDA countries only)."""
+    if gov:
+        return None
+    cc = next((w for w in wgi if w["indicator"] == "control_of_corruption"), None)
+    if not cc or cc["value"] >= WGI_FLAG_MEDIUM:
+        return None
+    return {"id": "governance-wgi", "label": "Weak control of corruption",
+            "level": "high" if cc["value"] < WGI_FLAG_HIGH else "medium", "basis": "statistic",
+            "detail": f"Worldwide Governance Indicators control of corruption {cc['value']:+.2f} ({cc['year']}), on a scale "
+                      "where 0 is the world average and most countries fall between -2.5 and +2.5. Consider more prior review."}
 
 
 def _lessons(hits: list) -> list:
@@ -216,16 +231,19 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
 
 def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model: dict | None = None,
            region: str | None = None, country_name: str = "", rebid_info: dict | None = None,
-           rebid_cost: tuple[float, float] | None = None, amendment_info: dict | None = None) -> dict:
+           rebid_cost: tuple[float, float] | None = None, amendment_info: dict | None = None,
+           wgi: dict | None = None) -> dict:
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
+    wg = (wgi or {}).get(country, [])
     t = timeline(bench, group, method)
     precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "",
                                                 req.get("sector") or "", country_name, method)
     caveats = ["Timeline and risk numbers are statistics over historical World Bank procurement notices in the "
                "ingested sample; precedents are ICR evaluation passages.", how]
     if not gov:
-        caveats.append("No CPIA governance scores are available for this country.")
+        caveats.append("No CPIA governance scores are available for this country (CPIA covers IDA countries only)"
+                       + ("; Worldwide Governance Indicators are shown instead." if wg else "."))
     elif (old := min(g["year"] for g in gov)) < date.today().year - STALE_CPIA_YEARS:
         caveats.append(f"The latest CPIA scores for this country date from {old}; treat the governance flag as dated.")
     if t and " via " not in t["scope"]:
@@ -239,6 +257,6 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
         caveats.append(f"Flags marked 'model' come from gradient-boosted trees trained on {model['n']} past packages "
                        "(procurement type, method, region, sector, year, CPIA). They are estimates, not commitments.")
     extra = [f for f in (rebid_flag(rebid_info or {}, country, country_name, rebid_cost),
-                         amendment_flag(amendment_info or {}, country, country_name)) if f]
-    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags + extra, "governance": gov,
+                         amendment_flag(amendment_info or {}, country, country_name), wgi_flag(gov, wg)) if f]
+    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags + extra, "governance": gov, "wgi": wg,
             "precedents": precs, "meta": meta(caveats)}

@@ -15,6 +15,15 @@ const CPIA_LABELS: Record<string, string> = {
   ida_allocation_index: "IDA allocation index",
 };
 
+const WGI_LABELS: Record<string, string> = {
+  control_of_corruption: "Control of corruption",
+  government_effectiveness: "Government effectiveness",
+  political_stability: "Political stability",
+  regulatory_quality: "Regulatory quality",
+  rule_of_law: "Rule of law",
+  voice_accountability: "Voice & accountability",
+};
+
 const field = "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent";
 
 export function AssessView() {
@@ -167,6 +176,21 @@ function Results({ r }: { r: AssessResponse }) {
                 <dt className="text-xs text-muted">{CPIA_LABELS[g.indicator] ?? g.indicator}</dt>
                 <dd className="text-sm font-medium tabular-nums">
                   {g.value.toFixed(1)} <span className="text-xs font-normal text-muted">({g.year})</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      )}
+      {r.governance.length === 0 && (r.wgi?.length ?? 0) > 0 && (
+        <Card title="Country governance (WGI, 0 = world average, about −2.5 to +2.5)">
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {r.wgi!.map((g) => (
+              <div key={g.indicator}>
+                <dt className="text-xs text-muted">{WGI_LABELS[g.indicator] ?? g.indicator}</dt>
+                <dd className="text-sm font-medium tabular-nums">
+                  {g.value > 0 ? "+" : ""}
+                  {g.value.toFixed(2)} <span className="text-xs font-normal text-muted">({g.year})</span>
                 </dd>
               </div>
             ))}

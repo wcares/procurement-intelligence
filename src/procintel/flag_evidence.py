@@ -20,6 +20,7 @@ MAX_ITEMS = 5
 LONG_DAYS = 180
 NOTICE_URL = "https://projects.worldbank.org/en/projects-operations/procurement-detail/{}"
 CPIA_URL = "https://data.worldbank.org/indicator/{}?locations={}"
+WGI_URL = "https://www.worldbank.org/en/publication/worldwide-governance-indicators"
 CPIA_CODES = {"transparency_corruption": ("IQ.CPA.TRAN.XQ", "CPIA transparency, accountability and corruption in the public sector")}
 
 
@@ -78,7 +79,8 @@ class FlagEvidence:
                             "url": NOTICE_URL.format(e["notice"]) if e["notice"] else None})
         return out
 
-    def attach(self, flags: list[dict], req: dict, bench: dict, timeline: dict | None, gov: list[dict]) -> list[dict]:
+    def attach(self, flags: list[dict], req: dict, bench: dict, timeline: dict | None, gov: list[dict],
+               wgi: list[dict] | None = None) -> list[dict]:
         country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
         for f in flags:
             ev: list[dict] = []
@@ -92,6 +94,11 @@ class FlagEvidence:
                 if g:
                     ev = [{"kind": "indicator", "ref": code, "label": name,
                            "detail": f"{g['value']} on a 1–6 scale ({g['year']})", "url": CPIA_URL.format(code, country)}]
+            elif f["id"] == "governance-wgi":
+                w = next((w for w in wgi or [] if w["indicator"] == "control_of_corruption"), None)
+                if w:
+                    ev = [{"kind": "indicator", "ref": "GOV_WGI_CC.EST", "label": "WGI control of corruption (estimate)",
+                           "detail": f"{w['value']:+.2f} ({w['year']}); 0 = world average", "url": WGI_URL}]
             elif f["id"] in ("rebid", "amendment"):
                 ev = self._events(f["id"], country)
             f["evidence"] = ev

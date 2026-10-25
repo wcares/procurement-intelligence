@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import config, evaluate, evidence, feedback, feedback_review, predict, rebid, stats
+from procintel import config, evaluate, evidence, feedback, feedback_review, predict, rebid, stats, wgi
 from procintel.answer import ask as run_ask, idf
 from procintel.flag_evidence import FlagEvidence
 from procintel.jobs import store as jobs_store, worker as jobs_worker
@@ -139,6 +139,7 @@ class AssessResponse(BaseModel):
     timeline: TimelineBenchmark | None
     risks: list[RiskFlag]
     governance: list[GovernanceScore]
+    wgi: list[GovernanceScore] = []  # Worldwide Governance Indicators, shown where CPIA is missing
     precedents: list[Precedent]
     similarPackages: list[SimilarPackage] = []
     meta: ResponseMeta
@@ -170,6 +171,7 @@ class State:
         self.options = stats.options(con)
         self.bench = stats.benchmarks(con)
         self.governance = stats.governance(con)
+        self.wgi = wgi.latest(con)
         self.rebid = rebid.by_country(con)
         self.rebid_cost = rebid.cost(con)
         self.amendments = evidence.by_country(con, "amendment")
@@ -250,8 +252,8 @@ def post_assess(req: AssessRequest) -> dict:
     s = state()
     body = req.model_dump()
     out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
-                     s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments)
-    s.flag_evidence.attach(out["risks"], body, s.bench, out["timeline"], out["governance"])
+                     s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments, s.wgi)
+    s.flag_evidence.attach(out["risks"], body, s.bench, out["timeline"], out["governance"], out["wgi"])
     try:
         out["similarPackages"] = s.similar.search(body.get("description") or "", body["procGroup"])
     except Exception:  # embedding server down: the assessment stands without this section

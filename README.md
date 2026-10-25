@@ -152,7 +152,7 @@ and 20 questions is a small set.
 - Award-time predictions still miss slow tenders that were never awarded (a survival model is the planned fix).
 - Passage problem-type tags were too unreliable to show (about 7 of 18 right on a hand check); only the
   "not a lesson" filter is used.
-- Two sources were unavailable when built: Major Contract Awards (endpoint returns HTML) and WGI.
+- Contract awards cover contracts signed since FY2020 only (Finances One DS00005); WGI is shown, not used by the model.
 
 Details and what comes next: [docs/TRACKER.md](docs/TRACKER.md).
 
