@@ -16,7 +16,8 @@ from typing import Any, Callable
 
 from procintel.answering import answer, retrieve
 from procintel.core import embed, llm, paths
-from procintel.jobs import worker as jobs_worker
+from procintel.ingestion import chunk
+from procintel.jobs import handlers, worker as jobs_worker
 from procintel.learning import feedback_review
 from procintel.prediction import assess
 
@@ -108,6 +109,27 @@ def _settings() -> list[Setting]:
                 "of its results (applied by the next feedback review job)", 1, 100),
         Setting("not_a_lesson_min", "Precedent filter threshold", "Assess", "float", *_attr(assess, "NOT_A_LESSON_MIN"),
                 "Tag confidence above which a 'no problem' passage is not shown as a precedent (1 = never filter)", 0.5, 1),
+        Setting("drift_min_new", "Drift check: minimum new packages", "Background jobs", "int",
+                *_attr(handlers, "MIN_NEW"), "Fewer packages labelled since training than this: too few to judge the "
+                "model on", 1, 10000),
+        Setting("drift_growth", "Drift check: retrain on growth", "Background jobs", "float",
+                *_attr(handlers, "GROWTH"), "Retrain when the newly labelled packages reach this share of the "
+                "training set", 0.0, 1.0),
+        Setting("drift_error_ratio", "Drift check: error ratio", "Background jobs", "float",
+                *_attr(handlers, "ERROR_RATIO"), "Retrain when the error on new packages exceeds the cross-validated "
+                "error by this factor", 1.0, 10.0),
+        Setting("chunk_max_chars", "Passage size limit (characters)", "Index", "int", *_attr(chunk, "MAX_CHARS"),
+                "Longer paragraphs are split; applies at the next refresh (the passages are rebuilt and re-embedded)",
+                300, 4000),
+        Setting("flat_numbers", "Flattened table: share of numbers", "Index", "float", *_attr(chunk, "FLAT_NUMBERS"),
+                "A passage with at least this share of number tokens is treated as a table and left out of search; "
+                "applies at the next refresh", 0.05, 1.0),
+        Setting("flat_numbers_no_sentence", "Flattened table: share without sentences", "Index", "float",
+                *_attr(chunk, "FLAT_NUMBERS_NO_SENTENCE"), "The same with almost no sentence boundary; applies at the "
+                "next refresh", 0.05, 1.0),
+        Setting("caption_numbers", "Captioned table: share of numbers", "Index", "float",
+                *_attr(chunk, "CAPTION_NUMBERS"), "A passage starting with a table caption and at least this share of "
+                "numbers is a table; applies at the next refresh", 0.0, 1.0),
     ]
     return out
 

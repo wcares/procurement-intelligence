@@ -20,7 +20,8 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from procintel.core import embed
-from procintel.ingestion.chunk import MAX_CHARS, _split_words
+from procintel.ingestion import chunk
+from procintel.ingestion.chunk import _split_words
 
 SENTENCE = re.compile(r"(?<=[.;])\s+(?=[A-Z0-9])")  # the size chunker's sentence boundary
 LOW_QUANTILE = 0.25   # a boundary counts as a topic shift when its similarity is in the paragraph's lowest quarter
@@ -47,12 +48,14 @@ class Piece:
 def sentences(text: str) -> list[str]:
     out = []
     for s in SENTENCE.split(text):
-        out.extend(_split_words(s, MAX_CHARS) if len(s) > MAX_CHARS else [s])
+        out.extend(_split_words(s, chunk.MAX_CHARS) if len(s) > chunk.MAX_CHARS else [s])
     return [s for s in out if s.strip()]
 
 
-def split(sents: list[str], owners: list[str], vecs: np.ndarray, limit: int = MAX_CHARS) -> list[Piece]:
-    """Cut a paragraph's sentences into pieces of at most `limit` characters, preferring low-similarity boundaries."""
+def split(sents: list[str], owners: list[str], vecs: np.ndarray, limit: int | None = None) -> list[Piece]:
+    """Cut a paragraph's sentences into pieces of at most `limit` characters (default: the size chunker's limit, a
+    setting), preferring low-similarity boundaries."""
+    limit = limit or chunk.MAX_CHARS
     sims = np.einsum("ij,ij->i", vecs[:-1], vecs[1:]) if len(sents) > 1 else np.array([])
     low = float(np.quantile(sims, LOW_QUANTILE)) if len(sims) else 0.0
     pieces: list[Piece] = []

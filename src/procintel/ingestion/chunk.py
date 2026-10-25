@@ -22,6 +22,10 @@ from procintel.core import db, paths
 ROOT = paths.ROOT
 DB_PATH = paths.DB_PATH
 MAX_CHARS = 1400
+# flattened-table rule (is_flat_table): shares of number tokens
+FLAT_NUMBERS = 0.3            # at least this share of numbers: a table
+FLAT_NUMBERS_NO_SENTENCE = 0.2  # at least this share and almost no sentence boundary: a table
+CAPTION_NUMBERS = 0.1         # a captioned chunk ("Table 4. ...") with at least this share: a table
 
 _FOOTER_LINE = re.compile(r"^\s*(?:Page \d{1,3}(?: of \d{1,3})?)?\s*$")
 _FOOTER_WORDS = re.compile(r"\s*(?:Official Use Only|Strictly Confidential)\s*")
@@ -139,8 +143,9 @@ def is_flat_table(text: str) -> bool:
     ends = len(_SENTENCE_END.findall(text)) + bool(re.search(r"[a-z]{3,}\.\s*$", text))  # a final full stop counts
     sentences = 100 * ends / len(toks)
     m = _CAPTION.match(text)
-    caption = bool(m) and m.group(1).lower() not in _CAPTION_VERBS and num >= 0.1  # tables of words stay searchable
-    return num >= 0.3 or (num >= 0.2 and sentences < 0.5) or caption
+    # tables of words stay searchable
+    caption = bool(m) and m.group(1).lower() not in _CAPTION_VERBS and num >= CAPTION_NUMBERS
+    return num >= FLAT_NUMBERS or (num >= FLAT_NUMBERS_NO_SENTENCE and sentences < 0.5) or caption
 
 
 def _is_table(lines: list[str]) -> bool:
@@ -169,7 +174,8 @@ def _split_words(text: str, limit: int) -> list[str]:
     return out
 
 
-def _split_long(text: str, limit: int = MAX_CHARS) -> list[str]:
+def _split_long(text: str, limit: int | None = None) -> list[str]:
+    limit = limit or MAX_CHARS  # read at call time: the limit is a setting
     if len(text) <= limit:
         return [text]
     out, cur = [], ""
