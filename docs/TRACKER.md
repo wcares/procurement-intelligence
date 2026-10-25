@@ -95,7 +95,7 @@ _(empty)_
 
 ### Done
 
-- [x] Prediction model: gradient-boosted trees (from scratch) for tender-to-award days p50/p90 and >180-day risk; /assess adds flags with basis "model" — COMMIT — 5-fold CV grouped by project on 1,145 packages vs the app's median baseline: typical-days MAE 74.4 vs 81.2, p90 pinball 25.2 vs 26.0, >180 Brier 0.147 vs 0.167 (AUC 0.81 vs 0.74); a model is used only with ≥2% lower error. Live check: Kenya CW/RFB 102 days (history 113)
+- [x] Prediction model: gradient-boosted trees (from scratch) for tender-to-award days p50/p90 and >180-day risk; /assess adds flags with basis "model" — db56ce2 — 5-fold CV grouped by project on 1,145 packages vs the app's median baseline: typical-days MAE 74.4 vs 81.2, p90 pinball 25.2 vs 26.0, >180 Brier 0.147 vs 0.167 (AUC 0.81 vs 0.74); a model is used only with ≥2% lower error. Live check: Kenya CW/RFB 102 days (history 113)
 - [x] Timeline benchmarks and risk flags from historical statistics, falling back to wider slices when thin — bf7f501 — Kenya/CW/RFB n=195 median 113, same as the mock
 - [x] BM25 retrieval via LlamaIndex with country / procurement-type / kind filters — ea742cf — tests/test_retrieve.py
 - [x] Hybrid retrieval: BM25 + EmbeddingGemma vectors, reciprocal rank fusion, BM25 fallback — a36f209 — 3 tests with a fake embedder; 4-question comparison in the commit
