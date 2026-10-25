@@ -51,10 +51,35 @@ def _postgres(schema: str, read_only: bool) -> duckdb.DuckDBPyConnection:
     return con
 
 
+def copy_to_postgres() -> dict[str, int]:
+    """Copy every table of the local DuckDB files into Postgres (replacing tables of the same name)."""
+    if backend() != "postgres":
+        raise RuntimeError("set PROCINTEL_DB_URL to a postgresql:// URL first")
+    counts: dict[str, int] = {}
+    for path, schema in SCHEMAS.items():
+        if not path.exists():
+            continue
+        con = _postgres(schema, read_only=False)
+        con.execute(f"ATTACH '{path}' AS src (READ_ONLY)")
+        for (t,) in con.execute("SELECT table_name FROM duckdb_tables() WHERE database_name = 'src' ORDER BY 1").fetchall():
+            con.execute(f'DROP TABLE IF EXISTS pg."{schema}"."{t}"')
+            cols = con.execute("SELECT column_name, data_type FROM duckdb_columns() WHERE database_name = 'src' "
+                               "AND table_name = ? ORDER BY column_index", [t]).fetchall()
+            # Postgres has no unnamed composite types: struct columns travel as JSON
+            sel = ", ".join(f'to_json("{c}") AS "{c}"' if "STRUCT" in ty else f'"{c}"' for c, ty in cols)
+            con.execute(f'CREATE TABLE pg."{schema}"."{t}" AS SELECT {sel} FROM src."{t}"')
+            counts[f"{schema}.{t}"] = con.execute(f'SELECT count(*) FROM pg."{schema}"."{t}"').fetchone()[0]
+        con.close()
+    return counts
+
+
 if __name__ == "__main__":
     import sys
     if sys.argv[1:] == ["install"]:
         duckdb.connect().execute("INSTALL postgres")
         print("installed the DuckDB postgres extension")
+    elif sys.argv[1:] == ["copy-to-postgres"]:
+        for k, n in copy_to_postgres().items():
+            print(f"{k}: {n}")
     else:
         print(f"backend: {backend()}")

@@ -8,6 +8,7 @@ Tables: projects, documents, notices.   Chunking/indexing is a separate step (ch
 from __future__ import annotations
 
 import argparse
+import json
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -64,7 +65,7 @@ def notice_row(n: dict) -> dict:
         "notice_version": pn.notice_version(text),
         "price_currency": price[0] if price else None,
         "price_amount": price[1] if price else None,
-        "suppliers": [{"name": nm, "firm_id": fid} for nm, fid in pn.suppliers(text)],
+        "suppliers": json.dumps([{"name": nm, "firm_id": fid} for nm, fid in pn.suppliers(text)]),  # JSON: Postgres has no unnamed structs
         "text": text,
     }
 

@@ -16,3 +16,14 @@ def test_postgres_url_selects_postgres_only_for_the_known_databases(monkeypatch,
     assert con.execute("SELECT 1").fetchone() == (1,)
     con.close()
     assert set(db.SCHEMAS) == {paths.DB_PATH, paths.FEEDBACK_DB, paths.JOBS_DB}
+
+
+def test_suppliers_read_from_json_text_and_from_older_struct_lists():
+    import duckdb
+    from procintel.model import SUPPLIERS
+    con = duckdb.connect()
+    q = f"SELECT s.firm_id, s.name FROM (SELECT UNNEST(from_json(suppliers::JSON, '{SUPPLIERS}')) AS s FROM t) ORDER BY 1"
+    con.execute("""CREATE TABLE t AS SELECT '[{"name": "ACME", "firm_id": 7}]' AS suppliers""")         # JSON text
+    assert con.execute(q).fetchall() == [(7, "ACME")]
+    con.execute("CREATE OR REPLACE TABLE t AS SELECT [{'name': 'ACME', 'firm_id': 7}] AS suppliers")      # older form
+    assert con.execute(q).fetchall() == [(7, "ACME")]

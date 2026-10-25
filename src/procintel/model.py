@@ -18,6 +18,8 @@ from procintel import db, paths
 from .wb_client import WBClient
 
 DB_PATH = paths.DB_PATH
+# notices.suppliers is a JSON list (older databases: a list of structs; the ::JSON cast reads both)
+SUPPLIERS = '[{"name": "VARCHAR", "firm_id": "INTEGER"}]'
 
 # Verified to return data on 2026-10-23 (EQRE, SPRT did not). Governance / institution-quality ones only.
 CPIA_CODES = {
@@ -123,18 +125,20 @@ def build(db_path: Path = DB_PATH) -> None:
         SELECT regexp_replace(package_id, '-[0-9]{1,2}$', '') FROM package WHERE regexp_matches(package_id, '-[0-9]{1,2}$'));
     """)
 
-    con.execute("""
+    con.execute(f"""
     CREATE OR REPLACE TABLE supplier AS
     SELECT s.firm_id, arg_max(s.name, LENGTH(s.name)) AS name,
            regexp_replace(upper(arg_max(s.name, LENGTH(s.name))), '[^A-Z0-9]+', ' ', 'g') AS name_key,
            COUNT(DISTINCT n.package_id) AS n_packages
-    FROM (SELECT package_id, UNNEST(suppliers) AS s FROM notice_m WHERE len(suppliers) > 0) n
+    FROM (SELECT package_id, UNNEST(from_json(suppliers::JSON, '{SUPPLIERS}')) AS s FROM notice_m
+          WHERE json_array_length(suppliers::JSON) > 0) n
     GROUP BY s.firm_id""")  # s.firm_id on a struct column; name = longest spelling seen for that firm id
 
-    con.execute("""
+    con.execute(f"""
     CREATE OR REPLACE TABLE award_supplier AS
     SELECT DISTINCT package_id, s.firm_id
-    FROM (SELECT package_id, UNNEST(suppliers) AS s FROM notice_m WHERE len(suppliers) > 0)""")
+    FROM (SELECT package_id, UNNEST(from_json(suppliers::JSON, '{SUPPLIERS}')) AS s FROM notice_m
+          WHERE json_array_length(suppliers::JSON) > 0)""")
 
     con.execute("""
     CREATE OR REPLACE TABLE document_m AS
