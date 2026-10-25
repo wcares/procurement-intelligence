@@ -155,6 +155,36 @@ like the settings profiles (data/pipeline_rules.json, not in git).
   has an answer ("14 award notices on 2026-11-02 → update_packages → retrain").
 - **Defaults stay in code** and can always be restored.
 
+## 6b. Sources, connectors and intake
+
+The pipeline accepts any source. A **connector** only gets data in, in one common shape (a raw item: content, source
+name, source id, timestamp, metadata); everything after it is the event pipeline. Routing then happens in two stages:
+by **format** (how to read it: JSON/CSV records, PDF text per page, OCR for scans, Word/HTML/email to text) and by
+**content** (what it is: contract, completion or supervision report, notice, amendment; unclear items go to a review
+list). Each extracted value keeps its source, file and page, and a fingerprint stops the same item being processed
+twice.
+
+```
+connectors → RawItem.added {format} → extract by format → Document.extracted → classify → Document.classified {type}
+           → extract fields by type → link to project/package/firm → <Type>.added / .changed → rules → actions
+```
+
+### Connector modes
+
+Every connector declares how changes reach us; after that no person starts anything.
+
+| mode | how it works | used for | safety net |
+|---|---|---|---|
+| **poll** | the scheduler runs the connector every *interval*; it asks only for what is new since its stored **cursor** (newest date or id seen, modified-since timestamp, ETag) | APIs without notifications: the World Bank APIs; external databases via an `updated_at` query; MCP servers without subscriptions | none needed beyond the cursor |
+| **push** | the source calls our endpoint `/connectors/<name>/webhook`; we verify the signature or secret, store the payload as a raw item and process it at once | services with webhooks (document systems, e-procurement platforms) | a slow reconciliation poll (e.g. daily) catches pushes lost while we were down |
+| **subscribe** | we hold a subscription and are notified that something changed, then re-read it and diff | MCP servers with resource subscriptions; database change logs (change data capture, e.g. Postgres logical replication) | reconciliation poll |
+| **upload** | a person adds a file in our UI | ad hoc documents | none needed |
+
+A connector's configuration (Settings page; credentials stay in the environment and are never shown): mode, interval
+or webhook address, cursor, rate limit, retry with backoff, last success and last error. A failing connector is shown
+there and backs off; it does not stop the pipeline. Connector runs are jobs in the existing queue, so polling also waits
+for idle time unless a connector is marked urgent.
+
 ## 7. Detection schedule
 
 - A **change detection job** queued every hour (configurable) asks each source only for what is new since the last
