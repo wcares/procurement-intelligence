@@ -17,7 +17,9 @@ from pathlib import Path
 
 import duckdb
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+from procintel import paths
+
+DB_PATH = paths.DB_PATH
 
 FAMILY = {
     "Agricultural Extension, Research, and Other Support Activities": "Agriculture, Fishing and Forestry",

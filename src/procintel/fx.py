@@ -19,10 +19,11 @@ from statistics import median
 
 import duckdb
 
+from procintel import paths
 from procintel import parse_notice as pn
 from procintel.wb_client import WBClient
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 INDICATOR = "PA.NUS.FCRF"
 SHARED = {"EUR": "EMU", "XOF": "SEN", "XAF": "CMR", "XCD": "DMA"}
 # Old currency units after a redenomination: the indicator reports every year in the new unit (1 SLE = 1,000 SLL from

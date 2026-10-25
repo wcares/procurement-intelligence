@@ -23,7 +23,9 @@ from pathlib import Path
 import duckdb
 import numpy as np
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+from procintel import paths
+
+DB_PATH = paths.DB_PATH
 BATCH = 64
 
 # EmbeddingGemma is trained with a task prefix (google/embeddinggemma-2 model card, "Prompt Instructions");

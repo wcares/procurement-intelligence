@@ -16,14 +16,15 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from pathlib import Path
 from typing import Any, Iterator
 
 import requests
 
+from procintel import paths
+
 SEARCH = "https://search.worldbank.org/api"
 INDICATORS = "https://api.worldbank.org/v2"
-CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "cache" / "http"
+CACHE_DIR = paths.HTTP_CACHE
 UA = "procintel-prototype/0.1 (research)"
 
 ICR_TYPE = "Implementation Completion and Results Report"

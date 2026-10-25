@@ -10,15 +10,15 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 
 import duckdb
 
+from procintel import paths
 from procintel import stats
 from procintel.stats import GROUP_TERMS, PROC_TERMS
 
-ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = ROOT / "data" / "procintel.duckdb"
+ROOT = paths.ROOT
+DB_PATH = paths.DB_PATH
 OUT = ROOT / "web" / "src" / "mocks" / "data.json"
 
 # staff lists and supervision-cost annexes match procurement words ("procurement specialist") but hold no lessons

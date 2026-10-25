@@ -23,7 +23,9 @@ from pathlib import Path
 
 import duckdb
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+from procintel import paths
+
+DB_PATH = paths.DB_PATH
 LEGAL = {"CO", "COMPANY", "COMPANIES", "LTD", "LIMITED", "PVT", "PVTLTD", "PRIVATE", "LLC", "LLP", "INC",
          "INCORPORATED", "CORP", "CORPORATION", "SA", "SARL", "SAS", "SARLU", "SPA", "SRL", "GMBH", "AG", "PLC", "BV",
          "NV", "PTY", "PT", "JSC", "OJSC", "LLP", "THE", "AND"}

@@ -20,7 +20,9 @@ from pathlib import Path
 
 import duckdb
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+from procintel import paths
+
+DB_PATH = paths.DB_PATH
 SCALE = {"Highly Unsatisfactory": 1, "Unsatisfactory": 2, "Moderately Unsatisfactory": 3,
          "Moderately Satisfactory": 4, "Satisfactory": 5, "Highly Satisfactory": 6}
 # longest first, so "Moderately Satisfactory" is not read as "Satisfactory"

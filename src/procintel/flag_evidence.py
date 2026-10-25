@@ -13,9 +13,10 @@ from pathlib import Path
 
 import duckdb
 
+from procintel import paths
 from procintel.stats import MIN_BENCH_N
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 MAX_ITEMS = 5
 LONG_DAYS = 180
 NOTICE_URL = "https://projects.worldbank.org/en/projects-operations/procurement-detail/{}"

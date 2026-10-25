@@ -41,12 +41,13 @@ from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostin
 from sklearn.metrics import brier_score_loss, mean_absolute_error, mean_pinball_loss, roc_auc_score
 from sklearn.model_selection import GroupKFold
 
+from procintel import paths
 from procintel import fx
 from procintel.stats import MIN_BENCH_N
 
-ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = ROOT / "data" / "procintel.duckdb"
-MODEL_PATH = ROOT / "data" / "models" / "timeline.joblib"
+ROOT = paths.ROOT
+DB_PATH = paths.DB_PATH
+MODEL_PATH = paths.MODEL_DIR / "timeline.joblib"
 CPIA = ["transparency_corruption", "public_administration", "property_rights_rule_based_gov",
         "business_regulatory_env", "public_sector_mgmt_cluster", "ida_allocation_index"]
 CATEGORICAL = ["proc_group", "method_code", "region", "sector"]

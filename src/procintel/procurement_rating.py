@@ -22,9 +22,10 @@ from pathlib import Path
 
 import duckdb
 
+from procintel import paths
 from procintel.ratings import SCALE
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 ABBREV = {"HS": "Highly Satisfactory", "MS": "Moderately Satisfactory", "MU": "Moderately Unsatisfactory",
           "HU": "Highly Unsatisfactory"}
 _RATING = re.compile(r"\b(" + "|".join(sorted(SCALE, key=len, reverse=True)) + r")\b", re.I)

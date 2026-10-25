@@ -14,7 +14,9 @@ from pathlib import Path
 
 import duckdb
 
-DB_PATH = Path(__file__).resolve().parents[3] / "data" / "jobs.duckdb"
+from procintel import paths
+
+DB_PATH = paths.JOBS_DB
 MAX_ATTEMPTS = 3
 _LOCK = threading.Lock()
 

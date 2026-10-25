@@ -26,7 +26,7 @@ and so that it scales beyond the prototype's data. docs/event-pipeline-design.md
 |---|---|---|
 | Models: answer, embedding, decision, judge | environment settings, editable on the Settings page (LiteLLM model strings, endpoints, options) | already meets the rule; add a provider registry only if a non-OpenAI-compatible model needs it |
 | Thresholds, retrieval sizes | module constants, most editable on the Settings page | expose the rest (drift-check limits, flattened-table rule, demotion threshold is done) |
-| Data location | `data/procintel.duckdb` repeated in about 22 modules; feedback and jobs files likewise | one `PROCINTEL_DATA_DIR` (or database URL) setting read by a single module |
+| Data location | DONE (2026-10-25): `procintel.paths` reads `PROCINTEL_DATA_DIR` (default `<repo>/data`); the 25 modules that built `data/...` paths from their own location take them from there, and a test fails if one does again | a database URL replaces the file path when Postgres comes in |
 | Storage engine | DuckDB SQL in each module | a storage layer per entity (repositories) so Postgres can replace DuckDB for a multi-user pilot |
 | Vector search | vectors in a DuckDB table, searched in memory (fine for 18,000 passages) | a vector index interface: in-memory (today), DuckDB vss, pgvector or a vector database by configuration |
 | Data sources | World Bank URLs and calls in code (`wb_client`, `contract_awards`, `wgi`) | connectors with configuration (mode, interval, cursor), per the event design |

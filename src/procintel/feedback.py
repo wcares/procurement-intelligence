@@ -17,7 +17,9 @@ from pathlib import Path
 
 import duckdb
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "feedback.duckdb"
+from procintel import paths
+
+DB_PATH = paths.FEEDBACK_DB
 RATINGS = ("useful", "not_useful", "bad_citation")
 _LOCK = threading.Lock()  # one writer at a time within the server process
 

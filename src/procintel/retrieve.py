@@ -26,6 +26,7 @@ import numpy as np
 from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
+from procintel import paths
 from procintel import embed, procurement_rating, ratings, sectors
 from procintel.stats import GROUP_TERMS
 
@@ -33,7 +34,7 @@ log = logging.getLogger(__name__)
 POOL = 50  # candidates taken from each ranking before fusion
 RRF_K = 60  # reciprocal rank fusion constant (Cormack et al. 2009)
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 
 # a chunk's project can be any of several when one ICR covers more than one project
 _QUERY = """

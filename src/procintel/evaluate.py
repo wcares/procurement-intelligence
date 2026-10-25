@@ -24,13 +24,13 @@ import random
 import sys
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
+from procintel import paths
 from procintel import answer, decide, embed, feedback, llm
 from procintel.retrieve import Retriever
 
-ROOT = Path(__file__).resolve().parents[2]
-QUESTIONS = ROOT / "eval" / "questions.jsonl"
+ROOT = paths.ROOT
+QUESTIONS = paths.EVAL_DIR / "questions.jsonl"
 JUDGMENTS = ROOT / "eval" / "judgments.jsonl"
 REPORT = ROOT / "eval" / "report.md"
 HISTORY = ROOT / "eval" / "history.jsonl"  # one line of headline metrics per run

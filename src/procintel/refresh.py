@@ -22,10 +22,11 @@ from pathlib import Path
 
 import duckdb
 
+from procintel import paths
 from procintel import (chunk, contract_awards, decide, embed, entities, evidence, fx, ingest, llm, model, predict,
                        problem_tag, procurement_rating, ratings, sectors, tag, wgi)
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 
 
 def snapshot(db_path: Path = DB_PATH) -> dict:

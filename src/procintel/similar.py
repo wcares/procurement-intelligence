@@ -15,10 +15,11 @@ from pathlib import Path
 import duckdb
 import numpy as np
 
+from procintel import paths
 from procintel import embed, fx
 from procintel.answer import terms
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 POOL = 50
 
 

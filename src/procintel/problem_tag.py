@@ -28,11 +28,12 @@ from pathlib import Path
 
 import duckdb
 
+from procintel import paths
 from procintel import llm
 from procintel.embed import text_hash
 from procintel.tag import NONE, TAGS
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 KINDS = TAGS[:-1] + ["another kind of problem"]
 _STEP1 = ("You read passages from World Bank project completion reports. Reply with one word, yes or no: does the passage "
           "describe a procurement or implementation problem that actually happened in this project? Background context, "

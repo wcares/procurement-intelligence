@@ -14,9 +14,10 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
+from procintel import paths
 from .wb_client import WBClient
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 
 # Verified to return data on 2026-10-23 (EQRE, SPRT did not). Governance / institution-quality ones only.
 CPIA_CODES = {

@@ -18,8 +18,10 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = ROOT / "data" / "procintel.duckdb"
+from procintel import paths
+
+ROOT = paths.ROOT
+DB_PATH = paths.DB_PATH
 MAX_CHARS = 1400
 
 _FOOTER_LINE = re.compile(r"^\s*(?:Page \d{1,3}(?: of \d{1,3})?)?\s*$")

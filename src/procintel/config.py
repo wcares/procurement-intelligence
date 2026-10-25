@@ -12,14 +12,14 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, Callable
 
+from procintel import paths
 from procintel import answer, assess, embed, feedback_review, llm, retrieve
 from procintel.jobs import worker as jobs_worker
 
-SAVED = Path(__file__).resolve().parents[2] / "data" / "config.json"
-PROFILES = Path(__file__).resolve().parents[2] / "data" / "config_profiles.json"  # named sets of settings
+SAVED = paths.CONFIG_FILE
+PROFILES = paths.PROFILES_FILE  # named sets of settings
 
 
 @dataclass

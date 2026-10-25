@@ -8,16 +8,16 @@ Tables: projects, documents, notices.   Chunking/indexing is a separate step (ch
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 import duckdb
 import pandas as pd
 from bs4 import BeautifulSoup
 
+from procintel import paths
 from . import parse_notice as pn
 from .wb_client import ICR_TYPE, WBClient
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 MAX_NOTICES_PER_PROJECT = 300
 
 

@@ -22,7 +22,9 @@ from pathlib import Path
 import duckdb
 import requests  # as procintel.wb_client: it carries its own certificate bundle
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+from procintel import paths
+
+DB_PATH = paths.DB_PATH
 API = "https://datacatalogapi.worldbank.org/dexapps/fone/api/apiservice"
 PAGE = 1000
 COLUMNS = ["project_id", "borrower_contract_reference_number", "contract_description", "contract_signing_date",

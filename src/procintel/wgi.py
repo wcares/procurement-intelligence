@@ -14,9 +14,10 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
+from procintel import paths
 from procintel.wb_client import WBClient
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 WGI_CODES = {
     "GOV_WGI_CC.EST": "control_of_corruption",
     "GOV_WGI_GE.EST": "government_effectiveness",

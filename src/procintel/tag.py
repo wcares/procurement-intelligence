@@ -25,10 +25,11 @@ from pathlib import Path
 
 import duckdb
 
+from procintel import paths
 from procintel import decide
 from procintel.embed import text_hash
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data" / "procintel.duckdb"
+DB_PATH = paths.DB_PATH
 QUESTION = "What kind of procurement or implementation problem does this passage mainly describe?"
 TAGS = ["funding or payment delays", "contractor performance or capacity",
         "external shock such as a pandemic, disaster or conflict", "land acquisition or resettlement",

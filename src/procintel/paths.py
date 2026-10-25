@@ -1,0 +1,22 @@
+"""Where the data lives: one setting, read by every module.
+
+PROCINTEL_DATA_DIR (default: <repo>/data) holds the main database, the feedback and job databases, saved settings,
+trained models and the HTTP cache. In a container it points at a mounted volume. A module that needs a file takes
+its path from here, never builds one from its own location.
+"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = Path(os.environ.get("PROCINTEL_DATA_DIR") or ROOT / "data").expanduser()
+
+DB_PATH = DATA_DIR / "procintel.duckdb"          # projects, notices, documents, passages, vectors, tags, models' tables
+FEEDBACK_DB = DATA_DIR / "feedback.duckdb"       # response log and feedback (its own file: one writer per DuckDB file)
+JOBS_DB = DATA_DIR / "jobs.duckdb"               # job queue
+CONFIG_FILE = DATA_DIR / "config.json"           # settings saved from the Settings page
+PROFILES_FILE = DATA_DIR / "config_profiles.json"
+MODEL_DIR = DATA_DIR / "models"                  # trained prediction models
+HTTP_CACHE = DATA_DIR / "cache" / "http"         # World Bank API responses
+EVAL_DIR = ROOT / "eval"                         # evaluation questions, labels and reports (kept with the code)

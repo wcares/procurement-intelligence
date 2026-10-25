@@ -95,6 +95,9 @@ worse on them than in cross-validation) and a World Bank refresh weekly; both re
 data. The Settings page lists the jobs and can queue one. `PROCINTEL_JOBS=0` turns the worker off;
 `scripts/refresh.sh` runs a refresh by hand.
 
+Everything the system writes (databases, saved settings, trained models, the HTTP cache) goes under `data/`, or
+under the folder named by `PROCINTEL_DATA_DIR`.
+
 ### 4. Run
 
 ```bash
