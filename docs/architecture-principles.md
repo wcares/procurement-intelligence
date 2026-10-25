@@ -45,6 +45,38 @@ and so that it scales beyond the prototype's data. docs/event-pipeline-design.md
 - **Models.** On a Mac, containers cannot use the Apple GPU, so locally the model servers keep running on the host and
   containers reach them by URL; in production they run as GPU containers or a hosted endpoint, again by URL.
 
+### Deployment topology
+
+```
+  browser (planners, admins)
+        │
+        ▼
+  web (Next.js UI) ──HTTP──► api (FastAPI) ◄── webhooks from push sources
+                                  │ queues work
+                                  ▼
+                            worker (job queue): connectors' polling and subscribing, extract, classify, chunk,
+                                  │             embed, tag, retrain, feedback review, retention
+        ┌──────────────┬──────────┴───────┬──────────────────┐
+        ▼              ▼                  ▼                  ▼
+    Postgres        Qdrant          object storage       model servers
+  (tables, state,  (vectors)        (raw files,          (answer LLM, embeddings,
+   events, jobs,                     uploads)             decision model)
+   feedback, users)
+
+  outside: World Bank APIs, client databases, MCP servers, document systems (reached by connectors in the worker)
+```
+
+| part | role | local now | production |
+|---|---|---|---|
+| web | the UI; talks only to the api | `next dev` | container |
+| api | requests from the UI, webhooks, queueing | one process with the worker | container |
+| worker | every pipeline step as jobs, including connector code | a thread in the api process | its own container (same image), scaled separately |
+| tables and state | Postgres | DuckDB files | Postgres |
+| vectors | Qdrant or pgvector | DuckDB table, in-memory search | Qdrant |
+| raw files | object storage | `data/` folder | S3 or MinIO |
+| models | answer, embedding, decision | llama.cpp on the host | GPU containers or hosted endpoints |
+| sign-in | username and password, roles | — | same; single sign-on optional later |
+
 ## Order of the clean-up
 
 Done as part of the queued work, not as a separate rewrite: the data-location setting first (small, touches every

@@ -85,7 +85,8 @@ On the page where the planner asks or assesses, a compact side panel with three 
 | **Trends** | one small chart relevant to the query (e.g. award time for this method and region over years) | the dashboard's trend views, pre-filtered |
 
 - Alerts come from the event pipeline: a rule on new events (re-tender evidence, award times, ratings) matched against
-  a planner's **watch-list** (countries, sectors, methods, projects). In-app first; email later.
+  a planner's **watch-list** (countries, sectors, methods, projects). Shown in the app only for now (user,
+  2026-10-25); email or other notifications can be added later as a setting.
 - Recommendations are generated only from retrieved precedents and statistics, with citations, the same way answers
   are; with no supporting evidence, none is shown.
 
@@ -127,8 +128,10 @@ admin users who run the pipeline ... exactly the role based").
 | **Admin** | the team running the platform | everything a planner can, plus Settings, connectors, rules, event log, background jobs, evaluation page, feedback review, promotions |
 | Reviewer (later) | domain experts | label evaluation items and review feedback, no pipeline control |
 
-- **Identity provider by configuration**: a simple local login for the prototype; single sign-on (OpenID Connect, e.g.
-  Microsoft Entra ID or Okta) for a pilot. Changing it is a setting (docs/architecture-principles.md).
+- **Login for now: username and password** (user, 2026-10-25). Passwords stored only as salted hashes; an admin creates
+  accounts and assigns roles; the first admin comes from an environment setting; sessions in a secure, HTTP-only
+  cookie; repeated failed logins are slowed down. Single sign-on (OpenID Connect, e.g. Microsoft Entra ID or Okta) can be
+  added later as a setting (docs/architecture-principles.md).
 - **Roles enforced in the backend**, not only hidden in the UI: every admin endpoint checks the caller's role. Today the
   settings, jobs and reload endpoints are open to anyone who can reach the server (only reload and queueing jobs are
   limited to this machine).
