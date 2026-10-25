@@ -22,3 +22,27 @@ def test_no_evidence_is_not_presented_as_no_risk():
     f = assess.rebid_flag(INFO, "KE", "Kenya")
     assert f["level"] == "low" and "not evidence of absence" in f["detail"]
     assert assess.rebid_flag(INFO, "XX", "") is None and assess.rebid_flag({}, "KE", "Kenya") is None
+
+
+def test_amendment_reports_exclude_advice_and_laws():
+    from procintel import evidence as E
+    k = E.AMENDMENT
+    assert E.reports(k, "Price escalation in 2022 was managed transparently through contract amendments.")
+    assert E.reports(k, "Contract amendments and extensions were often handled retroactively.")
+    assert not E.reports(k, "More frequent budget reviews, timely contract amendments, improved forecasting.")
+    assert not E.reports(k, "This would reduce the frequency of emergency interventions and contract amendments.")
+    assert not E.reports(k, "including the 2024 amendment to the Government Contracts and Tenders Act to raise thresholds")
+
+
+def test_amendment_flag_is_a_lower_bound():
+    info = {"RW": {"projects": 2, "with_event": 1, "example": ("P9", "frequent contract amendments and extensions")},
+            "KE": {"projects": 2, "with_event": 0, "example": None}}
+    f = assess.amendment_flag(info, "RW", "Rwanda")
+    assert f["label"] == "Contract amendments in past projects: at least 1 of 2" and "at least 1 (25%)" in f["detail"]
+    assert "not evidence of absence" in assess.amendment_flag(info, "KE", "Kenya")["detail"]
+
+
+def test_a_single_project_is_never_high():
+    one = {"LB": {"projects": 1, "with_rebid": 1, "with_event": 1, "example": None}}
+    assert assess.rebid_flag(one, "LB", "Lebanon")["level"] == "medium"
+    assert assess.amendment_flag(one, "LB", "Lebanon")["level"] == "medium"

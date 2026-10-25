@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from procintel import config, feedback, predict, rebid, stats
+from procintel import config, evidence, feedback, predict, rebid, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
@@ -145,6 +145,7 @@ class State:
         self.governance = stats.governance(con)
         self.rebid = rebid.by_country(con)
         self.rebid_cost = rebid.cost(con)
+        self.amendments = evidence.by_country(con, "amendment")
         con.close()
         self.retriever = Retriever(db_path)
         idf(self.retriever)  # term weights for picking answer sentences
@@ -188,7 +189,7 @@ def post_assess(req: AssessRequest) -> dict:
     s = state()
     body = req.model_dump()
     out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
-                     s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost)
+                     s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments)
     feedback.log_response("assess", body, out)
     return out
 

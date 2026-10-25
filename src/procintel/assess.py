@@ -117,6 +117,30 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
     return out, widened, how, conflict_notes(retriever, hits)
 
 
+def amendment_flag(info: dict[str, dict], country: str, country_name: str) -> dict | None:
+    """Lower-bound evidence that past projects in the country amended or extended contracts (procintel.evidence,
+    kind "amendment": ICR passages read by hand, 15 of 20 report an amendment, the rest are advice or a law)."""
+    if not info or country not in info:
+        return None
+    c = info[country]
+    total_p = sum(v["projects"] for v in info.values())
+    total_n = sum(v["with_event"] for v in info.values())
+    overall = f"across all {total_p} projects in the data, at least {total_n} ({total_n / total_p:.0%})"
+    where = country_name or country
+    if c["with_event"] == 0:
+        return {"id": "amendment", "label": "Contract amendments: no evidence for this country", "level": "low",
+                "basis": "statistic",
+                "detail": f"No contract amendments or extensions found in the completion reports of the {c['projects']} "
+                          f"past project(s) for {where} ({overall} report them). Reports do not mention every "
+                          "amendment, so this is not evidence of absence."}
+    share = c["with_event"] / c["projects"]
+    example = f' Example ({c["example"][0]}): "…{c["example"][1][:220]}…"' if c.get("example") else ""
+    return {"id": "amendment", "label": f"Contract amendments in past projects: at least {c['with_event']} of {c['projects']}",
+            "level": "high" if share >= 0.5 and c["with_event"] >= 2 else "medium", "basis": "statistic",
+            "detail": f"The completion reports of at least {c['with_event']} of {c['projects']} past projects in {where} report "
+                      f"contract amendments, variations or extensions ({overall}).{example}"}
+
+
 def rebid_flag(info: dict[str, dict], country: str, country_name: str, cost: tuple[float, float] | None = None) -> dict | None:
     """Lower-bound re-bidding evidence for the country, against all projects (procintel.rebid). Both sources miss
     cases (ICRs summarise; few agencies number re-tenders), so this says "at least", never a rate."""
@@ -137,7 +161,7 @@ def rebid_flag(info: dict[str, dict], country: str, country_name: str, cost: tup
     share = c["with_rebid"] / c["projects"]
     example = f' Example ({c["example"][0]}): "…{c["example"][1][:220]}…"' if c.get("example") else ""
     return {"id": "rebid", "label": f"Re-tendering in past projects: at least {c['with_rebid']} of {c['projects']}",
-            "level": "high" if share >= 0.5 else "medium", "basis": "statistic",
+            "level": "high" if share >= 0.5 and c["with_rebid"] >= 2 else "medium", "basis": "statistic",  # one project is too little for "high"
             "detail": f"At least {c['with_rebid']} of {c['projects']} past projects in {where} re-tendered contracts, from "
                       f"their completion reports or re-tender references in notices ({overall}). {cost}{example}"}
 
@@ -178,7 +202,7 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
 
 def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model: dict | None = None,
            region: str | None = None, country_name: str = "", rebid_info: dict | None = None,
-           rebid_cost: tuple[float, float] | None = None) -> dict:
+           rebid_cost: tuple[float, float] | None = None, amendment_info: dict | None = None) -> dict:
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
     t = timeline(bench, group, method)
@@ -199,6 +223,7 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
     if flags:
         caveats.append(f"Flags marked 'model' come from gradient-boosted trees trained on {model['n']} past packages "
                        "(procurement type, method, region, sector, year, CPIA). They are estimates, not commitments.")
-    rb = rebid_flag(rebid_info or {}, country, country_name, rebid_cost)
-    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags + ([rb] if rb else []), "governance": gov,
+    extra = [f for f in (rebid_flag(rebid_info or {}, country, country_name, rebid_cost),
+                         amendment_flag(amendment_info or {}, country, country_name)) if f]
+    return {"timeline": t, "risks": risks(bench, group, method, t, gov) + flags + extra, "governance": gov,
             "precedents": precs, "meta": meta(caveats)}
