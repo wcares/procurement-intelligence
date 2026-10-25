@@ -163,7 +163,7 @@ _(empty)_
 
 ### Done
 
-- [x] README: what it is, quick look on mock data, Python and model setup (llama.cpp commands, idle sleep), data build steps with measured times, refresh, run, architecture, evaluation summary, limitations, layout; requirements.txt corrected (dropped unused networkx and rank-bm25, marked anthropic optional, added bm25s, PyStemmer, joblib and httpx that are imported) plus requirements.lock — COMMIT — every command checked to have an entry point; a fresh venv from requirements.txt alone passes all 66 tests
+- [x] README: what it is, quick look on mock data, Python and model setup (llama.cpp commands, idle sleep), data build steps with measured times, refresh, run, architecture, evaluation summary, limitations, layout; requirements.txt corrected (dropped unused networkx and rank-bm25, marked anthropic optional, added bm25s, PyStemmer, joblib and httpx that are imported) plus requirements.lock — 8722ed8 — every command checked to have an entry point; a fresh venv from requirements.txt alone passes all 66 tests
 
 ### Improvements
 
