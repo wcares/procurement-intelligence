@@ -89,7 +89,8 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
     if not (use.get("days_p50") or use.get("over_180")):
         return []
     row = {"proc_group": req["procGroup"], "method_code": req["methodCode"], "region": region,
-           "sector": req.get("sector") or None, "tender_start": date.today().isoformat()}
+           "sector": req.get("sector") or None, "tender_start": date.today().isoformat(),
+           "value_usd": req.get("estimatedValueUsd")}
     row.update({f"cpia_{g['indicator']}": g["value"] for g in gov})
     p = predict_one(bundle, row)
     tested = f"tested on {bundle['n']} past packages from projects it had not seen"
@@ -97,6 +98,8 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
     if use.get("days_p50"):
         days = round(p["p50"])
         vs = f"; the historical median for comparable packages is {round(t['median'])}" if t else ""
+        if not req.get("estimatedValueUsd"):
+            vs += "; no contract value was given, so the typical value for this procurement type and method was used"
         out.append({"id": "model-timeline", "label": f"Predicted award time: about {days} days", "basis": "model",
                     "level": "high" if days > LONG_DAYS else "medium" if days > 120 else "low",
                     "detail": f"Model estimate for this package{vs}."

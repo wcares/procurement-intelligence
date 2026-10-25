@@ -6,14 +6,18 @@ Three models (scikit-learn HistGradientBoosting, categorical features handled na
   over_180   probability that award takes more than 180 days (classifier)
 
 Features are only what the Assess form supplies before tendering: procurement group and method, region (from the
-country), sector, and the country's CPIA scores as of the tender year (never later ones).
+country), sector, the country's CPIA scores as of the tender year (never later ones), and contract value in USD
+(log10). Value: in training, the award price converted at the award year's rate (procintel.fx; 80% of packages have
+one); at prediction, the planner's estimate (optional). The award price stands in for an estimate the data does not
+have, so value is a little more informative in training than it will be in use. With value, typical-days MAE 79.4 vs
+82.0 without, >180 Brier 0.152 vs 0.156 (2026-10-25, 1,154 packages).
 
 Censoring: only awarded tenders have a duration, so recent years look fast (median 258 days for 2019 tenders, 75 for
 2025) because their slow tenders are not awarded yet. A tender-year feature learned that artefact and predicted about
 70 days for Kenyan civil works where 37% of comparable packages took over 180. So the year is not a feature, and the
 models train only on tenders with at least MIN_FOLLOWUP_DAYS before the data snapshot (latest notice date). Tenders
-that never got an award are still missing; a survival model that uses them as censored rows is the proper fix. Contract value
-is not used: most prices are award prices in local currency. Project age and project size were tried and dropped:
+that never got an award are still missing; a survival model that uses them as censored rows is the proper fix.
+Project age and project size were tried and dropped:
 the form does not ask for them, and without them the CV was about as good (typical-days MAE 78.0 vs 77.3) and the
 over-180 risk better (Brier 0.150 vs 0.158).
 
@@ -37,6 +41,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostin
 from sklearn.metrics import brier_score_loss, mean_absolute_error, mean_pinball_loss, roc_auc_score
 from sklearn.model_selection import GroupKFold
 
+from procintel import fx
 from procintel.stats import MIN_BENCH_N
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,7 +50,7 @@ MODEL_PATH = ROOT / "data" / "models" / "timeline.joblib"
 CPIA = ["transparency_corruption", "public_administration", "property_rights_rule_based_gov",
         "business_regulatory_env", "public_sector_mgmt_cluster", "ida_allocation_index"]
 CATEGORICAL = ["proc_group", "method_code", "region", "sector"]
-NUMERIC = [f"cpia_{c}" for c in CPIA]
+NUMERIC = [f"cpia_{c}" for c in CPIA] + ["log_value_usd"]
 FEATURES = CATEGORICAL + NUMERIC
 LONG_DAYS = 180
 MIN_FOLLOWUP_DAYS = 540  # 18 months between tender and data snapshot before a tender is used for training
@@ -55,6 +60,7 @@ SEED = 7
 _FRAME = f"""
 WITH pk AS (
   SELECT k.package_id, k.project_id, k.proc_group, k.method_code, k.tender_start, k.tender_to_award_days,
+         k.price_currency, k.price_amount, year(k.award_date::DATE) AS award_year,
          p.country_code, p.sector, p.commitment_usd, p.board_approval, c.region
   FROM package k JOIN project p USING (project_id) LEFT JOIN country c USING (country_code)
   WHERE k.tender_to_award_days IS NOT NULL AND k.tender_start IS NOT NULL
@@ -74,13 +80,18 @@ GROUP BY ALL
 def load_frame(db_path: Path = DB_PATH) -> pd.DataFrame:
     con = duckdb.connect(str(db_path), read_only=True)
     df = con.execute(_FRAME).fetch_df()
+    table = fx.rates(con)
     con.close()
+    # award price in USD at the award year's rate; at prediction time the planner's estimate takes its place
+    df["value_usd"] = [fx.to_usd(a, c, y, table) for a, c, y in zip(df["price_amount"], df["price_currency"], df["award_year"])]
     return add_features(df)
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["tender_year"] = pd.to_datetime(df["tender_start"]).dt.year
+    value = pd.to_numeric(df["value_usd"], errors="coerce") if "value_usd" in df else pd.Series(np.nan, index=df.index)
+    df["log_value_usd"] = np.log10(value.where(value > 0))  # missing or non-positive -> NaN, which the trees handle
     for c in CATEGORICAL:
         df[c] = df[c].astype("category")
     return df
@@ -147,7 +158,13 @@ def train(df: pd.DataFrame, metrics: dict) -> dict:
     m["days_p50"].fit(df[FEATURES], df["tender_to_award_days"])
     m["days_p90"].fit(df[FEATURES], df["tender_to_award_days"])
     m["over_180"].fit(df[FEATURES], df["tender_to_award_days"] > LONG_DAYS)
+    known = df.dropna(subset=["log_value_usd"])
+    value_median = {"all": float(known["log_value_usd"].median())}
+    value_median |= {g: float(v) for g, v in known.groupby("proc_group", observed=True)["log_value_usd"].median().items()}
+    value_median |= {f"{g}/{mth}": float(v) for (g, mth), v in
+                     known.groupby(["proc_group", "method_code"], observed=True)["log_value_usd"].median().items()}
     return {"models": m, "metrics": metrics, "use": beats_baseline(metrics), "features": FEATURES,
+            "value_median": value_median,
             "categories": {c: list(df[c].cat.categories) for c in CATEGORICAL},
             "n": len(df), "trained_at": datetime.now(timezone.utc).isoformat()}
 
@@ -159,6 +176,11 @@ def load(path: Path = MODEL_PATH) -> dict | None:
 def predict_one(bundle: dict, row: dict) -> dict:
     """Predictions for one planned package; row holds the raw columns of load_frame (proc_group, method_code, ...)."""
     df = add_features(pd.DataFrame([row]))
+    if pd.isna(df.loc[0, "log_value_usd"]) and "value_median" in bundle:
+        # no estimate: use the typical value of this group/method. Training rows without a price were mostly small
+        # packages, so leaving it missing would read as "small contract" and make the prediction optimistic.
+        vm = bundle["value_median"]
+        df.loc[0, "log_value_usd"] = vm.get(f"{row['proc_group']}/{row['method_code']}", vm.get(row["proc_group"], vm["all"]))
     for c in CATEGORICAL:  # same category codes as in training, else the trees read the wrong categories
         known = bundle["categories"][c]
         values = [v if v in known else None for v in df[c].astype(object)]  # unseen -> missing (pandas will refuse it)
