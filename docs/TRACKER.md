@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **Proposal** README: setup, models, how to run each step (added 2026-10-24, by me)
 - [ ] **Proposal** Short write-up per module, using the prototype's measurements as evidence (added 2026-10-24, by me)
 
 Status at a glance (2026-10-24): Module 1 MVP done · Module 2 retrieval done, prediction pending · Module 3 guardrails
@@ -161,6 +160,10 @@ _(empty)_
 ### Queue
 
 _(empty)_
+
+### Done
+
+- [x] README: what it is, quick look on mock data, Python and model setup (llama.cpp commands, idle sleep), data build steps with measured times, refresh, run, architecture, evaluation summary, limitations, layout; requirements.txt corrected (dropped unused networkx and rank-bm25, marked anthropic optional, added bm25s, PyStemmer, joblib and httpx that are imported) plus requirements.lock — COMMIT — every command checked to have an entry point; a fresh venv from requirements.txt alone passes all 66 tests
 
 ### Improvements
 
