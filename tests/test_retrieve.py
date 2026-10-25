@@ -80,7 +80,7 @@ def test_precedents_skip_passages_tagged_as_no_problem(retriever, monkeypatch):
     for r in retriever.records:
         r["tag"], r["tag_confidence"] = tagged.get(r["chunk_id"], (None, 0.0))
     try:
-        precs, _, _ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+        precs, _, _, _ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
         ids = [p["citation"]["id"] for p in precs]
         assert "d1:0" not in ids  # confidently "no problem": not a precedent
     finally:

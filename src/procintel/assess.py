@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from procintel.answer import citation, meta, retrieval_note, terms
+from procintel.answer import citation, conflict_notes, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
 from procintel.predict import LONG_DAYS, predict_one
@@ -56,7 +56,7 @@ def _lessons(hits: list) -> list:
     return [h for h in hits if not (h.tag == NONE and h.tag_confidence >= NOT_A_LESSON_MIN)]
 
 
-def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str) -> tuple[list[dict], bool, str]:
+def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str) -> tuple[list[dict], bool, str, list[str]]:
     """(precedents, widened, how they were retrieved): widened is True when the country had too few passages and all
     countries were searched."""
     query = f"{description} {sector} {PROC_GROUP_LABELS.get(group, '')} {_PRECEDENT_TERMS}"
@@ -67,7 +67,7 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         more = _lessons(retriever.search(query, k=16, proc_group=group))
         hits += [h for h in more if h.chunk_id not in seen][: 5 - len(hits)]
     if not hits:
-        return [], widened, retrieval_note([])
+        return [], widened, retrieval_note([]), []
     top = max(h.score for h in hits)
     want = terms(f"{description} {sector}")
     out = []
@@ -78,7 +78,7 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         if shared:
             matched.append("terms: " + ", ".join(shared[:4]))
         out.append({"citation": citation(h), "relevance": round(h.score / top, 3), "matchedOn": matched})
-    return out, widened, retrieval_note(hits)
+    return out, widened, retrieval_note(hits), conflict_notes(retriever, hits)
 
 
 def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[dict], t: dict | None) -> list[dict]:
@@ -117,7 +117,7 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
     t = timeline(bench, group, method)
-    precs, widened, how = precedents(retriever, country, group, req.get("description") or "", req.get("sector") or "")
+    precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "", req.get("sector") or "")
     caveats = ["Timeline and risk numbers are statistics over historical World Bank procurement notices in the "
                "ingested sample; precedents are ICR evaluation passages.", how]
     if not gov:
@@ -128,6 +128,7 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
         caveats.append("Too few packages for this exact method; the timeline uses a wider slice.")
     if widened:
         caveats.append("Few evaluation passages for this country; precedents include other countries.")
+    caveats += conflicts
     flags = model_flags(model, req, region, gov, t)
     if flags:
         caveats.append(f"Flags marked 'model' come from gradient-boosted trees trained on {model['n']} past packages "

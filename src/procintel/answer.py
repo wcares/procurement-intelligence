@@ -167,6 +167,17 @@ def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tupl
     return out, dropped
 
 
+def conflict_notes(retriever: Retriever, cited: list[Hit]) -> list[str]:
+    """Caveats for cited reports whose completion rating disagrees with the project's last supervision rating."""
+    notes, seen = [], set()
+    for h in cited:
+        note = getattr(retriever, "rating_conflicts", {}).get(h.doc_id)
+        if note and h.doc_id not in seen:
+            seen.add(h.doc_id)
+            notes.append(f"Conflicting evidence for {h.project_id} ({h.project_name}): {note}")
+    return notes
+
+
 def retrieval_note(hits: list[Hit]) -> str:
     vias = {v for h in hits for v in h.via.split("+")}
     if "vector" in vias:
@@ -210,6 +221,7 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
                        "Related passages were found, but no sentence in them answers the question directly.")
     caveats.append(retrieval_note(hits) + (" Relevance judged by the decision model." if use_decide else ""))
     used = sorted({c for s in answer for c in s["citations"]})
+    caveats += conflict_notes(retriever, [hits[i] for i in used])
     remap = {old: new for new, old in enumerate(used)}
     return {
         "answer": [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in answer],

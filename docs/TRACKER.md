@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **M3** Conflict check: compare each ICR's procurement verdict with its ISR ratings (both in the report); show disagreements with both sources (added 2026-10-24, by me)
 - [ ] **M3** Small evaluation set (~20 questions, labelled relevant passages) with retrieval precision/recall and answer faithfulness (added 2026-10-24, by me)
 - [ ] **M4** Feedback capture: useful / wrong / bad citation buttons on answers and assessments, stored in the database with the response (added 2026-10-24, by me)
 - [ ] **M4** One `refresh` command: fetch new notices and reports, then chunk → embed → tag → retrain only what changed, and log what changed (added 2026-10-24, by me)
@@ -115,12 +114,14 @@ _(empty)_
 
 ### Improvements
 
+- [ ] Procurement-specific conflicts: ISR tables carry only DO and IP ratings, not a procurement rating; compare the ICR's procurement text (e.g. "procurement rated Satisfactory") with the IP rating trend (added 2026-10-24, by me)
 - [ ] Larger evaluation set (~100 questions) once the MVP set shows where answers fail (added 2026-10-24, by me)
 - [ ] Risk flags carry their evidence: link each flag to the packages or passages it rests on (added 2026-10-24, by me)
 - [ ] Two-step passage tagging (is a problem described? then which type) to make problem types usable (added 2026-10-24, by me)
 
 ### Done
 
+- [x] Conflicting evidence: each ICR's outcome rating vs the last ISR development-objective rating (both parsed from the report's data sheet); a disagreement (opposite sides of satisfactory, or 2+ points apart) becomes a caveat on /ask and /assess naming both ratings and the ISR date, the ICR treated as the later verdict, never averaged — COMMIT — 104 of 120 reports judged, 11 conflicts; ISR rows parsed 97.3% (wrapped cells handled; an ambiguous last row must conflict under every reading; an unreadable later rated row gives no verdict); two flagged reports checked against raw text found and fixed a stale-last-row bug; live /ask on Morocco P165411 shows the caveat
 - [x] Every answer sentence cites passages; citation cards show quote, section ¶, project, PDF link — bf7f501 — tests/test_api.py
 - [x] Unsupported questions refused, not guessed — bf7f501, a0a125d — "boiling point of tungsten" refused
 - [x] Decision model (Laya) as evidence gate, sentence fact-check and quote picker; word-overlap fallback — a0a125d — pre-registered 26-question check; caught a real fabrication in a live run
