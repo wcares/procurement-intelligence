@@ -14,7 +14,7 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-from procintel import db, paths
+from procintel import contract_awards, db, paths
 from .wb_client import WBClient
 
 DB_PATH = paths.DB_PATH
@@ -157,6 +157,8 @@ def build(db_path: Path = DB_PATH) -> None:
     for t in ("country", "project", "package", "notice_m", "supplier", "award_supplier", "document_m", "document_project", "cpia"):
         print(f"{t:15s}", con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0])
     con.close()
+    # package was recreated above: give packages without an award notice their contract signing date again
+    contract_awards.fill_award_dates(db_path)
 
 
 if __name__ == "__main__":

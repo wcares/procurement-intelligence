@@ -22,7 +22,7 @@ from pathlib import Path
 
 from procintel import db, paths
 from procintel import (chunk, contract_awards, decide, embed, entities, evidence, fx, ingest, llm, model, predict,
-                       problem_tag, procurement_rating, ratings, sectors, tag, wgi)
+                       problem_tag, procurement_rating, ratings, sectors, tag, vector_index, wgi)
 
 DB_PATH = paths.DB_PATH
 
@@ -80,12 +80,12 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
         if fetch:
             step("contract awards (Finances One)", contract_awards.build)
             step("governance indicators (WGI)", wgi.build)
-        # model.build recreates the package table, so signing dates are filled again on every run
-        step("award dates from contract signing", contract_awards.fill_award_dates)
         step("chunks", chunk.build)
         if embed.available():
             counts["embedded"] = step("embeddings (new or changed passages)", embed.build)
             counts["packages_embedded"] = step("package description embeddings", embed.build_packages)
+            if vector_index.backend() == "qdrant":  # the vector store gets the new vectors before anything searches
+                step("vector index (Qdrant)", lambda: [vector_index.sync(k) for k in vector_index.SOURCES])
         if decide.available():
             counts["tagged"] = step("tags (new or changed passages)", tag.build)
         if decide.available() and llm.available():

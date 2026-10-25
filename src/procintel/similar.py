@@ -14,8 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-from procintel import db, paths
-from procintel import embed, fx
+from procintel import db, embed, fx, paths, vector_index
 from procintel.answer import terms
 
 DB_PATH = paths.DB_PATH
@@ -31,9 +30,10 @@ class Similar:
             q = con.execute("""
                 SELECT k.package_id, k.project_id, p.name AS project_name, p.country_code, k.proc_group, k.method_code,
                        k.description, k.tender_to_award_days, k.price_currency, k.price_amount,
-                       year(k.award_date::DATE) AS award_year, k.rebid_evidence, v.vec
+                       year(k.award_date::DATE) AS award_year, k.rebid_evidence, {vec}
                 FROM package_vec v JOIN package k USING (package_id) LEFT JOIN project p USING (project_id)
-                WHERE v.model = ? AND v.dim = ?""", [embed.model_name(), embed.dim()])
+                WHERE v.model = ? AND v.dim = ?""".format(vec="v.vec" if vector_index.backend() == "memory" else "NULL AS vec"),
+                [embed.model_name(), embed.dim()])
             cols = [d[0] for d in q.description]
             data = q.fetchall()
             table = fx.rates(con)
@@ -41,7 +41,10 @@ class Similar:
             for r in self.rows:
                 r["value_usd"] = fx.to_usd(r["price_amount"], r["price_currency"], r["award_year"], table)
                 r["terms"] = terms(r["description"] or "")
-            self.vectors = np.asarray([r[-1] for r in data], dtype=np.float32) if data else None
+            keys = [r["package_id"] for r in self.rows]
+            self.vectors = (vector_index.open_index("packages", keys,
+                                                    lambda: np.asarray([r[-1] for r in data], dtype=np.float32))
+                            if data else None)
         con.close()
         df: dict[str, int] = {}
         for r in self.rows:
@@ -60,8 +63,7 @@ class Similar:
         if not same.any():
             return []
         q = embed.embed([embed.format_query(description)])[0]
-        vs = np.where(same, self.vectors @ q, -np.inf)
-        vec_rank = [int(i) for i in np.argsort(-vs)[:POOL] if np.isfinite(vs[i])]
+        vec_rank = vector_index.ranking(self.vectors, q, same, POOL)
         qt = terms(description)
         ws = [(sum(self.idf.get(t, 0) for t in qt & r["terms"]), i) for i, r in enumerate(self.rows) if same[i]]
         word_rank = [i for s, i in sorted(ws, reverse=True)[:POOL] if s > 0]

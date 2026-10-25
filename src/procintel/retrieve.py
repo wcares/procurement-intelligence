@@ -26,8 +26,7 @@ import numpy as np
 from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
-from procintel import db, paths
-from procintel import embed, procurement_rating, ratings, sectors
+from procintel import db, embed, paths, procurement_rating, ratings, sectors, vector_index
 from procintel.stats import GROUP_TERMS
 
 log = logging.getLogger(__name__)
@@ -81,7 +80,9 @@ class Retriever:
         if not rows:
             con.close()
             raise ValueError("no chunks to index; run `python -m procintel.chunk` first")
-        self.vectors = embed.load(con, [r[0] for r in rows]) if embed.available() else None
+        ids = [r[0] for r in rows]
+        # a numpy matrix (in memory) or a Qdrant index, by PROCINTEL_VECTOR_URL (procintel.vector_index)
+        self.vectors = vector_index.open_index("chunks", ids, lambda: embed.load(con, ids)) if embed.available() else None
         tags = _load_tags(con)
         problems = _load_problems(con)
         self.rating_conflicts = ratings.load(con)  # doc_id -> note where the ICR outcome and last ISR rating disagree
@@ -156,9 +157,7 @@ class Retriever:
 
     def _vector_ranking(self, query: str, mask: np.ndarray) -> list[int]:
         q = embed.embed([embed.format_query(query)])[0]
-        scores = np.where(mask, self.vectors @ q, -np.inf)
-        top = np.argpartition(-scores, min(POOL, len(scores) - 1))[:POOL]
-        return [int(i) for i in top[np.argsort(-scores[top])] if np.isfinite(scores[i])]
+        return vector_index.ranking(self.vectors, q, mask, POOL)
 
 
 def _load_tags(con: duckdb.DuckDBPyConnection) -> dict[str, tuple[str, float]]:
