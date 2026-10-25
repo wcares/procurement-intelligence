@@ -86,3 +86,29 @@ def test_precedents_skip_passages_tagged_as_no_problem(retriever, monkeypatch):
     finally:
         for r in retriever.records:
             r["tag"], r["tag_confidence"] = None, 0.0
+
+
+def test_precedents_keep_only_passages_the_decision_model_judges_useful(retriever, monkeypatch):
+    from procintel import assess, decide
+    monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
+    seen = []
+
+    def judge(state, question, **kw):
+        seen.append(state)
+        return 0.9 if "abandoned" in state else 0.1   # only d1:0 (contractor abandoned the site) is a useful lesson
+    monkeypatch.setattr(decide, "yes", judge)
+    precs, _, how, _ = assess.precedents(retriever, "KE", "CW", "road works", "", "Kenya", "RFB")
+    assert [p["citation"]["id"] for p in precs] == ["d1:0"]          # judged useful: kept
+    assert "Civil Works by RFB, in Kenya" in seen[0]                  # the model sees the planned package
+    precs, _, how, _ = assess.precedents(retriever, "KE", "CS", "consultant selection", "", "Kenya", "QCBS")
+    assert precs == [] and "set aside 1" in how                        # d2:0 retrieved, judged not useful
+
+
+def test_precedents_unchanged_when_the_decision_server_fails(retriever, monkeypatch):
+    from procintel import assess, decide
+    monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
+    monkeypatch.setattr(decide, "yes", lambda *a, **k: (_ for _ in ()).throw(ConnectionError("down")))
+    with_gate, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+    monkeypatch.delenv("PROCINTEL_DECIDE_API_BASE")
+    without, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+    assert [p["citation"]["id"] for p in with_gate] == [p["citation"]["id"] for p in without]

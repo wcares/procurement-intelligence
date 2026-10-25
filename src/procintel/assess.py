@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import date
 
+from procintel import answer, decide
 from procintel.answer import citation, conflict_notes, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
@@ -56,18 +57,39 @@ def _lessons(hits: list) -> list:
     return [h for h in hits if not (h.tag == NONE and h.tag_confidence >= NOT_A_LESSON_MIN)]
 
 
-def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str) -> tuple[list[dict], bool, str, list[str]]:
-    """(precedents, widened, how they were retrieved): widened is True when the country had too few passages and all
-    countries were searched."""
+def _relevant(hits: list, package: str) -> tuple[list, int]:
+    """(hits the decision model judges a useful lesson for this package, number dropped); all hits without a model."""
+    if not decide.available():
+        return hits, 0
+    q = "Does the passage describe an experience or lesson that would help plan this procurement?"
+    try:
+        keep = [h for h in hits if decide.yes(f"Planned procurement: {package}\nPassage: {h.text}", q) >= answer.DECIDE_MIN]
+    except Exception:  # decision server down: keep the retrieval order rather than fail the assessment
+        return hits, 0
+    return keep, len(hits) - len(keep)
+
+
+def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str,
+               country_name: str = "", method: str = "") -> tuple[list[dict], bool, str, list[str]]:
+    """(precedents, widened, how they were retrieved, conflict notes): widened is True when the country had too few
+    passages and all countries were searched. With a decision model, each candidate must be judged a useful lesson
+    for the planned package (it dropped indicator and disbursement tables that retrieval ranked first)."""
     query = f"{description} {sector} {PROC_GROUP_LABELS.get(group, '')} {_PRECEDENT_TERMS}"
-    hits = _lessons(retriever.search(query, k=12, country=country, proc_group=group))[:5]
+    package = ", ".join(x for x in [f"{PROC_GROUP_LABELS.get(group, group)} by {method or 'unspecified method'}",
+                                    f"in {country_name or country}", sector, description] if x)
+    candidates = _lessons(retriever.search(query, k=12, country=country, proc_group=group))
+    judged = {h.chunk_id for h in candidates}  # judged once: a rejected passage must not come back in the wider search
+    hits, dropped = _relevant(candidates, package)
+    hits = hits[:5]
     widened = len(hits) < 3
     if widened:
-        seen = {h.chunk_id for h in hits}
-        more = _lessons(retriever.search(query, k=16, proc_group=group))
-        hits += [h for h in more if h.chunk_id not in seen][: 5 - len(hits)]
+        more, d2 = _relevant([h for h in _lessons(retriever.search(query, k=16, proc_group=group)) if h.chunk_id not in judged], package)
+        hits += more[: 5 - len(hits)]
+        dropped += d2
+    how = retrieval_note(hits) + (f" The decision model set aside {dropped} retrieved passages as not a useful lesson "
+                                  "for this package." if dropped else "")
     if not hits:
-        return [], widened, retrieval_note([]), []
+        return [], widened, how, []
     top = max(h.score for h in hits)
     want = terms(f"{description} {sector}")
     out = []
@@ -78,7 +100,7 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         if shared:
             matched.append("terms: " + ", ".join(shared[:4]))
         out.append({"citation": citation(h), "relevance": round(h.score / top, 3), "matchedOn": matched})
-    return out, widened, retrieval_note(hits), conflict_notes(retriever, hits)
+    return out, widened, how, conflict_notes(retriever, hits)
 
 
 def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[dict], t: dict | None) -> list[dict]:
@@ -116,11 +138,12 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
 
 
 def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model: dict | None = None,
-           region: str | None = None) -> dict:
+           region: str | None = None, country_name: str = "") -> dict:
     country, group, method = req["countryCode"], req["procGroup"], req["methodCode"]
     gov = governance.get(country, [])
     t = timeline(bench, group, method)
-    precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "", req.get("sector") or "")
+    precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "",
+                                                req.get("sector") or "", country_name, method)
     caveats = ["Timeline and risk numbers are statistics over historical World Bank procurement notices in the "
                "ingested sample; precedents are ICR evaluation passages.", how]
     if not gov:

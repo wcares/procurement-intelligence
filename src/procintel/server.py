@@ -148,6 +148,7 @@ class State:
         idf(self.retriever)  # term weights for picking answer sentences
         self.timeline_model = predict.load()  # None until `python -m procintel.predict` has been run
         self.region = {c["code"]: c["region"] for c in self.options["countries"]}
+        self.country_name = {c["code"]: c["name"] for c in self.options["countries"]}
 
 
 @lru_cache(maxsize=1)
@@ -184,7 +185,8 @@ def get_options() -> dict:
 def post_assess(req: AssessRequest) -> dict:
     s = state()
     body = req.model_dump()
-    out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]))
+    out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
+                     s.country_name.get(body["countryCode"], ""))
     feedback.log_response("assess", body, out)
     return out
 
