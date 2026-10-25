@@ -37,6 +37,7 @@ _ABBREV = r"(?<!\bRs\.)(?<!\bNo\.)(?<!\bUS\.)(?<!\bvs\.)(?<!\bMr\.)(?<!\bDr\.)(?
 _SENT = re.compile(r"(?<=[.;])" + _ABBREV + r"\s+(?=[A-Z0-9])")
 MAX_PASSAGES = 5
 SEARCH_K = 12  # passages retrieved per question before the evidence check
+MIN_EVIDENCE = 3  # fewer evidence passages than this triggers a second search with reformulated queries (needs an LLM)
 GROUNDING_MIN = 0.3  # word-overlap fallback: share of a sentence's content stems that must appear in the cited passage
 DECIDE_MIN = 0.5  # decision-model probability needed for "relevant" and "supported"
 
@@ -186,8 +187,47 @@ def retrieval_note(hits: list[Hit]) -> str:
     return "Passages found by keyword search (BM25)."
 
 
+_REFORMULATE = ("You turn a planner's question into search queries for World Bank Implementation Completion Reports. "
+                "Write up to 3 short queries that use the words such reports use for the same idea (for example "
+                "'no responsive bids', 'retendering', 'contractor performance', 'procurement delays'). "
+                'Reply with JSON only: {"queries": ["...", "..."]}')
+
+
+def reformulate(question: str) -> list[str]:
+    """Up to 3 search queries in the reports' vocabulary; [] if the reply is unusable."""
+    raw = llm.complete(_REFORMULATE, question, max_tokens=150)
+    m = re.search(r"\{.*\}", raw, re.S)
+    try:
+        qs = json.loads(m.group(0))["queries"] if m else []
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return []
+    return [q.strip() for q in qs if isinstance(q, str) and q.strip()][:3]
+
+
+def search_multi(retriever: Retriever, queries: list[str], k: int, country: str | None, proc_group: str | None) -> list[Hit]:
+    """Hits of several queries merged by reciprocal rank fusion, each passage once."""
+    fused: dict[str, float] = {}
+    by_id: dict[str, Hit] = {}
+    for q in queries:
+        for rank, h in enumerate(retriever.search(q, k=k, country=country, proc_group=proc_group)):
+            fused[h.chunk_id] = fused.get(h.chunk_id, 0.0) + 1.0 / (60 + rank + 1)
+            by_id.setdefault(h.chunk_id, h)
+    return [by_id[c] for c in sorted(fused, key=fused.get, reverse=True)][:k]
+
+
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
     hits, judged_by = supporting(question, retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group))
+    second_search = None
+    if len(hits) < MIN_EVIDENCE and llm.available():
+        # step 2: too little evidence; search again with the question rephrased in the reports' vocabulary
+        try:
+            queries = reformulate(question)
+        except Exception:  # model down: keep the first search
+            queries = []
+        if queries:
+            more, how2 = supporting(question, search_multi(retriever, [question] + queries, SEARCH_K, country, proc_group))
+            if len(more) > len(hits):
+                hits, judged_by, second_search = more, how2, queries
     use_decide = judged_by == "decision"
     checker = f"the decision model {decide.api_base()}" if use_decide else "word overlap"
     caveats = [] if use_decide or not decide.available() else [
@@ -221,6 +261,9 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
         caveats.append("Each sentence is quoted verbatim from the cited evaluation passage." if answer else
                        "Related passages were found, but no sentence in them answers the question directly.")
     caveats.append(retrieval_note(hits) + (" Relevance judged by the decision model." if use_decide else ""))
+    if second_search:
+        caveats.append("The first search found little evidence, so the question was searched again as: "
+                       + "; ".join(f"'{q}'" for q in second_search) + ".")
     used = sorted({c for s in answer for c in s["citations"]})
     caveats += conflict_notes(retriever, [hits[i] for i in used])
     remap = {old: new for new, old in enumerate(used)}

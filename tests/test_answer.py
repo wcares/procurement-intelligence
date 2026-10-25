@@ -107,3 +107,35 @@ def test_decision_server_failure_falls_back_to_word_overlap(monkeypatch):
     monkeypatch.setattr(decide, "yes", down)
     hits, how = answer.supporting("why were contracts terminated", HITS)
     assert how == "terms" and [h.chunk_id for h in hits] == ["d:1"]
+
+
+def test_second_search_runs_only_when_evidence_is_thin_and_keeps_the_larger_set(monkeypatch):
+    from procintel.retrieve import Hit as H
+    calls = []
+
+    class R:
+        records = []
+
+        def search(self, q, k, country=None, proc_group=None):
+            calls.append(q)
+            return HITS if "contractor" in q else []          # the original wording finds nothing
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    monkeypatch.setattr(answer, "reformulate", lambda q: ["contractor abandoned terminated contracts"])
+    monkeypatch.setattr(answer, "supporting", lambda q, hits: (hits[:1], "terms"))
+    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "Contracts were terminated.", "citations": [0]}], 0))
+    out = answer.ask(R(), "why did firms stop showing up")
+    assert calls[0] == "why did firms stop showing up" and "contractor abandoned terminated contracts" in calls
+    assert not out["unsupported"] and any("searched again" in c for c in out["meta"]["caveats"])
+
+
+def test_no_second_search_when_the_first_finds_enough(monkeypatch):
+    class R:
+        records = []
+
+        def search(self, q, k, country=None, proc_group=None):
+            return HITS
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    monkeypatch.setattr(answer, "reformulate", lambda q: (_ for _ in ()).throw(AssertionError("should not reformulate")))
+    monkeypatch.setattr(answer, "supporting", lambda q, hits: (hits * 2, "terms"))     # 4 >= MIN_EVIDENCE
+    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
+    answer.ask(R(), "why were contracts terminated")

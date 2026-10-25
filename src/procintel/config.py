@@ -72,6 +72,9 @@ def _settings() -> list[Setting]:
                 "Taken from BM25 and from vector search, then merged", 5, 500),
         Setting("rrf_k", "Rank fusion constant", "Retrieval", "int", *_attr(retrieve, "RRF_K"),
                 "Higher values flatten the difference between top and lower ranks (60 is the usual choice)", 1, 1000),
+        Setting("min_evidence", "Second-search trigger", "Retrieval", "int", *_attr(answer, "MIN_EVIDENCE"),
+                "With fewer evidence passages than this, the question is rephrased by the answer model and searched "
+                "again (0 = never)", 0, 12),
         Setting("max_passages", "Evidence passages per answer", "Evidence", "int", *_attr(answer, "MAX_PASSAGES"),
                 "Passages kept as evidence and shown to the answer model", 1, 12),
         Setting("decide_min", "Decision threshold", "Evidence", "float", *_attr(answer, "DECIDE_MIN"),

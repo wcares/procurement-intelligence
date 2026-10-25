@@ -1,4 +1,4 @@
-# Evaluation report (2026-10-25 02:32 UTC)
+# Evaluation report (2026-10-25 04:48 UTC)
 
 Models: answers and judge `openai/saluki-27b`; embeddings `openai/embeddinggemma-2`; decision `http://127.0.0.1:8082`.
 15 answerable questions; 232 judged (question, passage) pairs; 2 passages in today's results are not judged yet (run `evaluate judge`).
@@ -18,35 +18,45 @@ Faithfulness is judged by the same model that writes the answers, which may favo
 
 ## Answers
 
-Not re-run this time; figures from 2026-10-25 02:04 UTC.
+Measured in this run.
 
 | metric | value |
 |---|---|
 | Answerable questions answered (not refused) | 15/15 |
 | Answer sentences supported by their citations (judge) | 53/55 |
 | Unanswerable questions refused | 5/5 |
-| Median time per question | 23.3 s |
+| Median time per question | 23.4 s |
 
 ## User feedback
 
-No responses logged yet.
+22 responses logged.
+
+| page | useful | not useful | citations flagged |
+|---|---|---|---|
+| ask | 0 | 0 | 0 |
+| assess | 0 | 0 | 0 |
 
 ## Per question
 
 | id | question | relevant in pool | BM25 P@5 | hybrid P@5 | gate kept / precision | answer |
 |---|---|---|---|---|---|---|
-| q01 | What caused delays in civil works contracts? | 13 | 1.00 | 1.00 | 5 / 1.00 | – |
-| q02 | Why were procurement processes cancelled or contracts terminated? | 14 | 1.00 | 1.00 | 5 / 1.00 | – |
-| q03 | What lessons were learned about procurement capacity of implementing agencies? | 13 | 0.80 | 1.00 | 5 / 1.00 | – |
-| q04 | How did the COVID-19 pandemic affect procurement and contract implementation? | 13 | 1.00 | 1.00 | 5 / 1.00 | – |
-| q05 | What problems did land acquisition and resettlement cause for project implementation? | 11 | 0.40 | 0.80 | 5 / 0.80 | – |
-| q06 | Why did tenders receive few or no responsive bids? | 2 | 0.20 | 0.40 | 5 / 0.40 (unjudged: 1) | – |
-| q07 | How did delays in payments to contractors affect works? | 12 | 0.80 | 0.80 | 5 / 1.00 | – |
-| q08 | What problems were caused by weak technical specifications or terms of reference? | 6 | 0.60 | 1.00 | 5 / 1.00 | – |
-| q09 | How was the selection of consultants delayed? | 5 | 0.40 | 0.60 | 3 / 0.33 (unjudged: 1) | – |
-| q10 | What role did STEP play in procurement monitoring? | 11 | 0.60 | 1.00 | 5 / 1.00 | – |
-| q11 | Why were contracts re-tendered? | 7 | 0.40 | 0.40 | 5 / 0.60 | – |
-| q12 | How did contractor performance problems affect road projects? | 11 | 0.60 | 0.80 | 5 / 0.60 | – |
-| q13 | What fiduciary or financial management weaknesses affected procurement? | 9 | 0.60 | 0.60 | 5 / 0.60 | – |
-| q14 | How did community-based or labor-based contracting work in practice? | 9 | 0.80 | 0.40 | 5 / 0.40 | – |
-| q15 | What were the effects of restructuring on procurement plans? | 10 | 0.40 | 0.80 | 5 / 0.80 | – |
+| q01 | What caused delays in civil works contracts? | 13 | 1.00 | 1.00 | 5 / 1.00 | 3/4 supported |
+| q02 | Why were procurement processes cancelled or contracts terminated? | 14 | 1.00 | 1.00 | 5 / 1.00 | 4/4 supported |
+| q03 | What lessons were learned about procurement capacity of implementing agencies? | 13 | 0.80 | 1.00 | 5 / 1.00 | 4/4 supported |
+| q04 | How did the COVID-19 pandemic affect procurement and contract implementation? | 13 | 1.00 | 1.00 | 5 / 1.00 | 4/4 supported |
+| q05 | What problems did land acquisition and resettlement cause for project implementation? | 11 | 0.40 | 0.80 | 5 / 0.80 | 4/4 supported |
+| q06 | Why did tenders receive few or no responsive bids? | 2 | 0.20 | 0.40 | 5 / 0.40 (unjudged: 1) | 3/3 supported |
+| q07 | How did delays in payments to contractors affect works? | 12 | 0.80 | 0.80 | 5 / 1.00 | 4/4 supported |
+| q08 | What problems were caused by weak technical specifications or terms of reference? | 6 | 0.60 | 1.00 | 5 / 1.00 | 4/4 supported |
+| q09 | How was the selection of consultants delayed? | 5 | 0.40 | 0.60 | 3 / 0.33 (unjudged: 1) | 1/2 supported |
+| q10 | What role did STEP play in procurement monitoring? | 11 | 0.60 | 1.00 | 5 / 1.00 | 3/3 supported |
+| q11 | Why were contracts re-tendered? | 7 | 0.40 | 0.40 | 5 / 0.60 | 3/3 supported |
+| q12 | How did contractor performance problems affect road projects? | 11 | 0.60 | 0.80 | 5 / 0.60 | 4/4 supported |
+| q13 | What fiduciary or financial management weaknesses affected procurement? | 9 | 0.60 | 0.60 | 5 / 0.60 | 4/4 supported |
+| q14 | How did community-based or labor-based contracting work in practice? | 9 | 0.80 | 0.40 | 5 / 0.40 | 4/4 supported |
+| q15 | What were the effects of restructuring on procurement plans? | 10 | 0.40 | 0.80 | 5 / 0.80 | 4/4 supported |
+| q16 | What is the boiling point of tungsten? | – | – | – | – | refused |
+| q17 | Who won the 2018 FIFA World Cup? | – | – | – | – | refused |
+| q18 | How did blockchain-based e-procurement platforms reduce bid rigging in these projects? | – | – | – | – | refused |
+| q19 | What procurement lessons came from building the stadiums for the Paris 2024 Olympic Games? | – | – | – | – | refused |
+| q20 | What was the average bid price for satellite launch services? | – | – | – | – | refused |
