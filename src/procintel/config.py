@@ -77,6 +77,9 @@ def _settings() -> list[Setting]:
                 "again (0 = never)", 0, 12),
         Setting("max_passages", "Evidence passages per answer", "Evidence", "int", *_attr(answer, "MAX_PASSAGES"),
                 "Passages kept as evidence and shown to the answer model", 1, 12),
+        Setting("vocab_step", "Rephrase questions in the reports' words", "Retrieval", "int", *_attr(answer, "VOCAB_STEP"),
+                "1: the answer model rephrases each question in the reports' vocabulary and both are searched (~2 s); "
+                "0: the question only, rephrased just when evidence is thin", 0, 1),
         Setting("llm_gate", "Evidence judged by the answer model", "Evidence", "int", *_attr(answer, "LLM_GATE"),
                 "1: the answer model picks the evidence passages in one call (more precise, ~14 s); 0: the decision "
                 "model judges each passage (~0.4 s)", 0, 1),

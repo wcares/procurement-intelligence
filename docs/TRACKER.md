@@ -21,7 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
-_(none)_
+- [ ] Retrieval for everyday wording: "Why did firms stop showing up to bid?" does not reach passages that exist (40114325:69 tender "received no bids", 40111124:102 "limited bidder participation", 40113710:44 communes "unable to recruit construction firms"); try a planner-to-report vocabulary step before the first search, and measure on the 10 everyday-wording evaluation questions (added 2026-10-25, by me)
 
 ## MVP (in order)
 
@@ -78,7 +78,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Retrieval for everyday wording: "Why did firms stop showing up to bid?" does not reach passages that exist (40114325:69 tender "received no bids", 40111124:102 "limited bidder participation", 40113710:44 communes "unable to recruit construction firms"); try a planner-to-report vocabulary step before the first search, and measure on the 10 everyday-wording evaluation questions (added 2026-10-25, by me)
 - [ ] Survival model for award time — DEFERRED 2026-10-25: of 859 tenders without an award, 805 are over 2 years old and ~723 have no award notice in the data at all (no-award shares 32-46% for every method, including open-bid works and goods that must publish awards), so they are mostly unpublished or unlinked awards, not open tenders; treating them as censored would inflate predicted times. Revisit after the two items above, if a reliable "still open" signal exists (added 2026-10-24, by me)
 
 ### Done

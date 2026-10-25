@@ -45,6 +45,13 @@ DECIDE_MIN = 0.5  # decision-model probability needed for "relevant" and "suppor
 # 0.86), vs hand labels 0.89 vs 0.62; traps with any passage kept 0 of 5 vs 2 of 5; the paraphrase "Why did firms stop
 # showing up to bid?" kept 3 passages vs 1. Cost: about 14 s per question vs 0.4 s.
 LLM_GATE = 1
+# 1: before the first search the answer LLM rephrases the question in the reports' vocabulary and the searches are
+# merged. If none of the evidence comes from the question's own search, that search is judged too and the question is
+# refused when it has no evidence there (otherwise both are used). Measured on the 10 everyday-wording evaluation
+# questions and 10 others (2026-10-25): relevant passages among the 12 the gate sees 45 -> 59 and 66 -> 73. Without the
+# own-search check the "high-speed rail" trap got through again (2 of 2 runs); refusing outright whenever no evidence
+# came from the own search lost 2 answerable questions (misprocurement, PPP). Cost: about 2.3 s per question.
+VOCAB_STEP = 1
 
 _GATE_SYSTEM = ("You check search results for procurement planners. Given a question and numbered passages from World "
                 "Bank project evaluation reports, list the passages that contain information that helps answer the "
@@ -238,25 +245,50 @@ def reformulate(question: str) -> list[str]:
     return [q.strip() for q in qs if isinstance(q, str) and q.strip()][:3]
 
 
-def search_multi(retriever: Retriever, queries: list[str], k: int, country: str | None, proc_group: str | None) -> list[Hit]:
-    """Hits of several queries merged by reciprocal rank fusion, each passage once."""
+def fuse(rankings: list[list[Hit]], k: int) -> list[Hit]:
+    """Rankings merged by reciprocal rank fusion, each passage once."""
     fused: dict[str, float] = {}
     by_id: dict[str, Hit] = {}
-    for q in queries:
-        for rank, h in enumerate(retriever.search(q, k=k, country=country, proc_group=proc_group)):
+    for ranking in rankings:
+        for rank, h in enumerate(ranking):
             fused[h.chunk_id] = fused.get(h.chunk_id, 0.0) + 1.0 / (60 + rank + 1)
             by_id.setdefault(h.chunk_id, h)
     return [by_id[c] for c in sorted(fused, key=fused.get, reverse=True)][:k]
 
 
+def search_multi(retriever: Retriever, queries: list[str], k: int, country: str | None, proc_group: str | None) -> list[Hit]:
+    """Hits of several queries merged by reciprocal rank fusion, each passage once."""
+    return fuse([retriever.search(q, k=k, country=country, proc_group=proc_group) for q in queries], k)
+
+
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
-    hits, judged_by = supporting(question, retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group))
-    second_search = None
+    own = retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group)
+    rephrased = None
+    if VOCAB_STEP and llm.available():
+        try:
+            rephrased = reformulate(question)
+        except Exception:  # model down: search with the question only
+            rephrased = None
+    if rephrased:
+        hits, judged_by = supporting(question, fuse([own] + [retriever.search(q, k=SEARCH_K, country=country,
+                                                                        proc_group=proc_group) for q in rephrased], SEARCH_K))
+        own_ids = {h.chunk_id for h in own}
+        if judged_by == "llm" and not any(h.chunk_id in own_ids for h in hits):
+            # evidence only through the rephrasing: judge the question's own search; nothing there means the question is
+            # out of scope and the rephrased evidence is a look-alike (the "HSIP" case); otherwise use both
+            try:
+                confirmed = llm_gate(question, own)
+            except Exception:
+                confirmed = []
+            hits = (hits + [h for h in confirmed if h not in hits])[:MAX_PASSAGES] if confirmed else []
+    else:
+        hits, judged_by = supporting(question, own)
+    second_search = rephrased or None
     # step 2: too little evidence; search again with the question rephrased in the reports' vocabulary. Not when the
     # answer LLM found no evidence at all: measured on the 100 evaluation questions plus a paraphrase, every answerable
     # question kept at least 1 passage on the first pass and 18 of 20 unanswerable ones kept none, while the second
     # search let the "high-speed rail" trap through on a passage about an unrelated "HSIP" project.
-    if len(hits) < MIN_EVIDENCE and llm.available() and (hits or judged_by != "llm"):
+    if not rephrased and len(hits) < MIN_EVIDENCE and llm.available() and (hits or judged_by != "llm"):
         try:
             queries = reformulate(question)
         except Exception:  # model down: keep the first search
@@ -301,7 +333,8 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
     caveats.append(retrieval_note(hits) + {"llm": f" Relevance judged by {llm.model_name()}.",
                                            "decision": " Relevance judged by the decision model."}.get(judged_by, ""))
     if second_search:
-        caveats.append("The first search found little evidence, so the question was searched again as: "
+        caveats.append(("The question was also searched as: " if rephrased else
+                        "The first search found little evidence, so the question was searched again as: ")
                        + "; ".join(f"'{q}'" for q in second_search) + ".")
     used = sorted({c for s in answer for c in s["citations"]})
     caveats += conflict_notes(retriever, [hits[i] for i in used])

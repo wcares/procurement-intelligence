@@ -114,6 +114,7 @@ def test_decision_server_failure_falls_back_to_word_overlap(monkeypatch):
 
 
 def test_second_search_runs_only_when_evidence_is_thin_and_keeps_the_larger_set(monkeypatch):
+    monkeypatch.setattr(answer, "VOCAB_STEP", 0)                      # the older thin-evidence path
     from procintel.retrieve import Hit as H
     calls = []
 
@@ -133,6 +134,7 @@ def test_second_search_runs_only_when_evidence_is_thin_and_keeps_the_larger_set(
 
 
 def test_no_second_search_when_the_first_finds_enough(monkeypatch):
+    monkeypatch.setattr(answer, "VOCAB_STEP", 0)                      # the older thin-evidence path
     class R:
         records = []
 
@@ -163,6 +165,7 @@ def test_answer_llm_picks_evidence_in_one_call_and_falls_back_to_the_decision_mo
 
 
 def test_no_second_search_when_the_answer_llm_found_no_evidence(monkeypatch):
+    monkeypatch.setattr(answer, "VOCAB_STEP", 0)                      # the older thin-evidence path
     class R:
         def search(self, q, k, country=None, proc_group=None):
             return HITS
@@ -171,3 +174,34 @@ def test_no_second_search_when_the_answer_llm_found_no_evidence(monkeypatch):
     monkeypatch.setattr(answer, "supporting", lambda q, hits: ([], "llm"))
     out = answer.ask(R(), "What procurement problems affected the high-speed rail lines?")
     assert out["unsupported"] and "judged none of the retrieved passages relevant" in out["meta"]["caveats"][-1]
+
+
+def test_vocabulary_step_searches_rephrasings_and_needs_evidence_from_the_own_search(monkeypatch):
+    from procintel.retrieve import Hit as H
+    own = HITS[:1]
+    lookalike = H(chunk_id="x:9", doc_id="x", title="T", doc_type="ICR", url="u", section="Lessons", para="9", kind="text",
+                  text="HSIP metering equipment certification delays.", project_id="P9", project_name="HSIP",
+                  country_code="KE", score=1.0)
+
+    class R:
+        records = []
+
+        def search(self, q, k, country=None, proc_group=None):
+            return own if q == "the question" else [lookalike]
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    monkeypatch.setattr(answer, "reformulate", lambda q: ["report words"])
+    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
+    monkeypatch.setattr(answer, "supporting", lambda q, hits: ([h for h in hits if h.chunk_id == "x:9"], "llm"))
+    monkeypatch.setattr(answer, "llm_gate", lambda q, hits: [])
+    assert answer.ask(R(), "the question")["unsupported"]           # own search has no evidence: the look-alike is not kept
+    monkeypatch.setattr(answer, "llm_gate", lambda q, hits: [h for h in hits if h.chunk_id == "d:1"])
+    seen_cites = []
+    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False:
+                        seen_cites.append([h.chunk_id for h in hits]) or ([{"text": "x y z.", "citations": [0]}], 0))
+    assert not answer.ask(R(), "the question")["unsupported"] and seen_cites[-1] == ["x:9", "d:1"]  # in scope: both used
+    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
+    seen = []
+    monkeypatch.setattr(answer, "supporting", lambda q, hits: seen.append([h.chunk_id for h in hits]) or (hits, "llm"))
+    out = answer.ask(R(), "the question")
+    assert set(seen[0]) == {"d:1", "x:9"} and not out["unsupported"]  # both searches go to the gate
+    assert any("also searched as: 'report words'" in c for c in out["meta"]["caveats"])
