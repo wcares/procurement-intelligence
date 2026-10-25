@@ -99,7 +99,7 @@ data. The Settings page lists the jobs and can queue one. `PROCINTEL_JOBS=0` tur
 
 ```bash
 PYTHONPATH=src .venv/bin/uvicorn procintel.server:app --host 127.0.0.1 --port 8000
-cd web && NEXT_PUBLIC_API_BASE=http://localhost:8000 npm run dev    # http://localhost:3100
+cd web && API_URL=http://localhost:8000 npm run dev    # http://localhost:3100 (no API_URL: in-app mock)
 ```
 
 The backend serves `/options`, `/assess`, `/ask`, `/feedback` and `/config` (`/health` for checks). It listens on

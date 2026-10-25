@@ -100,9 +100,9 @@ Preconditions, in order:
 4. **Worker as its own process.** Today it is a thread in the api process.
 
 Models in containers on a Mac run on the CPU only (Docker has no Apple GPU access), too slow for the 27B answer model;
-Docker Desktop's Model Runner, which runs models on the host GPU but declares them in Compose, is to be checked once
-Docker is installed (not verified). Docker is not installed on this Mac yet (checked 2026-10-25); the user chooses
-Docker Desktop, OrbStack or Colima.
+Docker runs through Colima (installed 2026-10-25, the user's choice;
+Docker 29.9.2, Compose 5.6.1; VM with 4 CPUs, 6 GB memory, 60 GB disk). Docker Model Runner belongs to Docker Desktop and is not used, so the models stay
+on the host.
 
 ## Order of the clean-up
 

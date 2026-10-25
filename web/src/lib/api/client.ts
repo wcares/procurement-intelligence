@@ -14,9 +14,9 @@ import type {
   Options,
 } from "./types";
 
-// Default is the in-app mock. Point at the Python backend with NEXT_PUBLIC_API_BASE=http://localhost:8000
-// (inlined at build time, so restart `next dev` after changing it).
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "/api/mock";
+// Calls go to this app's own server, which forwards them to the backend named by API_URL (read per request, so the
+// built app is not tied to one backend; see src/app/api/backend). Without API_URL the in-app mock answers.
+export const API_BASE = "/api/backend";
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
