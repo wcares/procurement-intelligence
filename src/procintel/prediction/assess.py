@@ -9,7 +9,7 @@ from datetime import date
 
 from procintel.answering.answer import citation, conflict_notes, meta, retrieval_note, terms
 from procintel.answering.retrieve import Retriever
-from procintel.core import llm
+from procintel.core import llm, prompts
 from procintel.ingestion import sectors
 from procintel.ingestion.tag import NONE
 from procintel.prediction.predict import LONG_DAYS, predict_one
@@ -75,12 +75,6 @@ def _lessons(hits: list) -> list:
     return [h for h in hits if not (h.tag == NONE and h.tag_confidence >= NOT_A_LESSON_MIN)]
 
 
-_PREC_SYSTEM = ("You help procurement planners. Given a planned procurement and numbered passages from past project "
-                "evaluation reports, list the passages that describe a past experience, problem or lesson that would help plan "
-                "this procurement. Tables, indicator lists, activity descriptions and general context do not count. "
-                'Reply with JSON only: {"useful": [numbers]}')
-
-
 def _relevant(hits: list, package: str) -> tuple[list, int]:
     """(hits the answer LLM picks as useful lessons for this package, number set aside), in one call for the shortlist.
 
@@ -91,7 +85,7 @@ def _relevant(hits: list, package: str) -> tuple[list, int]:
         return hits, 0
     numbered = "\n\n".join(f"[{i + 1}] {h.text}" for i, h in enumerate(hits))
     try:
-        raw = llm.complete(_PREC_SYSTEM, f"Planned procurement: {package}\n\nPassages:\n{numbered}", max_tokens=200)
+        raw = llm.complete(prompts.get("precedents"), f"Planned procurement: {package}\n\nPassages:\n{numbered}", max_tokens=200)
         picked = json.loads(re.search(r"\{.*\}", raw, re.S).group(0))["useful"]
         keep = [hits[i - 1] for i in sorted({int(i) for i in picked if 1 <= int(i) <= len(hits)})]
     except Exception:  # model down, timeout or unparseable reply: keep the retrieval order rather than fail

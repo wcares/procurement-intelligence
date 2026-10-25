@@ -24,7 +24,7 @@ import Stemmer
 from bm25s.stopwords import STOPWORDS_EN
 
 from procintel.answering.retrieve import Hit, Retriever
-from procintel.core import decide, embed, llm
+from procintel.core import decide, embed, llm, prompts
 
 _STEM = Stemmer.Stemmer("english")
 # question words carry no evidence: "why were contracts cancelled" should need "contract" + "cancel"
@@ -53,11 +53,6 @@ LLM_GATE = 1
 # came from the own search lost 2 answerable questions (misprocurement, PPP). Cost: about 2.3 s per question.
 VOCAB_STEP = 1
 
-_GATE_SYSTEM = ("You check search results for procurement planners. Given a question and numbered passages from World "
-                "Bank project evaluation reports, list the passages that contain information that helps answer the "
-                "question. A passage on a different topic that only shares words with the question does not count. "
-                'Reply with JSON only: {"relevant": [numbers]}, or {"relevant": []} if none helps.')
-
 
 def terms(text: str) -> set[str]:
     return set(_STEM.stemWords([w for w in re.findall(r"[a-z][a-z-]{2,}", text.lower()) if w not in _STOP]))
@@ -80,7 +75,7 @@ def llm_gate(question: str, hits: list[Hit]) -> list[Hit]:
     if not hits:
         return []
     numbered = "\n\n".join(f"[{i + 1}] {h.text}" for i, h in enumerate(hits))
-    raw = llm.complete(_GATE_SYSTEM, f"Question: {question}\n\nPassages:\n{numbered}", max_tokens=200)
+    raw = llm.complete(prompts.get("evidence_gate"), f"Question: {question}\n\nPassages:\n{numbered}", max_tokens=200)
     picked = json.loads(re.search(r"\{.*\}", raw, re.S).group(0))["relevant"]
     return [hits[i - 1] for i in sorted({int(i) for i in picked if 1 <= int(i) <= len(hits)})]
 
@@ -162,14 +157,6 @@ def extractive(question: str, hits: list[Hit], weights: dict[str, float] | None 
     return [{"text": sent, "citations": [i]} for i, (_, sent) in top]
 
 
-_SYSTEM = """You answer questions for procurement planners using ONLY the numbered evaluation passages given.
-Rules:
-- Every sentence must be supported by the passages it cites. Do not add facts, numbers or advice that are not in them.
-- Reply with JSON only: {"sentences": [{"text": "...", "citations": [1, 2]}]}
-- If the passages do not answer the question, reply {"sentences": []}.
-- At most 4 sentences."""
-
-
 def _supported(sentence: str, cited: list[Hit], use_decide: bool) -> bool:
     if use_decide:
         evidence = "\n\n".join(h.text for h in cited)
@@ -183,7 +170,7 @@ def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tupl
     """(model-written sentences that survive validation, number dropped as unsupported); None when the output
     is unusable. A sentence needs a valid citation and must be supported by what it cites."""
     numbered = "\n\n".join(f"[{i + 1}] ({h.project_id}, {h.section}) {h.text}" for i, h in enumerate(hits))
-    raw = llm.complete(_SYSTEM, f"Passages:\n{numbered}\n\nQuestion: {question}")
+    raw = llm.complete(prompts.get("answer"), f"Passages:\n{numbered}\n\nQuestion: {question}")
     m = re.search(r"\{.*\}", raw, re.S)
     try:
         sentences = json.loads(m.group(0))["sentences"] if m else None
@@ -228,15 +215,9 @@ def retrieval_note(hits: list[Hit]) -> str:
     return "Passages found by keyword search (BM25)."
 
 
-_REFORMULATE = ("You turn a planner's question into search queries for World Bank Implementation Completion Reports. "
-                "Write up to 3 short queries that use the words such reports use for the same idea (for example "
-                "'no responsive bids', 'retendering', 'contractor performance', 'procurement delays'). "
-                'Reply with JSON only: {"queries": ["...", "..."]}')
-
-
 def reformulate(question: str) -> list[str]:
     """Up to 3 search queries in the reports' vocabulary; [] if the reply is unusable."""
-    raw = llm.complete(_REFORMULATE, question, max_tokens=150)
+    raw = llm.complete(prompts.get("rephrase"), question, max_tokens=150)
     m = re.search(r"\{.*\}", raw, re.S)
     try:
         qs = json.loads(m.group(0))["queries"] if m else []

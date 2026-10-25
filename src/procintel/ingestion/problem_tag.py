@@ -26,28 +26,23 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from procintel.core import db, llm, paths
+from procintel.core import db, llm, paths, prompts
 from procintel.core.embed import text_hash
 from procintel.ingestion.tag import NONE, TAGS
 
 DB_PATH = paths.DB_PATH
 KINDS = TAGS[:-1] + ["another kind of problem"]
-_STEP1 = ("You read passages from World Bank project completion reports. Reply with one word, yes or no: does the passage "
-          "describe a procurement or implementation problem that actually happened in this project? Background context, "
-          "plans, results achieved, indicator lists, document lists and general advice are no.")
-_STEP2 = ("You classify a passage from a World Bank project completion report by the main problem it describes. Reply with "
-          "exactly one of: " + "; ".join(KINDS) + ".")
 
 
 def classify(text: str) -> tuple[bool, str | None]:
     """(describes a problem, which kind or None if unknown). Raises on an unusable first reply."""
-    a = llm.complete(_STEP1, text, max_tokens=4).strip().lower()
+    a = llm.complete(prompts.get("problem_check"), text, max_tokens=4).strip().lower()
     if not a.startswith(("yes", "no")):
         raise RuntimeError(f"step 1 replied {a!r}")
     if a.startswith("no"):
         return False, None
     try:
-        b = llm.complete(_STEP2, text, max_tokens=20).strip().lower().rstrip(".")
+        b = llm.complete(prompts.get("problem_kind", kinds="; ".join(KINDS)), text, max_tokens=20).strip().lower().rstrip(".")
     except RuntimeError:  # the kind reply ran on past the limit (seen on 1 of 3,154 passages): the problem call stands
         return True, None
     return True, next((k for k in KINDS if k in b), "another kind of problem")

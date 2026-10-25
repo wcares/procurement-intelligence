@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 
 from procintel.answering import answer
 from procintel.answering.retrieve import Retriever
-from procintel.core import decide, embed, llm, paths
+from procintel.core import decide, embed, llm, paths, prompts
 from procintel.learning import feedback
 
 ROOT = paths.ROOT
@@ -37,11 +37,6 @@ REPORT = ROOT / "eval" / "report.md"
 HISTORY = ROOT / "eval" / "history.jsonl"  # one line of headline metrics per run
 FAITHFULNESS = ROOT / "eval" / "faithfulness.jsonl"  # per answer sentence: both judges' verdicts (latest run)
 POOL_K = 10
-
-_REL = ("You judge search results for procurement planners. Reply with one word, yes or no: does the passage contain "
-        "information that helps answer the question?")
-_SUP = ("You check statements against sources. Reply with one word, yes or no: is every fact in the statement "
-        "supported by the passages? Paraphrase is fine; facts missing from the passages are not.")
 
 
 def questions() -> list[dict]:
@@ -85,7 +80,7 @@ def judge(r: Retriever) -> None:
     t0 = time.time()
     with JUDGMENTS.open("a") as f:
         for i, (q, h) in enumerate(todo, 1):
-            rel = _yes(_REL, f"Question: {q['question']}\n\nPassage: {h.text}")
+            rel = _yes(prompts.get("judge_relevance"), f"Question: {q['question']}\n\nPassage: {h.text}")
             f.write(json.dumps({"qid": q["id"], "chunk_id": h.chunk_id, "relevant": rel, "judge": llm.model_name()}) + "\n")
             f.flush()
             if i % 25 == 0:
@@ -156,8 +151,8 @@ def run(r: Retriever, answers: bool = True) -> tuple[str, dict]:
         sup, ind = [], []
         for s in out["answer"]:
             prompt = "Passages:\n" + "\n\n".join(cites[c]["quote"] for c in s["citations"]) + f"\n\nStatement: {s['text']}"
-            sup.append(_yes(_SUP, prompt))
-            ind.append(_yes(_SUP, prompt, llm.JUDGE) if independent else None)
+            sup.append(_yes(prompts.get("judge_support"), prompt))
+            ind.append(_yes(prompts.get("judge_support"), prompt, llm.JUDGE) if independent else None)
             verdicts.append({"qid": q["id"], "sentence": s["text"],
                              "passages": {cites[c]["id"]: cites[c]["quote"] for c in s["citations"]},
                              "answer_llm": sup[-1], "independent": ind[-1]})

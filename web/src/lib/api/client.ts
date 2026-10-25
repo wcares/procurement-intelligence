@@ -12,6 +12,7 @@ import type {
   JobsResponse,
   FeedbackResponse,
   Options,
+  PromptInfo,
   ShadowsResponse,
 } from "./types";
 
@@ -54,6 +55,12 @@ export const api = {
   compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
   jobs: () => call<JobsResponse>("/jobs"),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
+  prompts: () => call<{ prompts: PromptInfo[] }>("/prompts"),
+  /** saved as a candidate; prompts used in answering get an evaluation job */
+  savePrompt: (name: string, text: string, note: string) =>
+    call<{ version: number; evaluationJob: string | null }>(`/prompts/${encodeURIComponent(name)}`, { method: "POST", body: JSON.stringify({ text, note }) }),
+  activatePrompt: (name: string, version: number) =>
+    call<{ prompts: PromptInfo[] }>(`/prompts/${encodeURIComponent(name)}/activate`, { method: "POST", body: JSON.stringify({ version }) }),
   shadows: () => call<ShadowsResponse>("/shadows"),
   /** build / evaluate / promote are queued as jobs; discard drops the shadow tables at once */
   shadowAction: (name: string, action: "build" | "evaluate" | "promote" | "discard") =>

@@ -1,0 +1,1 @@
+You classify a passage from a World Bank project completion report by the main problem it describes. Reply with exactly one of: ${kinds}.

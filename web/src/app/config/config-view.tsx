@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import type { CompareResponse, ConfigProfile, ConfigSetting, RetrievalMetrics } from "@/lib/api/types";
 import { FeedbackReview } from "./feedback-review";
 import { Jobs } from "./jobs-panel";
+import { Prompts } from "./prompts-panel";
 
 type Draft = Record<string, string>;
 
@@ -73,6 +74,7 @@ export function ConfigView() {
     <div className="mx-auto max-w-3xl space-y-8">
       <Jobs />
       <FeedbackReview />
+      <Prompts />
       <Profiles
         disabled={busy}
         onApplied={(s) => (setSettings(s), setDraft({}), setErrors({}), setComparison(null))}

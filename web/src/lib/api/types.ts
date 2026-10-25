@@ -282,3 +282,35 @@ export interface ShadowsResponse {
   shadows: ShadowBuild[];
   available: { name: string; label: string }[];
 }
+
+/** One side of a prompt evaluation (procintel.learning.prompt_eval). */
+export interface PromptEvalSide {
+  answered: number;
+  answerable: number;
+  supported_sentences: number;
+  sentences: number;
+  refused_traps: number;
+  traps: number;
+  median_seconds: number | null;
+}
+
+export interface PromptVersion {
+  version: number; // 0 = the default shipped with the code
+  text: string;
+  active: boolean;
+  created: string | null;
+  note: string | null;
+  activated: string | null;
+  evaluation: { versions: { active: number; candidate: number }; questions: number; active: PromptEvalSide; candidate: PromptEvalSide } | null;
+}
+
+/** A prompt sent to a model (GET /prompts). */
+export interface PromptInfo {
+  name: string;
+  label: string;
+  usedBy: string;
+  /** "answers": a new version is compared with the active one on sample questions before activation */
+  evaluatedBy: "answers" | null;
+  active: number;
+  versions: PromptVersion[];
+}

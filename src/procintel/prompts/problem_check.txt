@@ -1,0 +1,1 @@
+You read passages from World Bank project completion reports. Reply with one word, yes or no: does the passage describe a procurement or implementation problem that actually happened in this project? Background context, plans, results achieved, indicator lists, document lists and general advice are no.

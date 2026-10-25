@@ -13,6 +13,8 @@ which is passed back in to resume after a pause or restart; its return value is 
     shadow_evaluate  compare live and shadow search quality on the evaluation questions; background
     shadow_promote   swap a shadow in (high priority), sync the vector store, queue index_followup, reload
     index_followup   tag passages that have no tags yet (after a promotion); background
+    prompt_evaluate  answer a question sample with the active and a candidate prompt version
+                  (procintel.learning.prompt_eval); background, one question per step
 """
 from __future__ import annotations
 
@@ -152,3 +154,9 @@ def index_followup(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dic
     if reload:
         reload()
     return {"tagged": tagged, "problems_tagged": problems, "reloaded": bool(reload)}
+
+
+@handler("prompt_evaluate", priority="background")
+def prompt_evaluate(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.learning import prompt_eval
+    return (yield from prompt_eval.steps(params["name"], params["version"], cursor))
