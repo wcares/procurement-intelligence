@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from procintel import answer, assess, embed, llm, retrieve
+from procintel.jobs import worker as jobs_worker
 
 SAVED = Path(__file__).resolve().parents[2] / "data" / "config.json"
 PROFILES = Path(__file__).resolve().parents[2] / "data" / "config_profiles.json"  # named sets of settings
@@ -95,6 +96,10 @@ def _settings() -> list[Setting]:
                 "Probability needed for 'relevant' and 'supported' (decision model)", 0.05, 0.99),
         Setting("grounding_min", "Word-overlap threshold", "Evidence", "float", *_attr(answer, "GROUNDING_MIN"),
                 "Fallback without a decision model: share of a sentence's words that must be in its citation", 0, 1),
+        Setting("jobs_idle_seconds", "Idle time before background jobs run", "Background jobs", "int",
+                *_attr(jobs_worker, "IDLE_SECONDS"),
+                "Seconds without any request before the queue (drift check, retraining) starts; a request pauses it",
+                10, 86400),
         Setting("not_a_lesson_min", "Precedent filter threshold", "Assess", "float", *_attr(assess, "NOT_A_LESSON_MIN"),
                 "Tag confidence above which a 'no problem' passage is not shown as a precedent (1 = never filter)", 0.5, 1),
     ]

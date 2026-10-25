@@ -205,3 +205,26 @@ export interface AskResponse {
   unsupported: boolean;
   meta: ResponseMeta;
 }
+
+/** A background job (procintel.jobs): runs only after the app has been idle for a while. */
+export interface Job {
+  id: string;
+  kind: "drift_check" | "retrain" | "refresh" | string;
+  reason: string;
+  status: "pending" | "running" | "done" | "failed";
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  result: Record<string, unknown> | null;
+  error: string | null;
+  attempts: number;
+  steps: number;
+}
+
+export interface JobsResponse {
+  jobs: Job[];
+  idleSeconds: number;
+  runAfterIdleSeconds: number;
+  running: string | null;
+  workerOn: boolean;
+}

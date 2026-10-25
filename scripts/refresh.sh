@@ -1,6 +1,6 @@
 #!/bin/zsh
-# Nightly refresh: re-fetch the World Bank sources, rebuild what changed, retrain, evaluate, then ask the running
-# backend to load the new data. Run by launchd (deploy/com.procintel.refresh.plist) or by hand.
+# Manual refresh: re-fetch the World Bank sources, rebuild what changed, retrain, evaluate, then ask the running
+# backend to load the new data. The backend also queues a refresh weekly and runs it when idle (procintel.jobs).
 # Needs the model servers in .env (they wake from idle sleep on the first request) and network access.
 set -euo pipefail
 cd "${0:A:h}/.."

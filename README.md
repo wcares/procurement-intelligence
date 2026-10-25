@@ -88,16 +88,12 @@ It logs every run (documents and notices added, passages embedded and tagged, mo
 `refresh_log` table. Measured: 2.9 min with fetching, 6 s without. Add
 `--reload-url http://127.0.0.1:8000/admin/reload` to have a running backend load the new data when it finishes.
 
-**Scheduled refresh (optional, not installed by default).** `scripts/refresh-nightly.sh` runs the refresh with the
-reload and writes a log to `data/logs/`. To run it every night at 02:30 with launchd:
-
-```bash
-sed "s|REPO_DIR|$PWD|g" deploy/com.procintel.refresh.plist > ~/Library/LaunchAgents/com.procintel.refresh.plist
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.procintel.refresh.plist
-# remove: launchctl bootout gui/$(id -u)/com.procintel.refresh && rm ~/Library/LaunchAgents/com.procintel.refresh.plist
-```
-
-The Mac must be awake at that time, and the model servers running (they wake from idle sleep on the first request).
+**Background jobs.** The backend keeps a job queue (`procintel.jobs`, file `data/jobs.duckdb`) and runs it only
+after 5 minutes without requests (tunable on the Settings page), pausing between steps when someone uses the app. It
+queues a prediction drift check daily (retrains when enough packages were labelled since training, or the model does
+worse on them than in cross-validation) and a World Bank refresh weekly; both reload the backend when they change
+data. The Settings page lists the jobs and can queue one. `PROCINTEL_JOBS=0` turns the worker off;
+`scripts/refresh.sh` runs a refresh by hand.
 
 ### 4. Run
 

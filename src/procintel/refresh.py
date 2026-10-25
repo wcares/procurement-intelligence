@@ -9,7 +9,7 @@ Steps: ingest (listings re-fetched, existing ICRs kept, document texts cached) â
 â†’ evaluation report (retrieval metrics and user feedback; eval/report.md, eval/history.jsonl).
 Embedding and tagging are the slow steps and are incremental; the others rebuild in seconds to a minute.
 Each run appends a row to table refresh_log with the changes and per-step times. A running backend keeps its old
-data in memory until it reloads: pass --reload-url to have the refresh ask it to (scripts/refresh-nightly.sh does).
+data in memory until it reloads: pass --reload-url to have the refresh ask it to (scripts/refresh.sh and the weekly refresh job do).
 """
 from __future__ import annotations
 

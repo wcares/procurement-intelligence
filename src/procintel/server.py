@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import os
 import threading
 import time
 from contextlib import asynccontextmanager
@@ -21,6 +22,7 @@ from pydantic import BaseModel, Field
 from procintel import config, evaluate, evidence, feedback, predict, rebid, stats
 from procintel.answer import ask as run_ask, idf
 from procintel.flag_evidence import FlagEvidence
+from procintel.jobs import store as jobs_store, worker as jobs_worker
 from procintel.assess import assess as run_assess
 from procintel.retrieve import DB_PATH, Retriever
 from procintel.similar import Similar
@@ -209,12 +211,25 @@ async def lifespan(_: FastAPI):
     for key, err in config.load_saved().items():  # saved settings from the configuration page
         print(f"config: saved value for {key} ignored: {err}")
     state()  # build the index before the first request rather than during it
+    if os.environ.get("PROCINTEL_JOBS", "1") != "0":
+        _worker.start()  # drains the job queue while no requests come in (procintel.jobs)
     yield
+    _worker.stop()
 
 
 app = FastAPI(title="procintel", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3100", "http://127.0.0.1:3100"],
-                   allow_methods=["GET", "POST", "PUT"], allow_headers=["Content-Type"])
+                   allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type"])
+_activity = jobs_worker.Activity()
+_worker = jobs_worker.Worker(_activity, {"reload": lambda: reload_state()})
+
+
+@app.middleware("http")
+async def mark_activity(request: Request, call_next):
+    """Every user request postpones background jobs; health checks and the jobs list itself do not."""
+    if not (request.url.path == "/health" or (request.url.path == "/jobs" and request.method == "GET")):
+        _activity.touch()
+    return await call_next(request)
 
 
 @app.exception_handler(RequestValidationError)
@@ -368,6 +383,26 @@ def post_reload(request: Request) -> dict:
         return JSONResponse({"error": "a reload is already running"}, status_code=409)
     secs = reload_state()
     return {"ok": True, "seconds": round(secs, 1), "passages": len(state().retriever.records)}
+
+
+class JobRequest(BaseModel):
+    kind: Literal["drift_check", "retrain", "refresh"]
+    reason: str = Field(default="queued from the Settings page", max_length=200)
+
+
+@app.get("/jobs")
+def get_jobs() -> dict:
+    return {"jobs": jobs_store.recent(), "idleSeconds": round(_activity.idle_for()),
+            "runAfterIdleSeconds": jobs_worker.IDLE_SECONDS, "running": _worker.current,
+            "workerOn": _worker.thread is not None and _worker.thread.is_alive()}
+
+
+@app.post("/jobs")
+def post_job(req: JobRequest, request: Request) -> dict:
+    if request.client is None or request.client.host not in ("127.0.0.1", "::1"):
+        return JSONResponse({"error": "jobs can only be queued from this machine"}, status_code=403)
+    jid = jobs_store.enqueue(req.kind, req.reason)
+    return {"queued": jid, "note": None if jid else "a job of this kind is already waiting or running"}
 
 
 @app.get("/health")

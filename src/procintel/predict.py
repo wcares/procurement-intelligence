@@ -166,7 +166,9 @@ def train(df: pd.DataFrame, metrics: dict) -> dict:
     return {"models": m, "metrics": metrics, "use": beats_baseline(metrics), "features": FEATURES,
             "value_median": value_median,
             "categories": {c: list(df[c].cat.categories) for c in CATEGORICAL},
-            "n": len(df), "trained_at": datetime.now(timezone.utc).isoformat()}
+            "n": len(df), "trained_at": datetime.now(timezone.utc).isoformat(),
+            # so packages labelled later can test it out of sample (procintel.jobs drift check)
+            "trained_ids": sorted(df["package_id"].astype(str)) if "package_id" in df else []}
 
 
 def load(path: Path = MODEL_PATH) -> dict | None:
@@ -195,7 +197,12 @@ def predict_one(bundle: dict, row: dict) -> dict:
 
 
 def main() -> None:
-    df = load_frame()
+    retrain()
+
+
+def retrain(db_path: Path = DB_PATH, path: Path = MODEL_PATH) -> dict:
+    """Cross-validate, train on all labelled packages and save; returns the metrics."""
+    df = load_frame(db_path)
     metrics = evaluate(df)
     use = beats_baseline(metrics)
     print(f"{metrics['n']} packages, {metrics['projects']} projects, {metrics['folds']}-fold CV grouped by project")
@@ -205,9 +212,10 @@ def main() -> None:
         print(f"{k:22s} {mv:9.3f} {bv:9.3f}")
     print("use model for:", {k: v for k, v in use.items()})
     bundle = train(df, metrics)
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(bundle, MODEL_PATH)
-    print(f"saved {MODEL_PATH.relative_to(ROOT)}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(bundle, path)
+    print(f"saved {path}")
+    return metrics
 
 
 if __name__ == "__main__":
