@@ -160,3 +160,14 @@ def test_answer_llm_picks_evidence_in_one_call_and_falls_back_to_the_decision_mo
     monkeypatch.setattr(answer, "LLM_GATE", 0)                                               # switched off on /config
     monkeypatch.setattr(answer.llm, "complete", lambda *a, **kw: (_ for _ in ()).throw(AssertionError("not called")))
     assert answer.supporting("why did firms stop bidding", HITS)[1] == "decision"
+
+
+def test_no_second_search_when_the_answer_llm_found_no_evidence(monkeypatch):
+    class R:
+        def search(self, q, k, country=None, proc_group=None):
+            return HITS
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    monkeypatch.setattr(answer, "reformulate", lambda q: (_ for _ in ()).throw(AssertionError("should not reformulate")))
+    monkeypatch.setattr(answer, "supporting", lambda q, hits: ([], "llm"))
+    out = answer.ask(R(), "What procurement problems affected the high-speed rail lines?")
+    assert out["unsupported"] and "judged none of the retrieved passages relevant" in out["meta"]["caveats"][-1]

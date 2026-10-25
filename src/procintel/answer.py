@@ -252,8 +252,11 @@ def search_multi(retriever: Retriever, queries: list[str], k: int, country: str 
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
     hits, judged_by = supporting(question, retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group))
     second_search = None
-    if len(hits) < MIN_EVIDENCE and llm.available():
-        # step 2: too little evidence; search again with the question rephrased in the reports' vocabulary
+    # step 2: too little evidence; search again with the question rephrased in the reports' vocabulary. Not when the
+    # answer LLM found no evidence at all: measured on the 100 evaluation questions plus a paraphrase, every answerable
+    # question kept at least 1 passage on the first pass and 18 of 20 unanswerable ones kept none, while the second
+    # search let the "high-speed rail" trap through on a passage about an unrelated "HSIP" project.
+    if len(hits) < MIN_EVIDENCE and llm.available() and (hits or judged_by != "llm"):
         try:
             queries = reformulate(question)
         except Exception:  # model down: keep the first search
