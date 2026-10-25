@@ -1,0 +1,199 @@
+{
+ "labelled_by": "hand, 2026-10-25, before any model was scored",
+ "rule": "useful = describes a past experience, problem or lesson that would help plan this procurement; tables, indicator lists, activity descriptions and context are not",
+ "cases": {
+  "KE": {
+   "countryCode": "KE",
+   "procGroup": "CW",
+   "methodCode": "RFB",
+   "description": "rural road rehabilitation",
+   "country": "Kenya"
+  },
+  "PK": {
+   "countryCode": "PK",
+   "procGroup": "GO",
+   "methodCode": "RFQ",
+   "description": "medical equipment",
+   "country": "Pakistan"
+  },
+  "ID": {
+   "countryCode": "ID",
+   "procGroup": "CS",
+   "methodCode": "QCBS",
+   "description": "supervision consultant for early warning systems",
+   "country": "Indonesia"
+  }
+ },
+ "labels": [
+  {
+   "case": "KE",
+   "chunk_id": "40116240:93",
+   "useful": false
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:71",
+   "useful": false
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:83",
+   "useful": true
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:23",
+   "useful": false
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:37",
+   "useful": true
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:22",
+   "useful": false
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:41",
+   "useful": true
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:74",
+   "useful": false
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:35",
+   "useful": false
+  },
+  {
+   "case": "KE",
+   "chunk_id": "40116240:78",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:85",
+   "useful": true
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40126939:124",
+   "useful": true
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:70",
+   "useful": true
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40126939:123",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:110",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40126939:35",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40126939:34",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:25",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40126939:33",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:127",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:109",
+   "useful": false
+  },
+  {
+   "case": "PK",
+   "chunk_id": "40115463:47",
+   "useful": false
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40113637:68",
+   "useful": true
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40128714:76",
+   "useful": true
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40113637:25",
+   "useful": false
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40113637:127",
+   "useful": false
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40128714:58",
+   "useful": true
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40113637:153",
+   "useful": true
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40113637:88",
+   "useful": false
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40109792:55",
+   "useful": true
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40109792:60",
+   "useful": false
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40109792:61",
+   "useful": true
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40109792:64",
+   "useful": false
+  },
+  {
+   "case": "ID",
+   "chunk_id": "40113637:65",
+   "useful": true
+  }
+ ]
+}

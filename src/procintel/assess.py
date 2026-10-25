@@ -3,9 +3,11 @@ governance context and precedent passages. Rules mirror web/src/lib/mock/engine.
 live API agree on everything except where the evidence comes from."""
 from __future__ import annotations
 
+import json
+import re
 from datetime import date
 
-from procintel import answer, decide
+from procintel import llm
 from procintel.answer import citation, conflict_notes, meta, retrieval_note, terms
 from procintel.retrieve import Retriever
 from procintel.stats import MIN_BENCH_N, PROC_GROUP_LABELS
@@ -57,14 +59,26 @@ def _lessons(hits: list) -> list:
     return [h for h in hits if not (h.tag == NONE and h.tag_confidence >= NOT_A_LESSON_MIN)]
 
 
+_PREC_SYSTEM = ("You help procurement planners. Given a planned procurement and numbered passages from past project "
+                "evaluation reports, list the passages that describe a past experience, problem or lesson that would help plan "
+                "this procurement. Tables, indicator lists, activity descriptions and general context do not count. "
+                'Reply with JSON only: {"useful": [numbers]}')
+
+
 def _relevant(hits: list, package: str) -> tuple[list, int]:
-    """(hits the decision model judges a useful lesson for this package, number dropped); all hits without a model."""
-    if not decide.available():
+    """(hits the answer LLM picks as useful lessons for this package, number set aside), in one call for the shortlist.
+
+    Measured on 34 hand-labelled candidates for 3 packages (eval/precedent_labels.json): the LLM picked with precision
+    0.77, recall 0.77; the decision model scored precision 0.29, below the 0.38 of keeping everything, so it is not used
+    here. Without an LLM, or if its reply is unusable, the retrieval order is kept."""
+    if not hits or not llm.available():
         return hits, 0
-    q = "Does the passage describe an experience or lesson that would help plan this procurement?"
+    numbered = "\n\n".join(f"[{i + 1}] {h.text}" for i, h in enumerate(hits))
     try:
-        keep = [h for h in hits if decide.yes(f"Planned procurement: {package}\nPassage: {h.text}", q) >= answer.DECIDE_MIN]
-    except Exception:  # decision server down: keep the retrieval order rather than fail the assessment
+        raw = llm.complete(_PREC_SYSTEM, f"Planned procurement: {package}\n\nPassages:\n{numbered}", max_tokens=200)
+        picked = json.loads(re.search(r"\{.*\}", raw, re.S).group(0))["useful"]
+        keep = [hits[i - 1] for i in sorted({int(i) for i in picked if 1 <= int(i) <= len(hits)})]
+    except Exception:  # model down, timeout or unparseable reply: keep the retrieval order rather than fail
         return hits, 0
     return keep, len(hits) - len(keep)
 
@@ -72,8 +86,8 @@ def _relevant(hits: list, package: str) -> tuple[list, int]:
 def precedents(retriever: Retriever, country: str, group: str, description: str, sector: str,
                country_name: str = "", method: str = "") -> tuple[list[dict], bool, str, list[str]]:
     """(precedents, widened, how they were retrieved, conflict notes): widened is True when the country had too few
-    passages and all countries were searched. With a decision model, each candidate must be judged a useful lesson
-    for the planned package (it dropped indicator and disbursement tables that retrieval ranked first)."""
+    passages and all countries were searched. With an answer LLM configured, it picks the candidates that are useful
+    lessons for the planned package (one call per shortlist, ~15 s with the local 27B model)."""
     query = f"{description} {sector} {PROC_GROUP_LABELS.get(group, '')} {_PRECEDENT_TERMS}"
     package = ", ".join(x for x in [f"{PROC_GROUP_LABELS.get(group, group)} by {method or 'unspecified method'}",
                                     f"in {country_name or country}", sector, description] if x)
@@ -86,7 +100,7 @@ def precedents(retriever: Retriever, country: str, group: str, description: str,
         more, d2 = _relevant([h for h in _lessons(retriever.search(query, k=16, proc_group=group)) if h.chunk_id not in judged], package)
         hits += more[: 5 - len(hits)]
         dropped += d2
-    how = retrieval_note(hits) + (f" The decision model set aside {dropped} retrieved passages as not a useful lesson "
+    how = retrieval_note(hits) + (f" {llm.model_name()} set aside {dropped} retrieved passages as not a useful lesson "
                                   "for this package." if dropped else "")
     if not hits:
         return [], widened, how, []

@@ -88,27 +88,37 @@ def test_precedents_skip_passages_tagged_as_no_problem(retriever, monkeypatch):
             r["tag"], r["tag_confidence"] = None, 0.0
 
 
-def test_precedents_keep_only_passages_the_decision_model_judges_useful(retriever, monkeypatch):
-    from procintel import assess, decide
-    monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
-    seen = []
+def test_precedents_keep_the_passages_the_llm_picks(retriever, monkeypatch):
+    from procintel import assess, llm
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    prompts = []
 
-    def judge(state, question, **kw):
-        seen.append(state)
-        return 0.9 if "abandoned" in state else 0.1   # only d1:0 (contractor abandoned the site) is a useful lesson
-    monkeypatch.setattr(decide, "yes", judge)
+    def pick(system, user, **kw):
+        prompts.append(user)
+        numbered = [line for line in user.splitlines() if line.startswith("[")]
+        useful = [i + 1 for i, line in enumerate(numbered) if "abandoned" in line]  # only the contractor lesson
+        return '{"useful": %s}' % useful
+    monkeypatch.setattr(llm, "complete", pick)
     precs, _, how, _ = assess.precedents(retriever, "KE", "CW", "road works", "", "Kenya", "RFB")
-    assert [p["citation"]["id"] for p in precs] == ["d1:0"]          # judged useful: kept
-    assert "Civil Works by RFB, in Kenya" in seen[0]                  # the model sees the planned package
+    assert [p["citation"]["id"] for p in precs] == ["d1:0"] and "Civil Works by RFB, in Kenya" in prompts[0]
     precs, _, how, _ = assess.precedents(retriever, "KE", "CS", "consultant selection", "", "Kenya", "QCBS")
-    assert precs == [] and "set aside 1" in how                        # d2:0 retrieved, judged not useful
+    assert precs == [] and "set aside 1 " in how        # d2:0 retrieved once, not picked, counted once
 
 
-def test_precedents_unchanged_when_the_decision_server_fails(retriever, monkeypatch):
+def test_precedents_keep_retrieval_order_when_the_llm_reply_is_unusable(retriever, monkeypatch):
+    from procintel import assess, llm
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: "I think passage two is nice.")
+    with_llm, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+    monkeypatch.delenv("PROCINTEL_LLM_MODEL")
+    without, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+    assert [p["citation"]["id"] for p in with_llm] == [p["citation"]["id"] for p in without] != []
+
+
+def test_precedent_judge_is_not_the_decision_model(retriever, monkeypatch):
     from procintel import assess, decide
     monkeypatch.setenv("PROCINTEL_DECIDE_API_BASE", "http://fake")
-    monkeypatch.setattr(decide, "yes", lambda *a, **k: (_ for _ in ()).throw(ConnectionError("down")))
-    with_gate, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
-    monkeypatch.delenv("PROCINTEL_DECIDE_API_BASE")
-    without, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
-    assert [p["citation"]["id"] for p in with_gate] == [p["citation"]["id"] for p in without]
+    monkeypatch.delenv("PROCINTEL_LLM_MODEL", raising=False)
+    monkeypatch.setattr(decide, "yes", lambda *a, **k: (_ for _ in ()).throw(AssertionError("decision model called")))
+    precs, *_ = assess.precedents(retriever, "KE", "CW", "contract cancelled terminated", "")
+    assert precs  # measured worse than no check for precedents (eval/precedent_labels.json), so it is not consulted
