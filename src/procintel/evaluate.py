@@ -10,7 +10,8 @@ is not counted as missed.
 
     python -m procintel.evaluate judge    # pool candidates and judge any not yet judged
     python -m procintel.evaluate sample   # print 30 random judgments for a hand check
-    python -m procintel.evaluate run      # metrics, written to eval/report.md
+    python -m procintel.evaluate run      # metrics + user feedback, written to eval/report.md, appended to eval/history.jsonl
+    python -m procintel.evaluate run --no-answers   # retrieval + feedback only (what refresh runs; answers take ~10 min)
 """
 from __future__ import annotations
 
@@ -21,13 +22,14 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from procintel import answer, decide, embed, llm
+from procintel import answer, decide, embed, feedback, llm
 from procintel.retrieve import Retriever
 
 ROOT = Path(__file__).resolve().parents[2]
 QUESTIONS = ROOT / "eval" / "questions.jsonl"
 JUDGMENTS = ROOT / "eval" / "judgments.jsonl"
 REPORT = ROOT / "eval" / "report.md"
+HISTORY = ROOT / "eval" / "history.jsonl"  # one line of headline metrics per run
 POOL_K = 10
 
 _REL = ("You judge search results for procurement planners. Reply with one word, yes or no: does the passage contain "
@@ -93,7 +95,9 @@ def sample(r: Retriever, n: int = 30, seed: int = 7) -> None:
         print(f"[{j['qid']}|{'REL' if j['relevant'] else 'not'}] {j['chunk_id']}  Q: {qs[j['qid']]}\n    {text.get(j['chunk_id'], '?')[:600]}\n")
 
 
-def run(r: Retriever) -> str:
+def run(r: Retriever, answers: bool = True) -> tuple[str, dict]:
+    """(markdown report, headline metrics). answers=False skips answering the questions (about 10 minutes with a
+    local 27B model): the report then carries the previous run's answer metrics, dated."""
     js = _load_judgments()
     qs = questions()
     rel = {q["id"]: {c for (qid, c), j in js.items() if qid == q["id"] and j["relevant"]} for q in qs if q["answerable"]}
@@ -114,14 +118,41 @@ def run(r: Retriever) -> str:
             if v is not None:
                 totals.setdefault(k, []).append(v)
     ans = []
-    for q in qs:
+    for q in qs if answers else []:
         t = time.time()
         out = answer.ask(r, q["question"])
         cites = out["citations"]
         sup = [_yes(_SUP, "Passages:\n" + "\n\n".join(cites[c]["quote"] for c in s["citations"]) + f"\n\nStatement: {s['text']}")
                for s in out["answer"]]
         ans.append((q, out["unsupported"], len(sup), sum(sup), time.time() - t))
-    return _report(rows, totals, ans, len(js))
+    headline = _headline(rows, totals, ans, len(js))
+    previous = _history()[-1] if _history() else None
+    return _report(rows, totals, ans, len(js), headline, previous, feedback.summary()), headline
+
+
+def _headline(rows, totals, ans, n_judged) -> dict:
+    mean = lambda k: round(sum(totals[k]) / len(totals[k]), 3) if totals.get(k) else None  # noqa: E731
+    h = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "judged_pairs": n_judged,
+         "unjudged_in_results": sum(len(u) for *_, u in rows),
+         **{k: mean(k) for k in ("bm25_p5", "hybrid_p5", "bm25_r10", "hybrid_r10", "gate_prec")}}
+    if ans:
+        answerable = [a for a in ans if a[0]["answerable"]]
+        traps = [a for a in ans if not a[0]["answerable"]]
+        n_sent = sum(a[2] for a in answerable)
+        h |= {"answered": sum(not a[1] for a in answerable), "answerable": len(answerable),
+              "supported_sentences": sum(a[3] for a in answerable), "sentences": n_sent,
+              "refused_traps": sum(a[1] for a in traps), "traps": len(traps),
+              "median_seconds": round(sorted(a[4] for a in ans)[len(ans) // 2], 1)}
+    return h
+
+
+def _history() -> list[dict]:
+    return [json.loads(line) for line in HISTORY.read_text().splitlines() if line.strip()] if HISTORY.exists() else []
+
+
+def record(headline: dict) -> None:
+    with HISTORY.open("a") as f:
+        f.write(json.dumps(headline) + "\n")
 
 
 def _prec(ids: list[str], rel: set[str]) -> float | None:
@@ -132,55 +163,73 @@ def _rec(ids: list[str], rel: set[str]) -> float | None:
     return sum(c in rel for c in ids) / len(rel) if rel else None
 
 
-def _report(rows, totals, ans, n_judged) -> str:
-    mean = lambda k: sum(totals[k]) / len(totals[k]) if totals.get(k) else float("nan")  # noqa: E731
-    answerable = [a for a in ans if a[0]["answerable"]]
-    traps = [a for a in ans if not a[0]["answerable"]]
-    n_sent = sum(a[2] for a in answerable)
-    n_sup = sum(a[3] for a in answerable)
+def _report(rows, totals, ans, n_judged, h: dict, prev: dict | None, fb: dict) -> str:
+    f = lambda v: "–" if v is None else f"{v:.2f}"  # noqa: E731
+    last_answers = next((x for x in reversed(_history()) if "answered" in x), None)
+    a = h if "answered" in h else last_answers
     lines = [
-        f"# Evaluation report ({datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')})",
+        f"# Evaluation report ({h['time']})",
         "",
         f"Models: answers and judge `{llm.model_name()}`; embeddings `{embed.model_name()}`; decision `{decide.api_base()}`.",
-        f"{len(rows)} answerable questions, {len(traps)} unanswerable; {n_judged} judged (question, passage) pairs.",
+        f"{len(rows)} answerable questions; {n_judged} judged (question, passage) pairs"
+        + (f"; {h['unjudged_in_results']} passages in today's results are not judged yet (run `evaluate judge`)."
+           if h["unjudged_in_results"] else "."),
         "Recall is against the pooled relevant set (BM25 top 10 + hybrid top 10), so it is an upper bound.",
         "Relevance judge vs a hand check of 30 judgments: 28/30 agree, both misses lenient (eval/judge_check.md).",
         "Faithfulness is judged by the same model that writes the answers, which may favour its own sentences.",
         "",
         "## Retrieval",
         "",
-        "| metric | value |",
-        "|---|---|",
-        f"| BM25 precision@5 | {mean('bm25_p5'):.2f} |",
-        f"| Hybrid precision@5 | {mean('hybrid_p5'):.2f} |",
-        f"| BM25 recall@10 | {mean('bm25_r10'):.2f} |",
-        f"| Hybrid recall@10 | {mean('hybrid_r10'):.2f} |",
-        f"| Evidence gate precision (passages kept as evidence) | {mean('gate_prec'):.2f} |",
-        "",
-        "## Answers",
-        "",
-        "| metric | value |",
-        "|---|---|",
-        f"| Answerable questions answered (not refused) | {sum(not a[1] for a in answerable)}/{len(answerable)} |",
-        f"| Answer sentences supported by their citations (judge) | {n_sup}/{n_sent} ({n_sup / n_sent:.0%}) |" if n_sent else "| Answer sentences | 0 |",
-        f"| Unanswerable questions refused | {sum(a[1] for a in traps)}/{len(traps)} |",
-        f"| Median time per question | {sorted(a[4] for a in ans)[len(ans) // 2]:.1f} s |",
-        "",
-        "## Per question",
-        "",
-        "| id | question | relevant in pool | BM25 P@5 | hybrid P@5 | gate kept / precision | answer |",
-        "|---|---|---|---|---|---|---|",
+        "| metric | now | previous run |",
+        "|---|---|---|",
     ]
-    by_q = {a[0]["id"]: a for a in ans}
-    f = lambda v: "–" if v is None else f"{v:.2f}"  # noqa: E731
+    for k, label in [("bm25_p5", "BM25 precision@5"), ("hybrid_p5", "Hybrid precision@5"), ("bm25_r10", "BM25 recall@10"),
+                     ("hybrid_r10", "Hybrid recall@10"), ("gate_prec", "Evidence gate precision")]:
+        lines.append(f"| {label} | {f(h[k])} | {f(prev.get(k)) if prev else '–'} |")
+    lines += ["", "## Answers", ""]
+    if a is None:
+        lines.append("Not evaluated yet (run `python -m procintel.evaluate run`).")
+    else:
+        lines += [("Measured in this run." if a is h else f"Not re-run this time; figures from {a['time']}."), "",
+                  "| metric | value |", "|---|---|",
+                  f"| Answerable questions answered (not refused) | {a['answered']}/{a['answerable']} |",
+                  f"| Answer sentences supported by their citations (judge) | {a['supported_sentences']}/{a['sentences']} |",
+                  f"| Unanswerable questions refused | {a['refused_traps']}/{a['traps']} |",
+                  f"| Median time per question | {a['median_seconds']} s |"]
+    lines += ["", "## User feedback", ""]
+    ratings = {}
+    for kind, rating, n in fb["ratings"]:
+        ratings.setdefault(kind, {})[rating] = n
+    if not fb["responses"]:
+        lines.append("No responses logged yet.")
+    else:
+        lines += [f"{fb['responses']} responses logged.", "", "| page | useful | not useful | citations flagged |", "|---|---|---|---|"]
+        for kind in ("ask", "assess"):
+            r = ratings.get(kind, {})
+            lines.append(f"| {kind} | {r.get('useful', 0)} | {r.get('not_useful', 0)} | {r.get('bad_citation', 0)} |")
+        if fb["flagged_citations"]:
+            lines += ["", "Most flagged citations (candidates for the evaluation set or the chunker):", ""]
+            lines += [f"- `{cid}` flagged {n}×" for cid, n in fb["flagged_citations"]]
+    lines += ["", "## Per question", "",
+              "| id | question | relevant in pool | BM25 P@5 | hybrid P@5 | gate kept / precision | answer |",
+              "|---|---|---|---|---|---|---|"]
+    by_q = {x[0]["id"]: x for x in ans}
     for q, n_rel, m, how, unjudged in rows:
-        a = by_q[q["id"]]
-        res = "refused" if a[1] else f"{a[3]}/{a[2]} supported"
+        x = by_q.get(q["id"])
+        res = "–" if x is None else "refused" if x[1] else f"{x[3]}/{x[2]} supported"
         lines.append(f"| {q['id']} | {q['question']} | {n_rel} | {f(m['bm25_p5'])} | {f(m['hybrid_p5'])} | "
                      f"{m['gate_n']} / {f(m['gate_prec'])}{' (unjudged: ' + str(len(unjudged)) + ')' if unjudged else ''} | {res} |")
-    for q, unsupported, n, k, _ in traps:
+    for q, unsupported, n, k, _ in [x for x in ans if not x[0]["answerable"]]:
         lines.append(f"| {q['id']} | {q['question']} | – | – | – | – | {'refused' if unsupported else f'ANSWERED ({k}/{n} supported)'} |")
     return "\n".join(lines) + "\n"
+
+
+def report(r: Retriever, answers: bool = True) -> dict:
+    """Run the evaluation, write eval/report.md and append to eval/history.jsonl; returns the headline metrics."""
+    text, headline = run(r, answers)
+    REPORT.write_text(text)
+    record(headline)
+    return headline
 
 
 def main() -> None:
@@ -191,9 +240,8 @@ def main() -> None:
     elif cmd == "sample":
         sample(r)
     else:
-        report = run(r)
-        REPORT.write_text(report)
-        print(report)
+        report(r, answers="--no-answers" not in sys.argv)
+        print(REPORT.read_text())
 
 
 if __name__ == "__main__":

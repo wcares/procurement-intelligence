@@ -4,7 +4,8 @@
     python -m procintel.refresh --skip-fetch   # rebuild from the data already in the database
 
 Steps: ingest (listings re-fetched, existing ICRs kept, document texts cached) → model tables → chunks → embeddings
-(new or changed passages only) → tags (same) → ICR/ISR rating check → prediction models (retrained, metrics compared).
+(new or changed passages only) → tags (same) → ICR/ISR rating check → prediction models (retrained, metrics compared)
+→ evaluation report (retrieval metrics and user feedback; eval/report.md, eval/history.jsonl).
 Embedding and tagging are the slow steps and are incremental; the others rebuild in seconds to a minute.
 Each run appends a row to table refresh_log with the changes and per-step times. A running backend keeps its old
 data in memory until it is restarted.
@@ -82,6 +83,8 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
             counts["tagged"] = step("tags (new or changed passages)", tag.build)
         step("ICR / ISR rating check", ratings.build)
         step("prediction models", predict.main)
+        # retrieval metrics + user feedback; answering every question takes ~10 min, run `evaluate run` for that
+        counts["evaluation"] = step("evaluation report (retrieval + feedback)", lambda: _evaluate())
     except Exception as e:  # record the failed step, then re-raise so the command exits non-zero
         status, error = "failed", f"{type(e).__name__}: {e}"
     after = snapshot(db_path) if status == "ok" else before
@@ -97,6 +100,13 @@ def run(n_icrs: int = 120, fetch: bool = True, db_path: Path = DB_PATH) -> dict:
     if error:
         raise SystemExit(1)
     return changes
+
+
+def _evaluate() -> int:
+    from procintel import evaluate  # imported here: it loads the retriever, which reads the refreshed tables
+    from procintel.retrieve import Retriever
+    evaluate.report(Retriever(), answers=False)
+    return 1
 
 
 def _print(changes: dict, steps: list, status: str, error: str | None) -> None:

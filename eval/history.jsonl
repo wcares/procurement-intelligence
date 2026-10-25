@@ -1,0 +1,2 @@
+{"time": "2026-10-25 02:04 UTC", "judged_pairs": 232, "unjudged_in_results": 2, "bm25_p5": 0.64, "hybrid_p5": 0.77, "bm25_r10": 0.62, "hybrid_r10": 0.76, "gate_prec": 0.77, "answered": 15, "answerable": 15, "supported_sentences": 53, "sentences": 55, "refused_traps": 5, "traps": 5, "median_seconds": 23.3, "note": "copied from eval/report.md of that run (b6ba812), before history was recorded"}
+{"time": "2026-10-25 02:32 UTC", "judged_pairs": 232, "unjudged_in_results": 2, "bm25_p5": 0.64, "hybrid_p5": 0.773, "bm25_r10": 0.624, "hybrid_r10": 0.764, "gate_prec": 0.769}
