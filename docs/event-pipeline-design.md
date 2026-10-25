@@ -1,6 +1,7 @@
 # Event-driven update pipeline: design
 
 Status: proposed (2026-10-25), not built. Tracked in docs/TRACKER.md, Module 4 queue.
+Follows docs/architecture-principles.md: every part replaceable by configuration or registration, nothing hardcoded.
 
 ## 1. Why
 

@@ -1,6 +1,7 @@
 # Web app (UI): design and request log
 
 Status: proposed (2026-10-25). This file collects what the web app should show and how; each request is logged in
+Follows docs/architecture-principles.md: every part replaceable by configuration or registration, nothing hardcoded.
 section 6 and queued in docs/TRACKER.md (section "UI (web app)"). Backend pieces it depends on are designed in
 docs/event-pipeline-design.md.
 

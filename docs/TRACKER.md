@@ -140,6 +140,7 @@ _(empty)_
 
 ### Queue
 
+- [ ] Configurable and scalable by design (user, 2026-10-25, standing rule: "nothing hardcoded or need code change to change to different configuration or models"): principles and audit in docs/architecture-principles.md; first a single data-location setting replacing the path repeated in ~22 modules, then prompts as editable files, then storage and vector-index interfaces with the event pipeline
 - [ ] Event-driven update pipeline (user, 2026-10-25: a state and event system, "certain events change the states ... only those specific events trigger certain actions ... so it doesn't need to run the full pipeline", with generic hooks/rules editable through the UI): design in docs/event-pipeline-design.md (entity states, typed events, action registry on the job queue, default rules plus UI-editable rules with guardrails, hourly change detection, weekly refresh kept as reconciliation); build in the four steps of its section 10 after the user's review
 
 ### Improvements
