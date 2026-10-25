@@ -1,0 +1,20 @@
+{"id": "q01", "question": "What caused delays in civil works contracts?", "answerable": true}
+{"id": "q02", "question": "Why were procurement processes cancelled or contracts terminated?", "answerable": true}
+{"id": "q03", "question": "What lessons were learned about procurement capacity of implementing agencies?", "answerable": true}
+{"id": "q04", "question": "How did the COVID-19 pandemic affect procurement and contract implementation?", "answerable": true}
+{"id": "q05", "question": "What problems did land acquisition and resettlement cause for project implementation?", "answerable": true}
+{"id": "q06", "question": "Why did tenders receive few or no responsive bids?", "answerable": true}
+{"id": "q07", "question": "How did delays in payments to contractors affect works?", "answerable": true}
+{"id": "q08", "question": "What problems were caused by weak technical specifications or terms of reference?", "answerable": true}
+{"id": "q09", "question": "How was the selection of consultants delayed?", "answerable": true}
+{"id": "q10", "question": "What role did STEP play in procurement monitoring?", "answerable": true}
+{"id": "q11", "question": "Why were contracts re-tendered?", "answerable": true}
+{"id": "q12", "question": "How did contractor performance problems affect road projects?", "answerable": true}
+{"id": "q13", "question": "What fiduciary or financial management weaknesses affected procurement?", "answerable": true}
+{"id": "q14", "question": "How did community-based or labor-based contracting work in practice?", "answerable": true}
+{"id": "q15", "question": "What were the effects of restructuring on procurement plans?", "answerable": true}
+{"id": "q16", "question": "What is the boiling point of tungsten?", "answerable": false, "note": "trivial off-topic control"}
+{"id": "q17", "question": "Who won the 2018 FIFA World Cup?", "answerable": false, "note": "trivial off-topic control"}
+{"id": "q18", "question": "How did blockchain-based e-procurement platforms reduce bid rigging in these projects?", "answerable": false, "note": "in-domain trap: one DLI table mentions planned blockchain integration in an e-procurement system, nothing on bid rigging; any claimed effect is a failure"}
+{"id": "q19", "question": "What procurement lessons came from building the stadiums for the Paris 2024 Olympic Games?", "answerable": false, "note": "in-domain trap: not a World Bank project"}
+{"id": "q20", "question": "What was the average bid price for satellite launch services?", "answerable": false, "note": "in-domain trap: no such packages"}

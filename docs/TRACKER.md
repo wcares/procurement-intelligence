@@ -25,7 +25,6 @@ _(none)_
 
 ## MVP (in order)
 
-- [ ] **M3** Small evaluation set (~20 questions, labelled relevant passages) with retrieval precision/recall and answer faithfulness (added 2026-10-24, by me)
 - [ ] **M4** Feedback capture: useful / wrong / bad citation buttons on answers and assessments, stored in the database with the response (added 2026-10-24, by me)
 - [ ] **M4** One `refresh` command: fetch new notices and reports, then chunk → embed → tag → retrain only what changed, and log what changed (added 2026-10-24, by me)
 - [ ] **M4** Evaluation report combining the test set and user feedback, re-run after each refresh (added 2026-10-24, by me)
@@ -115,12 +114,15 @@ _(empty)_
 ### Improvements
 
 - [ ] Procurement-specific conflicts: ISR tables carry only DO and IP ratings, not a procurement rating; compare the ICR's procurement text (e.g. "procurement rated Satisfactory") with the IP rating trend (added 2026-10-24, by me)
+- [ ] Independent faithfulness judge: the answer model currently grades its own sentences (53/55 supported may be optimistic) (added 2026-10-24, by me)
+- [ ] Evidence gate barely filters: it kept 5 of 5 passages on most questions (gate precision 0.77 = hybrid P@5); tune the threshold or ask a stricter question (added 2026-10-24, by me)
 - [ ] Larger evaluation set (~100 questions) once the MVP set shows where answers fail (added 2026-10-24, by me)
 - [ ] Risk flags carry their evidence: link each flag to the packages or passages it rests on (added 2026-10-24, by me)
 - [ ] Two-step passage tagging (is a problem described? then which type) to make problem types usable (added 2026-10-24, by me)
 
 ### Done
 
+- [x] Evaluation set and runner: 20 questions (15 answerable, 2 off-topic controls, 3 in-domain traps), pooled relevance judged by the answer LLM, `python -m procintel.evaluate judge|sample|run` → eval/report.md — COMMIT — 232 judged pairs; judge agreed with my hand labels on 28/30 (eval/judge_check.md). Hybrid P@5 0.77 vs BM25 0.64, recall@10 0.76 vs 0.62; 15/15 answered, 53/55 sentences supported, 5/5 unanswerable refused, median 23 s
 - [x] Conflicting evidence: each ICR's outcome rating vs the last ISR development-objective rating (both parsed from the report's data sheet); a disagreement (opposite sides of satisfactory, or 2+ points apart) becomes a caveat on /ask and /assess naming both ratings and the ISR date, the ICR treated as the later verdict, never averaged — 594011d — 104 of 120 reports judged, 11 conflicts; ISR rows parsed 97.3% (wrapped cells handled; an ambiguous last row must conflict under every reading; an unreadable later rated row gives no verdict); two flagged reports checked against raw text found and fixed a stale-last-row bug; live /ask on Morocco P165411 shows the caveat
 - [x] Every answer sentence cites passages; citation cards show quote, section ¶, project, PDF link — bf7f501 — tests/test_api.py
 - [x] Unsupported questions refused, not guessed — bf7f501, a0a125d — "boiling point of tungsten" refused
