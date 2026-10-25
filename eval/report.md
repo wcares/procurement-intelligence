@@ -1,10 +1,10 @@
-# Evaluation report (2026-10-25 04:48 UTC)
+# Evaluation report (2026-10-25 05:28 UTC)
 
-Models: answers and judge `openai/saluki-27b`; embeddings `openai/embeddinggemma-2`; decision `http://127.0.0.1:8082`.
+Models: answers and relevance judge `openai/saluki-27b`; embeddings `openai/embeddinggemma-2`; decision `http://127.0.0.1:8082`.
 15 answerable questions; 232 judged (question, passage) pairs; 2 passages in today's results are not judged yet (run `evaluate judge`).
 Recall is against the pooled relevant set (BM25 top 10 + hybrid top 10), so it is an upper bound.
 Relevance judge vs a hand check of 30 judgments: 28/30 agree, both misses lenient (eval/judge_check.md).
-Faithfulness is judged by the same model that writes the answers, which may favour its own sentences.
+Faithfulness is judged by the answer model and by an independent model, `openai/qwen3-vl-8b`.
 
 ## Retrieval
 
@@ -23,13 +23,14 @@ Measured in this run.
 | metric | value |
 |---|---|
 | Answerable questions answered (not refused) | 15/15 |
-| Answer sentences supported by their citations (judge) | 53/55 |
+| Answer sentences supported by their citations (answer model as judge) | 53/55 |
+| Answer sentences supported by their citations (independent judge) | 53/55 |
 | Unanswerable questions refused | 5/5 |
-| Median time per question | 23.4 s |
+| Median time per question | 18.1 s |
 
 ## User feedback
 
-22 responses logged.
+31 responses logged.
 
 | page | useful | not useful | citations flagged |
 |---|---|---|---|

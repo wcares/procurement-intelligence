@@ -13,6 +13,9 @@ Environment:
                             answers directly instead of spending the token budget on a hidden thinking block
 
 If PROCINTEL_LLM_MODEL is unset, `available()` is False and callers must use their extractive fallback.
+
+A second model, the independent judge of the evaluation, is set the same way with PROCINTEL_JUDGE_MODEL,
+PROCINTEL_JUDGE_API_BASE, PROCINTEL_JUDGE_API_KEY and PROCINTEL_JUDGE_EXTRA_BODY; calls pass prefix=JUDGE.
 """
 from __future__ import annotations
 
@@ -21,28 +24,33 @@ import os
 from typing import Any
 
 
-def model_name() -> str | None:
-    return os.environ.get("PROCINTEL_LLM_MODEL") or None
+ANSWER = "PROCINTEL_LLM"
+JUDGE = "PROCINTEL_JUDGE"
 
 
-def available() -> bool:
-    return model_name() is not None
+def model_name(prefix: str = ANSWER) -> str | None:
+    return os.environ.get(f"{prefix}_MODEL") or None
+
+
+def available(prefix: str = ANSWER) -> bool:
+    return model_name(prefix) is not None
 
 
 TEMPERATURE = 0.0  # defaults for every call; tunable at runtime through procintel.config
 MAX_TOKENS = 1200
 
 
-def complete(system: str, user: str, *, temperature: float | None = None, max_tokens: int | None = None, **kw: Any) -> str:
+def complete(system: str, user: str, *, temperature: float | None = None, max_tokens: int | None = None,
+             prefix: str = ANSWER, **kw: Any) -> str:
     """Return the assistant text. Raises if no model is configured; callers check available() first."""
-    m = model_name()
+    m = model_name(prefix)
     if m is None:
-        raise RuntimeError("PROCINTEL_LLM_MODEL is not set")
+        raise RuntimeError(f"{prefix}_MODEL is not set")
     import litellm  # imported lazily: it is slow to import and not needed for retrieval-only paths
 
     temperature = TEMPERATURE if temperature is None else temperature
     max_tokens = MAX_TOKENS if max_tokens is None else max_tokens
-    extra = os.environ.get("PROCINTEL_LLM_EXTRA_BODY")
+    extra = os.environ.get(f"{prefix}_EXTRA_BODY")
     if extra:
         kw.setdefault("extra_body", json.loads(extra))
     resp = litellm.completion(
@@ -50,8 +58,8 @@ def complete(system: str, user: str, *, temperature: float | None = None, max_to
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
         temperature=temperature,
         max_tokens=max_tokens,
-        api_base=os.environ.get("PROCINTEL_LLM_API_BASE"),
-        api_key=os.environ.get("PROCINTEL_LLM_API_KEY"),
+        api_base=os.environ.get(f"{prefix}_API_BASE"),
+        api_key=os.environ.get(f"{prefix}_API_KEY"),
         **kw,
     )
     choice = resp.choices[0]

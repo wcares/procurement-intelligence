@@ -8,6 +8,10 @@ Judgments are cached in eval/judgments.jsonl; a hand-checked sample gives the ju
 Recall is measured against the pooled relevant set, so it is an upper bound: a relevant passage neither search found
 is not counted as missed.
 
+Faithfulness: every answer sentence is checked against the passages it cites by the answer LLM and, when
+PROCINTEL_JUDGE_MODEL is set, by an independent judge model, since a model may favour its own sentences. Both verdicts
+per sentence are written to eval/faithfulness.jsonl for a hand check of the disagreements.
+
     python -m procintel.evaluate judge    # pool candidates and judge any not yet judged
     python -m procintel.evaluate sample   # print 30 random judgments for a hand check
     python -m procintel.evaluate run      # metrics + user feedback, written to eval/report.md, appended to eval/history.jsonl
@@ -30,6 +34,7 @@ QUESTIONS = ROOT / "eval" / "questions.jsonl"
 JUDGMENTS = ROOT / "eval" / "judgments.jsonl"
 REPORT = ROOT / "eval" / "report.md"
 HISTORY = ROOT / "eval" / "history.jsonl"  # one line of headline metrics per run
+FAITHFULNESS = ROOT / "eval" / "faithfulness.jsonl"  # per answer sentence: both judges' verdicts (latest run)
 POOL_K = 10
 
 _REL = ("You judge search results for procurement planners. Reply with one word, yes or no: does the passage contain "
@@ -42,8 +47,8 @@ def questions() -> list[dict]:
     return [json.loads(line) for line in QUESTIONS.read_text().splitlines() if line.strip()]
 
 
-def _yes(system: str, user: str) -> bool:
-    out = llm.complete(system, user, max_tokens=4).strip().lower()
+def _yes(system: str, user: str, prefix: str = llm.ANSWER) -> bool:
+    out = llm.complete(system, user, max_tokens=4, prefix=prefix).strip().lower()
     if not out.startswith(("yes", "no")):
         raise RuntimeError(f"judge replied {out!r}, expected yes or no")
     return out.startswith("yes")
@@ -117,14 +122,24 @@ def run(r: Retriever, answers: bool = True) -> tuple[str, dict]:
         for k, v in m.items():
             if v is not None:
                 totals.setdefault(k, []).append(v)
-    ans = []
+    ans, verdicts = [], []
+    independent = llm.available(llm.JUDGE)
     for q in qs if answers else []:
         t = time.time()
         out = answer.ask(r, q["question"])
+        secs = time.time() - t
         cites = out["citations"]
-        sup = [_yes(_SUP, "Passages:\n" + "\n\n".join(cites[c]["quote"] for c in s["citations"]) + f"\n\nStatement: {s['text']}")
-               for s in out["answer"]]
-        ans.append((q, out["unsupported"], len(sup), sum(sup), time.time() - t))
+        sup, ind = [], []
+        for s in out["answer"]:
+            prompt = "Passages:\n" + "\n\n".join(cites[c]["quote"] for c in s["citations"]) + f"\n\nStatement: {s['text']}"
+            sup.append(_yes(_SUP, prompt))
+            ind.append(_yes(_SUP, prompt, llm.JUDGE) if independent else None)
+            verdicts.append({"qid": q["id"], "sentence": s["text"],
+                             "passages": {cites[c]["id"]: cites[c]["quote"] for c in s["citations"]},
+                             "answer_llm": sup[-1], "independent": ind[-1]})
+        ans.append((q, out["unsupported"], len(sup), sum(sup), secs, sum(ind) if independent else None))
+    if verdicts:
+        FAITHFULNESS.write_text("".join(json.dumps(v) + "\n" for v in verdicts))
     headline = _headline(rows, totals, ans, len(js))
     previous = _history()[-1] if _history() else None
     return _report(rows, totals, ans, len(js), headline, previous, feedback.summary()), headline
@@ -141,6 +156,8 @@ def _headline(rows, totals, ans, n_judged) -> dict:
         n_sent = sum(a[2] for a in answerable)
         h |= {"answered": sum(not a[1] for a in answerable), "answerable": len(answerable),
               "supported_sentences": sum(a[3] for a in answerable), "sentences": n_sent,
+              "supported_independent": (sum(a[5] for a in answerable) if all(a[5] is not None for a in ans) else None),
+              "independent_judge": llm.model_name(llm.JUDGE),
               "refused_traps": sum(a[1] for a in traps), "traps": len(traps),
               "median_seconds": round(sorted(a[4] for a in ans)[len(ans) // 2], 1)}
     return h
@@ -170,13 +187,15 @@ def _report(rows, totals, ans, n_judged, h: dict, prev: dict | None, fb: dict) -
     lines = [
         f"# Evaluation report ({h['time']})",
         "",
-        f"Models: answers and judge `{llm.model_name()}`; embeddings `{embed.model_name()}`; decision `{decide.api_base()}`.",
+        f"Models: answers and relevance judge `{llm.model_name()}`; embeddings `{embed.model_name()}`; decision `{decide.api_base()}`.",
         f"{len(rows)} answerable questions; {n_judged} judged (question, passage) pairs"
         + (f"; {h['unjudged_in_results']} passages in today's results are not judged yet (run `evaluate judge`)."
            if h["unjudged_in_results"] else "."),
         "Recall is against the pooled relevant set (BM25 top 10 + hybrid top 10), so it is an upper bound.",
         "Relevance judge vs a hand check of 30 judgments: 28/30 agree, both misses lenient (eval/judge_check.md).",
-        "Faithfulness is judged by the same model that writes the answers, which may favour its own sentences.",
+        (f"Faithfulness is judged by the answer model and by an independent model, `{a.get('independent_judge')}`."
+         if a and a.get("supported_independent") is not None else
+         "Faithfulness is judged by the same model that writes the answers, which may favour its own sentences."),
         "",
         "## Retrieval",
         "",
@@ -193,7 +212,9 @@ def _report(rows, totals, ans, n_judged, h: dict, prev: dict | None, fb: dict) -
         lines += [("Measured in this run." if a is h else f"Not re-run this time; figures from {a['time']}."), "",
                   "| metric | value |", "|---|---|",
                   f"| Answerable questions answered (not refused) | {a['answered']}/{a['answerable']} |",
-                  f"| Answer sentences supported by their citations (judge) | {a['supported_sentences']}/{a['sentences']} |",
+                  f"| Answer sentences supported by their citations (answer model as judge) | {a['supported_sentences']}/{a['sentences']} |",
+                  *([f"| Answer sentences supported by their citations (independent judge) | {a['supported_independent']}/{a['sentences']} |"]
+                    if a.get("supported_independent") is not None else []),
                   f"| Unanswerable questions refused | {a['refused_traps']}/{a['traps']} |",
                   f"| Median time per question | {a['median_seconds']} s |"]
     lines += ["", "## User feedback", ""]
@@ -219,7 +240,7 @@ def _report(rows, totals, ans, n_judged, h: dict, prev: dict | None, fb: dict) -
         res = "–" if x is None else "refused" if x[1] else f"{x[3]}/{x[2]} supported"
         lines.append(f"| {q['id']} | {q['question']} | {n_rel} | {f(m['bm25_p5'])} | {f(m['hybrid_p5'])} | "
                      f"{m['gate_n']} / {f(m['gate_prec'])}{' (unjudged: ' + str(len(unjudged)) + ')' if unjudged else ''} | {res} |")
-    for q, unsupported, n, k, _ in [x for x in ans if not x[0]["answerable"]]:
+    for q, unsupported, n, k, *_ in [x for x in ans if not x[0]["answerable"]]:
         lines.append(f"| {q['id']} | {q['question']} | – | – | – | – | {'refused' if unsupported else f'ANSWERED ({k}/{n} supported)'} |")
     return "\n".join(lines) + "\n"
 

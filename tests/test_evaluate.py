@@ -24,7 +24,7 @@ def test_search_restores_vectors_after_a_keyword_only_query():
 
 def test_judge_rejects_anything_but_yes_or_no(monkeypatch):
     import pytest
-    monkeypatch.setattr(E.llm, "complete", lambda system, user, max_tokens: "Maybe, it depends.")
+    monkeypatch.setattr(E.llm, "complete", lambda system, user, max_tokens, **kw: "Maybe, it depends.")
     with pytest.raises(RuntimeError, match="expected yes or no"):
         E._yes("s", "u")
 
@@ -53,3 +53,18 @@ def test_report_with_no_history_and_no_feedback(tmp_path, monkeypatch):
     rows, totals = _rows()
     text = E._report(rows, totals, [], 10, E._headline(rows, totals, [], 10), None, {"responses": 0, "ratings": [], "flagged_citations": []})
     assert "Not evaluated yet" in text and "No responses logged yet." in text and "| Hybrid precision@5 | 0.80 | – |" in text
+
+
+def test_independent_judge_is_called_with_its_own_settings_and_reported(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(E.llm, "complete", lambda system, user, max_tokens, prefix: calls.append(prefix) or "yes")
+    assert E._yes("s", "u", E.llm.JUDGE) and calls == ["PROCINTEL_JUDGE"]
+    monkeypatch.setattr(E, "HISTORY", tmp_path / "history.jsonl")
+    monkeypatch.setenv("PROCINTEL_JUDGE_MODEL", "openai/other")
+    rows, totals = _rows()
+    q = rows[0][0]
+    ans = [(q, False, 4, 4, 10.0, 3)]                    # answer model: 4/4 supported; independent judge: 3/4
+    h = E._headline(rows, totals, ans, 10)
+    text = E._report(rows, totals, ans, 10, h, None, {"responses": 0, "ratings": [], "flagged_citations": []})
+    assert "(answer model as judge) | 4/4 |" in text and "(independent judge) | 3/4 |" in text
+    assert "independent model, `openai/other`" in text
