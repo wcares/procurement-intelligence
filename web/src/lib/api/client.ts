@@ -18,6 +18,8 @@ import type {
   JobsResponse,
   FeedbackResponse,
   DryRunResponse,
+  ConnectorsResponse,
+  EventLogResponse,
   Options,
   PipelineResponse,
   PipelineRule,
@@ -95,6 +97,11 @@ export const api = {
   jobs: () => call<JobsResponse>("/jobs"),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
   pipeline: () => call<PipelineResponse>("/pipeline"),
+  connectors: () => call<ConnectorsResponse>("/pipeline/connectors"),
+  events: (type?: string, before?: string) => {
+    const q = new URLSearchParams({ limit: "20", ...(type ? { type } : {}), ...(before ? { before } : {}) });
+    return call<EventLogResponse>(`/pipeline/events?${q}`);
+  },
   /** rule errors come back as { errors } so the editor can show them */
   saveRules: async (rules: PipelineRule[]): Promise<PipelineResponse | { errors: Record<string, string> }> => {
     const res = await fetch(`${API_BASE}/pipeline/rules`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rules }) });
@@ -111,7 +118,7 @@ export const api = {
     throw new Error(`dry run failed: ${res.status}`);
   },
   resetRules: () => call<PipelineResponse>("/pipeline/rules/reset", { method: "POST" }),
-  detectNow: () => call<{ queued: string | null; note: string | null }>("/pipeline/detect", { method: "POST" }),
+  detectNow: (types?: string) => call<{ queued: string | null; note: string | null }>(`/pipeline/detect${types ? `?types=${encodeURIComponent(types)}` : ""}`, { method: "POST" }),
   prompts: () => call<{ prompts: PromptInfo[] }>("/prompts"),
   /** saved as a candidate; prompts used in answering get an evaluation job */
   savePrompt: (name: string, text: string, note: string) =>

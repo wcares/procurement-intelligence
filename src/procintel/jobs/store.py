@@ -266,3 +266,17 @@ def recent(limit: int = 30, db_path: Path | None = None) -> list[dict]:
         return [_row(cols, r) for r in q.fetchall()]
     finally:
         con.close()
+
+
+def statuses(ids: list[str], db_path: Path | None = None) -> dict[str, dict]:
+    """{job id: {kind, status, finishedAt, error}} for the given ids (unknown ones left out, e.g. removed by retention)."""
+    if not ids:
+        return {}
+    con = _connect(db_path)
+    try:
+        rows = con.execute("SELECT id, kind, status, finished_at, error FROM jobs WHERE id IN (SELECT unnest(?))",
+                           [ids]).fetchall()
+        return {i: {"kind": k, "status": s, "finishedAt": f.isoformat() + "Z" if f else None, "error": e}
+                for i, k, s, f, e in rows}
+    finally:
+        con.close()

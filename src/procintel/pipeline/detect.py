@@ -1,6 +1,7 @@
 """Change detection and batch execution, as two job kinds on the existing queue (procintel.jobs).
 
-detect_changes (normal priority, queued hourly): for every entity type whose interval has passed, read the source,
+detect_changes (normal priority, queued hourly): for every entity type whose interval has passed (longer after failed
+reads, procintel.pipeline.connectors), read the source,
 compare with the stored state and record the events; a type seen for the first time is seeded from the database
 without events. Then the default rules turn the batch's events into a plan, and one pipeline_batch job is queued.
 
@@ -10,19 +11,11 @@ asked for at most once per batch, and only actions later in the registry order c
 """
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Iterator
 
-from procintel.pipeline import actions, entities, rules, store
+from procintel.pipeline import actions, connectors, entities, rules, store
 
 DERIVED_PREFIXES = ("Package.", "Data.", "Documents.", "Passages.")
-
-
-def due(entity_type: entities.EntityType, force: bool) -> bool:
-    if force:
-        return True
-    last = store.overview(limit=0)["lastRun"].get(entity_type.name)
-    return last is None or entities.now() - datetime.fromisoformat(last["ranAt"].rstrip("Z")) >= entity_type.every
 
 
 def _context(name: str) -> dict:
@@ -41,14 +34,20 @@ def detect_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]
         if name in cur["done"]:
             continue
         et = entities.ENTITY_TYPES[name]
-        if due(et, params.get("force", False)):
+        if connectors.due(et, params.get("force", False)):
             known = store.states(name)
             if not known:
                 n = store.seed(name, et.watched, et.read_db())
                 store.log_detection(cur["batch"], name, n, 0, "first run: state seeded from the database")
                 cur["counts"][name] = 0
             else:
-                rows, complete = et.read_source(_context(name))
+                try:
+                    rows, complete = et.read_source(_context(name))
+                except Exception as e:  # a failing source is logged and backs off; the other sources go on
+                    store.log_detection(cur["batch"], name, 0, 0, error=f"{type(e).__name__}: {e}"[:500])
+                    cur["done"].append(name)
+                    yield cur
+                    continue
                 events = store.diff(name, et.watched, rows, known, complete)
                 store.record(name, cur["batch"], events, list(rows))
                 store.log_detection(cur["batch"], name, len(rows), len(events),

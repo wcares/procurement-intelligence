@@ -38,6 +38,7 @@ def connect(db_path: Path | None = None) -> duckdb.DuckDBPyConnection:
                    job_id VARCHAR, fired_at TIMESTAMP)""")
     con.execute("""CREATE TABLE IF NOT EXISTS detection (batch_id VARCHAR, entity_type VARCHAR, ran_at TIMESTAMP,
                    items INTEGER, events INTEGER, note VARCHAR)""")
+    con.execute("ALTER TABLE detection ADD COLUMN IF NOT EXISTS error VARCHAR")   # older stores lack it
     con.execute("""CREATE TABLE IF NOT EXISTS action_run (batch_id VARCHAR, action VARCHAR, ran_at TIMESTAMP,
                    outcome VARCHAR)""")
     return con
@@ -202,10 +203,12 @@ def seed(entity_type: str, watched: list[str], rows: dict[str, dict], db_path: P
 
 
 def log_detection(batch_id: str, entity_type: str, items: int, events: int, note: str = "",
-                  db_path: Path | None = None) -> None:
+                  db_path: Path | None = None, error: str | None = None) -> None:
+    """One source read; `error` set when reading failed (nothing was recorded for that type then)."""
     con = connect(db_path)
     try:
-        con.execute("INSERT INTO detection VALUES (?, ?, ?, ?, ?, ?)", [batch_id, entity_type, _now(), items, events, note])
+        con.execute("INSERT INTO detection (batch_id, entity_type, ran_at, items, events, note, error) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)", [batch_id, entity_type, _now(), items, events, note, error])
     finally:
         con.close()
 

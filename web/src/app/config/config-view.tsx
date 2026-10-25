@@ -5,7 +5,7 @@ import { api } from "@/lib/api/client";
 import type { CompareResponse, ConfigProfile, ConfigSetting, RetrievalMetrics } from "@/lib/api/types";
 import { FeedbackReview } from "./feedback-review";
 import { Jobs } from "./jobs-panel";
-import { Pipeline } from "./pipeline-panel";
+import Link from "next/link";
 import { Prompts } from "./prompts-panel";
 import { Users } from "./users-panel";
 
@@ -76,7 +76,13 @@ export function ConfigView() {
     <div className="mx-auto max-w-3xl space-y-8">
       <Users />
       <Jobs />
-      <Pipeline />
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Data pipeline</h2>
+        <p className="rounded-xl border border-line bg-surface p-4 text-sm">
+          Sources, change events and rules have their own pages: <Link className="underline" href="/pipeline">connectors</Link>,{" "}
+          <Link className="underline" href="/pipeline/events">event log</Link>, <Link className="underline" href="/pipeline/rules">rules</Link>.
+        </p>
+      </section>
       <FeedbackReview />
       <Prompts />
       <Profiles

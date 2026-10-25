@@ -157,3 +157,35 @@ def test_reconcile_logs_what_a_refresh_wrote_and_queues_nothing(tmp_path, monkey
     assert jobs_store.next_pending() is None                  # nothing queued: the refresh did the work
     assert detect.reconcile() == {"Notice": 0}                # state now matches the database
     assert store.overview()["lastRun"]["Notice"]["note"].startswith("reconciled")
+
+
+def test_a_failing_source_is_logged_backs_off_and_does_not_stop_the_others(tmp_path, monkeypatch):
+    from procintel.pipeline import connectors, eventlog
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    monkeypatch.setattr(jobs_store, "DB_PATH", tmp_path / "jobs.duckdb")
+    good = {"n1": {"award_date": None}}
+
+    def broken(ctx):
+        raise ConnectionError("source down")
+    types = {"Bad": entities.EntityType("Bad", timedelta(hours=1), ["v"], broken, lambda: {"b1": {"v": 1}}, "a broken API"),
+             "Notice": entities.EntityType("Notice", timedelta(hours=1), ["award_date"],
+                                           lambda ctx: ({k: dict(v) for k, v in good.items()}, False), lambda: dict(good))}
+    monkeypatch.setattr(entities, "ENTITY_TYPES", types)
+    _run(detect.detect_steps({"force": True}, None, {}))                       # seeds both
+    good["n2"] = {"award_date": None}
+    out = _run(detect.detect_steps({"force": True}, None, {}))
+    assert out["events"] == {"Notice": 1}                                      # the good source still went on
+    bad = next(c for c in connectors.status() if c["name"] == "Bad")
+    assert bad["lastError"]["message"] == "ConnectionError: source down" and bad["failures"] == 1
+    assert bad["lastSuccess"]["note"].startswith("first run") and bad["source"] == "a broken API" and bad["mode"] == "poll"
+    assert bad["every"] == "1 hour" and bad["due"] is False
+    assert not connectors.due(types["Bad"], force=False)                       # just failed: waits its interval
+    et = types["Bad"]
+    assert [connectors.wait(et, n) for n in (0, 1, 2, 3)] == [timedelta(hours=1), timedelta(hours=1),
+                                                             timedelta(hours=2), timedelta(hours=4)]
+    assert connectors.wait(et, 10) == timedelta(days=1)                        # capped at a day
+    assert [connectors.words(timedelta(hours=h)) for h in (1, 6, 24, 168, 0.5)] == ["1 hour", "6 hours", "1 day", "7 days", "30 minutes"]
+
+    log = eventlog.batches("Notice")
+    assert log["batches"][0]["events"][0]["key"] == "n2" and log["batches"][0]["firings"][0]["jobStatus"]["status"] == "pending"
+    assert eventlog.batches("Bad")["batches"] == [] and "Notice.added" in log["types"]

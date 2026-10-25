@@ -187,6 +187,11 @@ or webhook address, cursor, rate limit, retry with backoff, last success and las
 there and backs off; it does not stop the pipeline. Connector runs are jobs in the existing queue, so polling also waits
 for idle time unless a connector is marked urgent.
 
+**Built (2026-10-25):** the World Bank sources are poll connectors (`EntityType.source`, `.mode`); a failed read is
+logged with its error and the other sources go on; a failing source waits its interval x 2^(failures-1), at most a day
+(`procintel.pipeline.connectors`). Status on the Connectors page (`GET /pipeline/connectors`). Rate limit and retries
+stay in the World Bank client (0.2 s between requests; 4 tries with growing waits, wb_client.py).
+
 ## 6c. Job priorities and shadow builds
 
 **Priorities** (user, 2026-10-25: "all the jobs will be prioritized"). Every job has a priority; the worker always takes

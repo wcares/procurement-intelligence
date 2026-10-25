@@ -27,6 +27,8 @@ class EntityType:
     watched: list[str]                                 # fields whose change is an event
     read_source: Callable[[dict], tuple[dict[str, dict], bool]]   # (rows by key, complete?) from the source
     read_db: Callable[[], dict[str, dict]]             # rows by key from the database (first run: seed)
+    source: str = ""                                   # where read_source reads, for the Connectors page
+    mode: str = "poll"                                 # how changes reach us: poll | push | subscribe | upload
 
 
 def _rows(sql: str, key: Callable[[dict], str]) -> dict[str, dict]:
@@ -192,11 +194,16 @@ def documents_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
 
 
 ENTITY_TYPES: dict[str, EntityType] = {e.name: e for e in [
-    EntityType("Notice", timedelta(hours=1), NOTICE_FIELDS, notices_from_source, notices_from_db),
-    EntityType("Project", timedelta(hours=1), PROJECT_FIELDS, projects_from_source, projects_from_db),
-    EntityType("ContractAward", timedelta(days=1), CONTRACT_FIELDS, contracts_from_source, contracts_from_db),
-    EntityType("Indicator", timedelta(days=7), ["value"], indicators_from_source, indicators_from_db),
-    EntityType("Document", timedelta(hours=1), DOCUMENT_FIELDS, documents_from_source, documents_from_db),
+    EntityType("Notice", timedelta(hours=1), NOTICE_FIELDS, notices_from_source, notices_from_db,
+               "World Bank procurement notices API (search.worldbank.org/api/procnotices)"),
+    EntityType("Project", timedelta(hours=1), PROJECT_FIELDS, projects_from_source, projects_from_db,
+               "World Bank projects API (search.worldbank.org/api/v2/projects)"),
+    EntityType("ContractAward", timedelta(days=1), CONTRACT_FIELDS, contracts_from_source, contracts_from_db,
+               "World Bank Finances One: contract awards dataset"),
+    EntityType("Indicator", timedelta(days=7), ["value"], indicators_from_source, indicators_from_db,
+               "World Bank indicators API: CPIA and Worldwide Governance Indicators per country"),
+    EntityType("Document", timedelta(hours=1), DOCUMENT_FIELDS, documents_from_source, documents_from_db,
+               "World Bank documents API: Implementation Completion Reports, newest first"),
 ]}
 
 

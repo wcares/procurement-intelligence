@@ -8,10 +8,11 @@ const NAV = [
   { href: "/", label: "Overview", admin: false },
   { href: "/assess", label: "Assess a package", admin: false },
   { href: "/ask", label: "Ask the evidence", admin: false },
+  { href: "/pipeline", label: "Pipeline", admin: true },
   { href: "/config", label: "Settings", admin: true },
 ] as const;
 
-/** Navigation by role: planners see the planner app, admins also Settings; the user and sign-out on the right. */
+/** Navigation by role: planners see the planner app, admins also the pipeline pages and Settings; the user and sign-out on the right. */
 export function Nav() {
   const { user, refresh } = useAuth();
   if (!user) return null;

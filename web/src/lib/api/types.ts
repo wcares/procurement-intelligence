@@ -349,6 +349,46 @@ export interface PipelineResponse {
   actions: { name: string; label: string; minHours: number }[];
 }
 
+/** A source connector (GET /pipeline/connectors). */
+export interface Connector {
+  name: string;
+  source: string;
+  mode: "poll" | "push" | "subscribe" | "upload";
+  every: string;
+  /** what the next read asks for, in words */
+  cursor: string;
+  lastRead: string | null;
+  lastSuccess: { at: string; items: number; events: number; note: string } | null;
+  lastError: { at: string; message: string } | null;
+  /** failed reads in a row; the source backs off while this is above 1 */
+  failures: number;
+  nextRead: string | null;
+  /** the interval has passed: read on the next detection run (which waits for idle time) */
+  due: boolean;
+}
+
+export interface ConnectorsResponse {
+  connectors: Connector[];
+  backoffCap: string;
+}
+
+/** One detection batch in the event log (GET /pipeline/events). */
+export interface EventBatch {
+  batch: string;
+  at: string;
+  counts: Record<string, number>;
+  events: { type: string; key: string; changed: string[]; at: string }[];
+  firings: { rule: string; events: number; actions: string[]; job: string | null; at: string;
+    jobStatus: { kind: string; status: string; finishedAt: string | null; error: string | null } | null }[];
+  actionsRun: { action: string; outcome: string; at: string }[];
+}
+
+export interface EventLogResponse {
+  batches: EventBatch[];
+  types: string[];
+  more: boolean;
+}
+
 export interface PipelineRule {
   id: string;
   on: string[];

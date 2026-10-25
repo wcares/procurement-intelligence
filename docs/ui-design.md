@@ -112,6 +112,9 @@ The Settings page grows into an operations area, using the event pipeline design
 | **Rules** | rule list, editor (event, condition, actions), dry run, reset to defaults | event pipeline step 3 |
 | **Upload** | add a file; follow it through extraction, classification and linking | event pipeline (intake) |
 
+**Built (2026-10-25):** Connectors, Event log and Rules as an admin Pipeline area (`/pipeline`, three tabs); Settings links
+to it. Upload follows (intake).
+
 ## 3b. Evaluation page (admins)
 
 No page yet: results go to eval/report.md, eval/history.jsonl and logs; only the Settings "Check search quality"

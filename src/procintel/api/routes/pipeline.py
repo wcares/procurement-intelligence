@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from procintel.api import access
 from procintel.api.schemas import RuleSet
 from procintel.jobs import store as jobs_store
-from procintel.pipeline import actions, entities, rules, store
+from procintel.pipeline import actions, connectors, entities, eventlog, rules, store
 
 router = APIRouter()
 
@@ -22,6 +22,18 @@ def get_pipeline() -> dict:
     out["eventTypes"] = rules.event_types(entities.ENTITY_TYPES)
     out["actions"] = [{"name": a.name, "label": a.label, "minHours": a.min_hours} for a in actions.ACTIONS.values()]
     return out
+
+
+@router.get("/pipeline/connectors")
+def get_connectors() -> dict:
+    """Each source: mode, interval, cursor, last success, last error and failures in a row (it backs off)."""
+    return {"connectors": connectors.status(), "backoffCap": connectors.words(connectors.BACKOFF_CAP)}
+
+
+@router.get("/pipeline/events")
+def get_events(type: str | None = None, limit: int = 20, before: str | None = None) -> dict:
+    """Batches of events newest first, with the rules they fired, the jobs queued and the actions run."""
+    return eventlog.batches(type or None, max(1, min(limit, 100)), before)
 
 
 @router.post("/pipeline/rules/dry-run")
