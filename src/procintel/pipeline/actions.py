@@ -67,6 +67,32 @@ def _award_stats() -> tuple:
 DATA = {"type": "Data.updated", "key": "all"}
 
 
+def ingest_documents(keys, events, ctx):
+    """New or changed completion reports: fetch their text and write them; a report from a project not tracked yet
+    also brings that project's record and its notices (the rest of the system needs both)."""
+    from procintel.ingestion import ingest
+    from procintel.ingestion.wb_client import WBClient
+    rows, removed = _rows(events)
+    client = WBClient()
+    for r in rows:
+        r["text"] = client.document_text(r["txt_url"])
+    _upsert("documents", "doc_id", rows, removed)
+    con = db.connect(read_only=True)
+    try:
+        known = {p for (p,) in con.execute("SELECT project_id FROM projects").fetchall()}
+    finally:
+        con.close()
+    new = sorted({p for r in rows for p in r["project_id"].split(",") if p and p not in known})
+    if new:
+        _, ps = WBClient(fresh_listings=True).projects(rows=len(new) + 10, id="^".join(new))
+        _upsert("projects", "project_id", [ingest.project_row(p) | {"__key": p["id"]} for p in ps], [])
+        notices = [ingest.notice_row(n) for pid in new
+                   for n in client.iter_notices(ingest.MAX_NOTICES_PER_PROJECT, project_id=pid)]
+        _suppliers_as_text()
+        _upsert("notices", "notice_id", [n | {"__key": n["notice_id"]} for n in notices], [])
+    return [DATA, {"type": "Documents.changed", "key": "all"}]
+
+
 def apply_notices(keys, events, ctx):
     _suppliers_as_text()
     rows, removed = _rows(events)
@@ -118,6 +144,58 @@ def sector_links(keys, events, ctx):
     return [DATA]
 
 
+def rebuild_firms(keys, events, ctx):
+    from procintel.ingestion import entities
+    entities.build()
+    return [DATA]
+
+
+def chunk_documents(keys, events, ctx):
+    """Re-cut the passages (the whole corpus takes about 2 s, and unchanged texts keep their ids, vectors and tags);
+    reports Passages.changed when any passage text changed."""
+    from procintel.ingestion import chunk
+    before = _passage_digest()
+    chunk.build()
+    return [DATA] + ([{"type": "Passages.changed", "key": "all"}] if _passage_digest() != before else [])
+
+
+def _passage_digest() -> tuple:
+    con = db.connect(read_only=True)
+    try:
+        return con.execute("SELECT count(*), sum(hash(chunk_id || text)) FROM chunk").fetchone()
+    finally:
+        con.close()
+
+
+def index_passages(keys, events, ctx):
+    """Embed and tag the passages that are new or changed (each step skips what is already up to date), and bring
+    the vector store along."""
+    from procintel.core import decide, embed, llm, vector_index
+    from procintel.ingestion import problem_tag, tag
+    if embed.available():
+        embed.build()
+        embed.build_packages()
+        if vector_index.backend() == "qdrant":
+            for kind in vector_index.SOURCES:
+                vector_index.sync(kind)
+    if decide.available():
+        tag.build()
+        if llm.available():
+            problem_tag.build()
+    return [DATA]
+
+
+def document_checks(keys, events, ctx):
+    """Everything read from the reports' passages: rating checks, re-bid and amendment evidence, sector links."""
+    from procintel.ingestion import sectors
+    from procintel.prediction import evidence, procurement_rating, ratings
+    ratings.build()
+    procurement_rating.build()
+    evidence.build(evidence.KINDS)
+    sectors.build()
+    return [DATA]
+
+
 def drift_check(keys, events, ctx):
     from procintel.jobs import store as jobs_store
     jobs_store.enqueue("drift_check", "pipeline: award times changed", db_path=ctx.get("jobs_db"))
@@ -132,12 +210,18 @@ def reload_backend(keys, events, ctx):
 
 
 ACTIONS: dict[str, Action] = {a.name: a for a in [
+    Action("ingest_documents", "Fetch and write new or changed reports (and new projects' records and notices)",
+           ingest_documents),
     Action("apply_notices", "Write new and changed procurement notices", apply_notices),
     Action("apply_projects", "Write changed project records", apply_projects),
     Action("apply_contracts", "Write new and changed contract awards", apply_contracts),
     Action("apply_indicators", "Write CPIA and WGI values", apply_indicators),
     Action("rebuild_tables", "Rebuild packages, suppliers and links (procintel.ingestion.tables)", rebuild_tables),
     Action("fill_award_dates", "Fill award dates from contract signing dates", fill_award_dates),
+    Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms),
+    Action("chunk_documents", "Cut report texts into passages", chunk_documents),
+    Action("index_passages", "Embed and tag new or changed passages", index_passages),
+    Action("document_checks", "Rating checks, re-bid and amendment evidence from the passages", document_checks),
     Action("sector_links", "Rebuild contract-to-report links by sector and time", sector_links),
     Action("drift_check", "Queue a prediction drift check", drift_check),
     Action("reload_backend", "Reload the backend's data", reload_backend),

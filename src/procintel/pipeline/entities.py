@@ -154,11 +154,44 @@ def indicators_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
     return out, True
 
 
+# --- Document -------------------------------------------------------------------------------------------------------
+
+DOCUMENT_FIELDS = ["doc_type", "doc_date", "title", "txt_url"]
+DOCUMENT_PAGE = 50      # completion reports per listing request, newest first
+DOCUMENT_MAX_PAGES = 6  # read until every tracked report was seen (new ones appear at the top), at most 300
+
+
+def documents_from_db() -> dict[str, dict]:
+    return _rows("SELECT doc_id, project_id, doc_type, doc_date, title, pdf_url, txt_url FROM documents",
+                 lambda r: r["doc_id"])
+
+
+def documents_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
+    """The completion reports in the documents listing, newest first, until every tracked report has been seen (a
+    window: absence there is not a removal)."""
+    from procintel.ingestion.wb_client import ICR_TYPE, WBClient
+    client, tracked = WBClient(fresh_listings=True), set(ctx.get("tracked") or [])
+    docs: list[dict] = []
+    for page in range(DOCUMENT_MAX_PAGES):
+        _, batch = client.documents(rows=DOCUMENT_PAGE, offset=page * DOCUMENT_PAGE, docty_exact=ICR_TYPE)
+        docs += batch
+        if not batch or tracked <= {d["id"] for d in docs}:
+            break
+    out = {}
+    for d in docs:
+        if d.get("projectid") and d.get("txturl"):
+            out[d["id"]] = {"doc_id": d["id"], "project_id": d["projectid"], "doc_type": d.get("docty"),
+                            "doc_date": pd.to_datetime(d.get("docdt"), errors="coerce", utc=True),
+                            "title": d.get("display_title"), "pdf_url": d.get("pdfurl"), "txt_url": d["txturl"]}
+    return out, False
+
+
 ENTITY_TYPES: dict[str, EntityType] = {e.name: e for e in [
     EntityType("Notice", timedelta(hours=1), NOTICE_FIELDS, notices_from_source, notices_from_db),
     EntityType("Project", timedelta(hours=1), PROJECT_FIELDS, projects_from_source, projects_from_db),
     EntityType("ContractAward", timedelta(days=1), CONTRACT_FIELDS, contracts_from_source, contracts_from_db),
     EntityType("Indicator", timedelta(days=7), ["value"], indicators_from_source, indicators_from_db),
+    EntityType("Document", timedelta(hours=1), DOCUMENT_FIELDS, documents_from_source, documents_from_db),
 ]}
 
 

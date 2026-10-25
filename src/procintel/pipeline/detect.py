@@ -15,7 +15,7 @@ from typing import Iterator
 
 from procintel.pipeline import actions, entities, rules, store
 
-DERIVED_PREFIXES = ("Package.", "Data.")
+DERIVED_PREFIXES = ("Package.", "Data.", "Documents.", "Passages.")
 
 
 def due(entity_type: entities.EntityType, force: bool) -> bool:
@@ -26,6 +26,8 @@ def due(entity_type: entities.EntityType, force: bool) -> bool:
 
 
 def _context(name: str) -> dict:
+    if name == "Document":
+        return {"tracked": list(store.states("Document"))}
     if name != "Notice":
         return {}
     dates = [f.get("notice_date") for _, f in store.states("Notice").values() if f.get("notice_date")]

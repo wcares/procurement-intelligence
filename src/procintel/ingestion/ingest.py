@@ -79,7 +79,10 @@ def run(n_icrs: int, fresh: bool = False, keep_existing: bool = False) -> None:
     notices: list[dict] = []
     if keep_existing and DB_PATH.exists():
         con = db.connect(DB_PATH, read_only=True)
-        cols = "doc_id, project_id, doc_type, strftime(doc_date, '%Y-%m-%dT%H:%M:%SZ') AS doc_date, title, pdf_url, txt_url"
+        # format in UTC: strftime on a zoned time uses the session's zone, and the Z then mislabelled local time as
+        # UTC, moving every kept report 4 hours earlier per refresh (found by procintel.pipeline, 2026-10-25)
+        cols = ("doc_id, project_id, doc_type, strftime(timezone('UTC', doc_date), '%Y-%m-%dT%H:%M:%SZ') AS doc_date, "
+                "title, pdf_url, txt_url")
         documents = [dict(zip(["doc_id", "project_id", "doc_type", "doc_date", "title", "pdf_url", "txt_url"], r))
                      for r in con.execute(f"SELECT {cols} FROM documents").fetchall()]
         for d in documents:  # same type as newly listed rows

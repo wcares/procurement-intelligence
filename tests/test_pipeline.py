@@ -27,8 +27,17 @@ def test_rules_plan_coalesces_and_follows_the_registry_order():
     events = [{"type": "Notice.added", "key": "n1"}, {"type": "Notice.changed", "key": "n2", "changed": ["award_date"]},
               {"type": "Project.changed", "key": "p1", "changed": ["name"]}]          # name is not a watched rule field
     plan, fired = rules.plan(events, rules.DEFAULT_RULES, actions.ORDER)
-    assert plan == [("apply_notices", ["n1", "n2"]), ("rebuild_tables", ["n1", "n2"])]
+    assert plan == [("apply_notices", ["n1", "n2"]), ("rebuild_tables", ["n1", "n2"]), ("rebuild_firms", ["n1", "n2"])]
     assert fired == {"notices-update-packages": 2}
+
+
+def test_a_new_report_is_ingested_chunked_then_indexed_and_checked():
+    plan, _ = rules.plan([{"type": "Document.added", "key": "d9"}], rules.DEFAULT_RULES, actions.ORDER)
+    assert [a for a, _ in plan] == ["ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents"]
+    derived = [{"type": "Passages.changed", "key": "all"}, {"type": "Data.updated", "key": "all"}]
+    plan, _ = rules.plan(derived, rules.DEFAULT_RULES, actions.ORDER)
+    assert [a for a, _ in plan] == ["index_passages", "document_checks", "reload_backend"]
+    assert actions.ORDER.index("chunk_documents") < actions.ORDER.index("index_passages")
 
 
 def test_detection_replay_records_events_queues_one_batch_and_the_batch_follows_derived_events(tmp_path, monkeypatch):
@@ -45,6 +54,7 @@ def test_detection_replay_records_events_queues_one_batch_and_the_batch_follows_
     monkeypatch.setattr(actions, "ACTIONS", {
         "apply_notices": recorder("apply_notices", [{"type": "Data.updated", "key": "all"}]),
         "rebuild_tables": recorder("rebuild_tables", [{"type": "Package.award_changed", "key": "all"}]),
+        "rebuild_firms": recorder("rebuild_firms", []),
         "drift_check": recorder("drift_check", []),
         "reload_backend": recorder("reload_backend", [])})
     monkeypatch.setattr(actions, "ORDER", list(actions.ACTIONS))
@@ -63,7 +73,7 @@ def test_detection_replay_records_events_queues_one_batch_and_the_batch_follows_
     job = jobs_store.next_pending()
     assert job["kind"] == "pipeline_batch"
     result = _run(detect.batch_steps(job["params"], None, {}))
-    assert [r[0] for r in ran] == ["apply_notices", "rebuild_tables", "drift_check", "reload_backend"]
+    assert [r[0] for r in ran] == ["apply_notices", "rebuild_tables", "rebuild_firms", "drift_check", "reload_backend"]
     assert ran[0][1] == ["n2", "n3"] and ran[0][2] == ["n2", "n3"]              # the action got exactly its rows
     assert result["derived"] == ["Data.updated", "Package.award_changed"]
     assert {e["type"] for e in store.batch_events(out["batch"])} >= {"Data.updated", "Package.award_changed"}
@@ -78,3 +88,15 @@ def _run(gen):
             next(gen)
     except StopIteration as s:
         return s.value
+
+
+def test_kept_report_dates_are_read_back_in_utc():
+    """ingest.run(keep_existing=True) re-reads stored dates; formatting a zoned time in the session's zone and calling
+    it UTC moved every report 4 hours per refresh (New York session)."""
+    import duckdb
+    con = duckdb.connect()
+    con.execute("SET TimeZone = 'America/New_York'")
+    con.execute("CREATE TABLE d AS SELECT TIMESTAMPTZ '2026-06-26 04:00:00+00' AS doc_date")
+    got = con.execute("SELECT strftime(timezone('UTC', doc_date), '%Y-%m-%dT%H:%M:%SZ') FROM d").fetchone()[0]
+    assert got == "2026-06-26T04:00:00Z"
+    assert con.execute("SELECT strftime(doc_date, '%Y-%m-%dT%H:%M:%SZ') FROM d").fetchone()[0] != got   # the old form

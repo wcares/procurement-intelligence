@@ -27,7 +27,11 @@ class Rule:
 
 
 DEFAULT_RULES = [
-    Rule("notices-update-packages", ("Notice.added", "Notice.changed"), ("apply_notices", "rebuild_tables")),
+    Rule("notices-update-packages", ("Notice.added", "Notice.changed"),
+         ("apply_notices", "rebuild_tables", "rebuild_firms")),
+    Rule("documents-ingest", ("Document.added", "Document.changed"),
+         ("ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents")),
+    Rule("passages-index", ("Passages.changed",), ("index_passages", "document_checks")),
     Rule("projects-update", ("Project.changed",), ("apply_projects", "rebuild_tables", "sector_links"),
          fields=("status", "sector", "closing_date", "board_approval", "commitment_usd")),
     Rule("contracts-award-dates", ("ContractAward.added", "ContractAward.changed", "ContractAward.removed"),
