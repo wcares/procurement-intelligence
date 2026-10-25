@@ -92,8 +92,23 @@ The Settings page grows into an operations area, using the event pipeline design
   scale is a set of theme tokens so it reads in light and dark.
 - Model estimates are always marked as such (shape or label), separate from historical statistics.
 - Every chart element links to its records; no number without a source.
-- Charts are drawn from the same API the pages use; a chart library is chosen when building (to be decided, see
-  open questions).
+- Charts are drawn from the same API the pages use, with established component libraries, not hand-drawn.
+
+### Components (decided 2026-10-25, user: "use better react components which are built for this, no need to
+reinvent")
+
+The app is Next.js 16, React 19 and Tailwind CSS 4, with no component library yet.
+
+| need | library |
+|---|---|
+| UI building blocks (cards, tabs, selects, dialogs, tooltips, sheets) | shadcn/ui (Tailwind-based, components copied into the project) |
+| Standard dashboard charts (bar, line, area, small multiples) | shadcn/ui charts, built on Recharts |
+| Stage timeline / Gantt with risk markers, heat map, zoom and brush over years | Apache ECharts via echarts-for-react |
+| Answer map (clickable graph of causes and sources) | React Flow (@xyflow/react) |
+| Ranking tables (sort, filter, drill down) | TanStack Table (shadcn data table pattern) |
+
+Before installing: check each package's current version, React 19 / Next 16 compatibility and bundle size, and list
+exact names and versions for the user's approval (installing downloads packages from npm).
 
 ## 5. Backend work the UI needs
 
@@ -114,10 +129,10 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U2 | 2026-10-25 | Home dashboard with graphs: most risky things that happened in the past, worst to best, trends over time | queued |
 | U3 | 2026-10-25 | Interactive visual for query results besides the text report: risks at each tender stage, with colours, clickable | queued |
 | U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | queued, after event pipeline step 1 |
+| U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | decided (section 4, Components); applies to U2-U4 |
 
 ## 7. Open questions
 
-- Chart library (a light one such as a charting UMD build from the CDN allowlist, or hand-drawn SVG for the stage
-  timeline) — decided when building U2.
+- One chart library instead of two: ECharts alone can do everything, at the cost of styling it to match shadcn/ui.
 - Which measure ranks the dashboard by default (delay is the most complete today).
 - Whether the problem-mix chart waits for better problem kinds.
