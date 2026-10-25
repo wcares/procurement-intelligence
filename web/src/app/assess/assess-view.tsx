@@ -153,8 +153,8 @@ export function AssessView() {
 }
 
 function Results({ r }: { r: AssessResponse }) {
-  const showFlag = (id: string) => {
-    const el = document.getElementById(`flag-${id}`);
+  const show = (elementId: string) => {
+    const el = document.getElementById(elementId);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
     el?.classList.add("ring-2", "ring-accent");
     setTimeout(() => el?.classList.remove("ring-2", "ring-accent"), 1500);
@@ -164,7 +164,7 @@ function Results({ r }: { r: AssessResponse }) {
       <Caveats meta={r.meta} />
       {r.stages && r.stages.length > 0 && (
         <Card title="Tender stages and where the risks are">
-          <StageTimeline stages={r.stages} risks={r.risks} precedents={r.precedents} onSelect={showFlag} />
+          <StageTimeline stages={r.stages} risks={r.risks} precedents={r.precedents} onSelect={show} />
         </Card>
       )}
       <div className="grid gap-6 md:grid-cols-2">
