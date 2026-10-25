@@ -107,8 +107,23 @@ The app is Next.js 16, React 19 and Tailwind CSS 4, with no component library ye
 | Answer map (clickable graph of causes and sources) | React Flow (@xyflow/react) |
 | Ranking tables (sort, filter, drill down) | TanStack Table (shadcn data table pattern) |
 
-Before installing: check each package's current version, React 19 / Next 16 compatibility and bundle size, and list
-exact names and versions for the user's approval (installing downloads packages from npm).
+Checked 2026-10-25 (npm registry metadata and a web search):
+
+| package | version | React peer range | note |
+|---|---|---|---|
+| recharts | 3.10.1 | 16.8 – 19 | default open-source choice for React dashboards in current comparisons; SVG |
+| echarts | 6.1.0 | — (framework-free) | recommended for large and interactive data (heat maps, timelines, zoom) |
+| echarts-for-react | 3.0.6 | >= 16 | React 19 not stated explicitly; Next.js needs `transpilePackages` for echarts and zrender |
+| @xyflow/react | 12.12.0 | >= 17 | |
+| @tanstack/react-table | 9.3.1 | >= 18 | |
+
+shadcn/ui states support for Tailwind v4 and React 19. Not confirmed by any source: Recharts 3 inside shadcn's chart
+component; tested by rendering one chart before the dashboard relies on it. If echarts-for-react misbehaves on React 19,
+ECharts is used directly through a small hook (ECharts has no React dependency). Dedicated Gantt components were
+considered: SVAR React Gantt supports React 19 but is GPLv3 and aimed at editable project plans, so it is only a
+fallback; the read-only stage timeline is built with ECharts.
+
+Before installing: list exact names and versions for the user's approval (installing downloads packages from npm).
 
 ## 5. Backend work the UI needs
 
