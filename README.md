@@ -110,6 +110,20 @@ The backend serves `/options`, `/assess`, `/ask`, `/feedback` and `/config` (`/h
 endpoints, so do not expose it beyond localhost. After a refresh, `POST /admin/reload` (accepted only from this
 machine) loads the new data without a restart; requests keep using the old data until the new one is ready.
 
+### 5. Run as containers (the production layout)
+
+```bash
+docker compose up -d                      # web, api, worker, Postgres, Qdrant; first start loads ./data into them
+docker compose up -d --scale worker=3     # more background workers
+docker compose down                       # stop; data stays in the volumes
+```
+
+Web app on http://localhost:3300, API on http://localhost:8100. The same images run anywhere: scaling up means more
+api and worker replicas, Postgres and Qdrant as managed services, and the model URLs pointing at GPU servers, all by
+configuration (`compose.yaml`, `.env.example`). On a Mac the models stay on the host (Docker cannot use the Apple
+GPU) and the containers reach them as `host.docker.internal`. Docker here runs through Colima
+(`brew install colima docker docker-compose docker-buildx`, `colima start --cpu 4 --memory 6 --disk 60`).
+
 ## How it works
 
 ```

@@ -4,7 +4,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Data: regenerate with `python -m procintel.ingest && python -m procintel.model`
+# Data: regenerate with `python -m procintel.ingestion.ingest && python -m procintel.ingestion.tables`
 data/cache/
 data/*.duckdb
 data/*.duckdb.wal

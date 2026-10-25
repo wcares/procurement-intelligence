@@ -90,6 +90,13 @@ own commit). Packages depend downwards: `api` and `jobs` on the module packages,
 
 ### Demo target: the production stack on this Mac (user, 2026-10-25)
 
+**Status: running (2026-10-25).** `compose.yaml` starts web, api, worker (scalable), Postgres and Qdrant, plus a
+one-shot `seed` that on first start copies `./data` into Postgres (`--if-empty`, so later starts keep what was
+written there), syncs the vectors into Qdrant and copies the trained model into the data volume. Checked: the stack's
+Assess (Peru, Kenya) and Ask answers equal the local backend's, Settings queues jobs through the web container, and
+`--scale worker=3` starts three workers; memory about 1.5 GB of the 6 GB VM. Object storage (MinIO / S3) is left out
+until uploads exist: nothing reads or writes objects yet, so a container would only be decoration.
+
 The whole system runs as one Docker Compose stack here, so the presentation shows the production pipeline itself;
 scaling is more replicas of the same images plus managed services, with nothing rebuilt.
 

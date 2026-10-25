@@ -1,0 +1,100 @@
+# The whole system as containers: web -> api -> worker(s), Postgres for tables, Qdrant for vectors.
+#
+#   docker compose up -d                      start (first start loads ./data into Postgres and Qdrant)
+#   docker compose up -d --scale worker=3     more background workers (jobs are claimed once each)
+#   docker compose down                       stop (data stays in the volumes)
+#
+# Web app: http://localhost:3300 · API: http://localhost:8100
+# The models keep running on this Mac (llama-server on ports 8080-8082): containers cannot use the Apple GPU, and
+# they reach the host as host.docker.internal. In production these URLs point at GPU servers or a hosted endpoint.
+# Object storage (MinIO / S3) is added when uploads exist; until then fetched files stay in the data volume.
+
+x-backend: &backend
+  build: .
+  image: procintel-api:dev
+  env_file: .env.example
+  environment: &backend-env
+    PROCINTEL_DB_URL: postgresql://procintel:procintel@postgres:5432/procintel
+    PROCINTEL_VECTOR_URL: http://qdrant:6333
+    PROCINTEL_DATA_DIR: /data
+    PROCINTEL_JOBS: external
+    PROCINTEL_LLM_API_BASE: http://host.docker.internal:8080/v1
+    PROCINTEL_EMBED_API_BASE: http://host.docker.internal:8081/v1
+    PROCINTEL_DECIDE_API_BASE: http://host.docker.internal:8082
+    PROCINTEL_JUDGE_API_BASE: http://host.docker.internal:8083/v1
+  volumes:
+    - appdata:/data
+  extra_hosts:
+    - host.docker.internal:host-gateway
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: procintel
+      POSTGRES_PASSWORD: procintel
+      POSTGRES_DB: procintel
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "procintel"]
+      interval: 3s
+      retries: 20
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.2
+    volumes:
+      - qdrantdata:/qdrant/storage
+    restart: unless-stopped
+
+  # one-shot: on first start copies the local DuckDB data, vectors and trained model into the stack
+  seed:
+    <<: *backend
+    restart: "no"
+    volumes:
+      - appdata:/data
+      - ./data:/seed:ro
+    command:
+      - sh
+      - -c
+      - >-
+        PROCINTEL_DATA_DIR=/seed python -m procintel.core.db copy-to-postgres --if-empty &&
+        python -m procintel.core.vector_index sync &&
+        mkdir -p /data/models && cp -n /seed/models/* /data/models/
+    depends_on:
+      postgres: {condition: service_healthy}
+      qdrant: {condition: service_started}
+
+  api:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      PROCINTEL_ADMIN_CLIENTS: 127.0.0.1,::1,172.16.0.0/12  # the web container forwards queued jobs from Settings
+    ports:
+      - 127.0.0.1:8100:8000
+    depends_on:
+      seed: {condition: service_completed_successfully}
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "procintel.jobs.worker"]
+    depends_on:
+      seed: {condition: service_completed_successfully}
+
+  web:
+    build: ./web
+    image: procintel-web:dev
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - 127.0.0.1:3300:3100
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  qdrantdata:
+  appdata:

@@ -51,6 +51,16 @@ def _postgres(schema: str, read_only: bool) -> duckdb.DuckDBPyConnection:
     return con
 
 
+def postgres_has_data() -> bool:
+    """True when the main tables are already in Postgres (a first-start seed must not overwrite them)."""
+    con = _postgres("public", read_only=True)
+    try:
+        return bool(con.execute("SELECT 1 FROM duckdb_tables() WHERE database_name = 'pg' AND schema_name = 'public' "
+                                "AND table_name = 'chunk'").fetchone())
+    finally:
+        con.close()
+
+
 def copy_to_postgres() -> dict[str, int]:
     """Copy every table of the local DuckDB files into Postgres (replacing tables of the same name)."""
     if backend() != "postgres":
@@ -80,8 +90,11 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["install"]:
         duckdb.connect().execute("INSTALL postgres")
         print("installed the DuckDB postgres extension")
-    elif sys.argv[1:] == ["copy-to-postgres"]:
-        for k, n in copy_to_postgres().items():
-            print(f"{k}: {n}")
+    elif sys.argv[1:2] == ["copy-to-postgres"]:
+        if "--if-empty" in sys.argv and postgres_has_data():
+            print("Postgres already holds the data; nothing copied")
+        else:
+            for k, n in copy_to_postgres().items():
+                print(f"{k}: {n}")
     else:
         print(f"backend: {backend()}")
