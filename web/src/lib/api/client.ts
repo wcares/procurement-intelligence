@@ -147,6 +147,8 @@ export const api = {
     return res.ok ? (out as ConnectorsResponse) : { error: out.error ?? `failed (${res.status})` };
   },
   uploads: () => call<UploadsResponse>("/intake/uploads"),
+  /** deletes the file and takes its report out of the evidence; the record stays, marked removed */
+  removeUpload: (id: string) => call<Upload>(`/intake/uploads/${encodeURIComponent(id)}`, { method: "DELETE" }),
   /** a refused file (type, size, empty) comes back as { error } */
   upload: async (file: File): Promise<Upload | { error: string }> => {
     const form = new FormData();

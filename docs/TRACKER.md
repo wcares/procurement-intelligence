@@ -21,6 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
+- [ ] Upload follow-ups (from U4): remove an upload (and its document from the evidence); OCR for scanned PDFs; links to packages and firms (bid reference, supplier names); uploads by planners (docs/ui-design.md 3c); ISRs and restructuring papers into the evidence once they are a document type (Module 1 improvement) (UI) — PROGRESS: (1) remove an upload done in COMMIT_PENDING: procintel.intake.process.remove deletes the file (blob store or an old absolute path) and, for a report in the evidence, its documents row, then logs Upload.removed, which the uploads-add rule now also takes (rebuild tables and firms, re-cut passages; vectors and tags of gone passages are dropped by the index step); the upload record stays with status removed and a 'removed' stage; DELETE /intake/uploads/<id> (admin); the Upload page gets a Remove button with an inline confirm (no browser dialog). Checked: a test (file gone, document gone and the other kept, the event logged, a job queued, a second removal and an unknown id), backend restarted with sign-in on (signed-out DELETE 401), the Upload page 200, tsc and eslint clean; 223 tests pass; not run on a real upload or seen in the browser. Next: uploads by planners, links to packages and firms, OCR, ISRs into the evidence.
 
 ## MVP (in order)
 
@@ -181,7 +182,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Upload follow-ups (from U4): remove an upload (and its document from the evidence); OCR for scanned PDFs; links to packages and firms (bid reference, supplier names); uploads by planners (docs/ui-design.md 3c); ISRs and restructuring papers into the evidence once they are a document type (Module 1 improvement)
 - [ ] Insights follow-ups (from U8): the full list of past recommendations with accept / dismiss counts on the Insights page; alerts for award-time shifts ("award times for RFB in your region rose 20%") from the trend; watch-list scope by region
 _(empty)_
 

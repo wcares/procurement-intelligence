@@ -34,6 +34,12 @@ def get_uploads(limit: int = 50) -> dict:
             "maxMb": extract.MAX_BYTES // 2**20}
 
 
+@router.delete("/intake/uploads/{upload_id}")
+def delete_upload(upload_id: str) -> dict:
+    up = process.remove(upload_id)
+    return up if up else JSONResponse({"error": "no such upload"}, status_code=404)
+
+
 @router.get("/intake/uploads/{upload_id}")
 def get_upload(upload_id: str) -> dict:
     up = store.get(upload_id)

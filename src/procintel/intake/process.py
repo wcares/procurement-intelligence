@@ -1,7 +1,9 @@
 """An upload through its stages: extract the text, classify it, link it, and for a completion report linked to a known
 project add it to the evidence corpus (the documents table, doc_id "upload-<id>"; kept by the weekly refresh) and log
 an Upload.ingested event, which the rules turn into cutting, indexing and checking its passages (a pipeline_batch job,
-run when the app is idle). The first three stages take seconds and run right after the upload."""
+run when the app is idle). The first three stages take seconds and run right after the upload. remove() takes an upload
+back out: its file is deleted and its report leaves the evidence the same way (Upload.removed); its record stays, marked
+removed, as history."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -76,6 +78,34 @@ def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None
     store.advance(upload_id, "add", f"added to the evidence as {doc_id}; its passages are cut and indexed by job "
                   f"{job} (runs when the app is next idle)" if job else f"added as {doc_id}; no rule asked for indexing",
                   "added", db_path, doc_id=doc_id)
+    return store.get(upload_id, db_path)
+
+
+def remove(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None) -> dict | None:
+    """Delete an upload's file and, if it was added to the evidence, its document (passages, vectors and tags follow
+    when the rules re-cut and re-index). Returns the upload as it now stands, or None when there is no such upload."""
+    up = store.get(upload_id, db_path)
+    if up is None or up["status"] == "removed":
+        return up
+    notes = []
+    if up["doc_id"]:
+        con = db.connect()
+        try:
+            con.execute("DELETE FROM documents WHERE doc_id = ?", [up["doc_id"]])
+        finally:
+            con.close()
+        batch = pipeline_store.new_batch()
+        pipeline_store.log_derived(batch, [{"type": "Upload.removed", "key": up["doc_id"]}], db_path)
+        job = detect.queue_batch(batch, "removed upload", jobs_db, priority="high")
+        notes.append(f"{up['doc_id']} taken out of the evidence" + (f"; its passages are removed by job {job}" if job else ""))
+    if up["path"]:
+        if up["path"].startswith("/"):
+            Path(up["path"]).unlink(missing_ok=True)   # uploads from before object storage
+        else:
+            blob.store().delete(up["path"])
+        notes.append("file deleted")
+    store.advance(upload_id, "removed", "; ".join(notes) or "nothing stored to delete (a duplicate)", "removed",
+                  db_path, path=None)
     return store.get(upload_id, db_path)
 
 

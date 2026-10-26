@@ -142,3 +142,26 @@ def test_the_title_beats_the_model_and_a_model_only_completion_report_waits_for_
     out = process.run(store.save("eval.txt", untitled.encode(), "txt", None)["upload_id"])
     assert out["doc_type"] == "completion_report" and out["status"] == "needs_review"
     assert jobs_store.next_pending() is None                                 # not added to the evidence
+
+
+def test_removing_an_upload_deletes_its_file_and_takes_its_report_out_of_the_evidence(tmp_path, monkeypatch):
+    _setup(tmp_path, monkeypatch)
+    up = process.run(store.save("report.txt", ICR.encode(), "txt", "u1")["upload_id"])
+    stored = tmp_path / up["path"]
+    assert stored.exists() and up["status"] == "added"
+    while jobs_store.next_pending():                                  # the add's job; this test looks at the removal's
+        pass
+    out = process.remove(up["upload_id"])
+    assert out["status"] == "removed" and out["path"] is None and not stored.exists()
+    assert out["stages"][-1]["stage"] == "removed" and "taken out of the evidence" in out["stages"][-1]["detail"]
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    assert con.execute("SELECT count(*) FROM documents WHERE doc_id = ?", [up["doc_id"]]).fetchone()[0] == 0
+    assert con.execute("SELECT count(*) FROM documents").fetchone()[0] == 1       # the other report stays
+    con.close()
+    pcon = pipeline_store.connect()
+    assert pcon.execute("SELECT type, key FROM event_log WHERE type = 'Upload.removed'").fetchall() == [
+        ("Upload.removed", up["doc_id"])]
+    pcon.close()
+    assert jobs_store.next_pending() is not None                                  # re-cut and re-index queued
+    assert process.remove(up["upload_id"])["status"] == "removed"                 # a second removal changes nothing
+    assert process.remove("nope") is None

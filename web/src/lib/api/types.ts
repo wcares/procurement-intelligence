@@ -615,7 +615,7 @@ export interface Upload {
   format: string;
   size: number;
   uploaded_at: string;
-  /** received → extracted → classified → linked → added | kept; or needs_review, failed, duplicate */
+  /** received → extracted → classified → linked → added | kept; or needs_review, failed, duplicate; removed */
   status: string;
   stages: { stage: string; at: string; detail: string }[];
   doc_type: string | null;

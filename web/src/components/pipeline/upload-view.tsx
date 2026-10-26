@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import type { Upload, UploadsResponse } from "@/lib/api/types";
 import { when } from "./when";
@@ -13,6 +14,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   needs_review: { label: "needs review", cls: "text-risk-medium" },
   failed: { label: "failed", cls: "text-risk-high" },
   duplicate: { label: "duplicate", cls: "text-ink-muted" },
+  removed: { label: "removed", cls: "text-ink-muted" },
 };
 
 /** Add a file and follow it: text extracted by format, kind decided, projects and countries linked; a completion
@@ -69,13 +71,24 @@ export function UploadView() {
       </div>
       {error && <p className="text-sm text-risk-high">{error}</p>}
       {data && data.uploads.length === 0 && <p className="text-sm text-ink-muted">No uploads yet.</p>}
-      <ul className="space-y-3">{data?.uploads.map((u) => <UploadCard key={u.upload_id} u={u} />)}</ul>
+      <ul className="space-y-3">{data?.uploads.map((u) => <UploadCard key={u.upload_id} u={u} onChanged={load} />)}</ul>
     </div>
   );
 }
 
-function UploadCard({ u }: { u: Upload }) {
+function UploadCard({ u, onChanged }: { u: Upload; onChanged: () => void }) {
   const s = STATUS[u.status] ?? { label: "processing…", cls: "text-brand" };
+  const [asking, setAsking] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  async function remove() {
+    try {
+      await api.removeUpload(u.upload_id);
+      onChanged();
+    } catch (e) {
+      setNote((e as Error).message);
+    }
+    setAsking(false);
+  }
   return (
     <li className="rounded-xl border border-line bg-surface p-4 text-sm">
       <header className="mb-2 flex flex-wrap items-baseline gap-x-3">
@@ -96,11 +109,27 @@ function UploadCard({ u }: { u: Upload }) {
           ))}
         </p>
       )}
-      {u.doc_id && (
+      {u.doc_id && u.status !== "removed" && (
         <p className="mt-1 text-xs">
           In the evidence as <span className="font-mono">{u.doc_id}</span>; indexing shows in the{" "}
           <Link className="underline" href="/pipeline/events">event log</Link>.
         </p>
+      )}
+      {u.status !== "removed" && !WORKING.has(u.status) && (
+        <div className="mt-2 flex items-center gap-2 text-xs">
+          {asking ? (
+            <>
+              <span>
+                Delete the file{u.doc_id ? " and take its report out of the evidence" : ""}? The record stays, marked removed.
+              </span>
+              <Button variant="outline" size="xs" className="border-line text-risk-high" onClick={remove}>Remove</Button>
+              <Button variant="ghost" size="xs" onClick={() => setAsking(false)}>Keep</Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="xs" className="text-ink-muted" onClick={() => setAsking(true)}>Remove…</Button>
+          )}
+          {note && <span className="text-risk-high">{note}</span>}
+        </div>
       )}
     </li>
   );
