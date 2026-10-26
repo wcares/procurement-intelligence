@@ -9,14 +9,19 @@ project matches on its own. The pipeline action watch_alerts (procintel.pipeline
     reissued      notices re-issued or amended (their version went up)
     awarded       awards recorded, the slow ones (over 180 days from tender) named
     report        a completion report added for a watched project (from the World Bank or an upload)
+    award_shift   award times for a method in the planner's scope moved by SHIFT or more: the median days from tender
+                  to award of the awards recorded in the last RECENT_DAYS against the BASELINE_DAYS before, each side
+                  with enough awards (MIN_RECENT, MIN_BASELINE); at most one per method every REPEAT_DAYS. Checked when
+                  award dates change (award_shifts)
 
 Alerts are in-app only (user, 2026-10-25) and kept RETENTION_DAYS like other history (procintel.jobs.retention).
 """
 from __future__ import annotations
 
 import json
+import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from procintel.core import db
@@ -25,6 +30,10 @@ from procintel.pipeline import store as pipeline_store
 KINDS = {"region": "region", "country": "country_code", "sector": "sector", "proc_group": "proc_group", "method": "method_code",
          "project": "project_id"}
 SLOW_DAYS = 180
+SHIFT = float(os.environ.get("PROCINTEL_AWARD_SHIFT", "0.2"))
+RECENT_DAYS, BASELINE_DAYS = 365, 3 * 365
+MIN_RECENT, MIN_BASELINE = int(os.environ.get("PROCINTEL_AWARD_SHIFT_MIN_N", "8")), 15
+REPEAT_DAYS = 30
 
 
 def _now() -> datetime:
@@ -195,6 +204,72 @@ def from_events(events: dict[str, dict], document_rows: dict[str, dict], db_path
         finally:
             con.close()
     return len(rows)
+
+
+def _awards() -> list[dict]:
+    """Awarded packages with a measured award time, their award date and the attributes a watch-list matches on."""
+    con = db.connect(read_only=True)
+    try:
+        q = con.execute("""SELECT k.package_id, k.project_id, k.proc_group, k.method_code, k.tender_to_award_days AS days,
+                                  k.award_date::VARCHAR AS award_date, p.country_code, p.region, p.sector
+                           FROM package k JOIN projects p USING (project_id)
+                           WHERE k.tender_to_award_days IS NOT NULL AND k.award_date IS NOT NULL""")
+        cols = [d[0] for d in q.description]
+        return [dict(zip(cols, r)) for r in q.fetchall()]
+    finally:
+        con.close()
+
+
+def _median(xs: list[float]) -> float:
+    xs = sorted(xs)
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def award_shifts(db_path: Path | None = None, now: datetime | None = None) -> int:
+    """Write award_shift alerts for every planner whose scope saw award times move; returns how many."""
+    watches = _all_watches(db_path)
+    if not watches:
+        return 0
+    now = now or _now()
+    recent_from, base_from = now - timedelta(days=RECENT_DAYS), now - timedelta(days=RECENT_DAYS + BASELINE_DAYS)
+    rows = []
+    for a in _awards():
+        at = datetime.fromisoformat(a["award_date"][:19])
+        if at >= base_from:
+            rows.append(a | {"recent": at >= recent_from})
+    con = connect(db_path)
+    try:
+        said = {(u, json.loads(refs)[0]["key"]) for u, refs in con.execute(
+            "SELECT username, refs FROM alert WHERE kind = 'award_shift' AND created_at >= ?",
+            [now - timedelta(days=REPEAT_DAYS)]).fetchall() if refs and json.loads(refs)}
+    finally:
+        con.close()
+    out = []
+    for user, watch in watches.items():
+        by_method: dict[str, dict[bool, list[float]]] = {}
+        for a in rows:
+            if in_scope(watch, a) and a["method_code"]:
+                by_method.setdefault(a["method_code"], {True: [], False: []})[a["recent"]].append(float(a["days"]))
+        for method, d in sorted(by_method.items()):
+            if len(d[True]) < MIN_RECENT or len(d[False]) < MIN_BASELINE or (user, method) in said:
+                continue
+            now_m, before_m = _median(d[True]), _median(d[False])
+            change = (now_m - before_m) / before_m if before_m else 0
+            if abs(change) < SHIFT:
+                continue
+            title = f"Award times for {method} in your watch-list {'rose' if change > 0 else 'fell'} {abs(change):.0%}"
+            detail = (f"median {now_m:.0f} days from tender to award for the {len(d[True])} awards recorded in the last "
+                      f"12 months, against {before_m:.0f} days for the {len(d[False])} in the 3 years before")
+            out.append((uuid.uuid4().hex[:12], user, "award_shift", title, detail,
+                        json.dumps([{"type": "method", "key": method, "label": method}]), now, None))
+    if out:
+        con = connect(db_path)
+        try:
+            con.executemany("INSERT INTO alert VALUES (?, ?, ?, ?, ?, ?, ?, ?)", out)
+        finally:
+            con.close()
+    return len(out)
 
 
 def recent(username: str, limit: int = 50, db_path: Path | None = None) -> dict:

@@ -220,6 +220,8 @@ def watch_alerts(keys, events, ctx):
         finally:
             con.close()
     alerts.from_events(events, docs)
+    if "all" in keys:   # Package.award_changed (key "all"; derived events reach actions only as keys)
+        alerts.award_shifts()   # award times in each planner's scope, against the years before
     return []
 
 

@@ -116,3 +116,35 @@ def test_a_watch_list_can_follow_a_region(world):
     assert alerts.from_events(events, {}) == 1
     [a] = alerts.recent("dee")["alerts"]
     assert a["title"] == "1 new procurement notice in Republic of Kenya"
+
+
+def test_award_times_shifting_in_a_scope_alert_once_a_month(world, tmp_path):
+    from datetime import datetime, timedelta
+    now = datetime(2026, 10, 26)
+    rows = [(f"P1/R{i}", "P1", "CW", "RFB", 150, (now - timedelta(days=30 + i)).isoformat()) for i in range(8)]   # recent
+    rows += [(f"P1/B{i}", "P1", "CW", "RFB", 100, (now - timedelta(days=400 + 20 * i)).isoformat()) for i in range(15)]
+    rows += [(f"P2/G{i}", "P2", "CW", "RFB", 300, (now - timedelta(days=30)).isoformat()) for i in range(8)]  # Ghana
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    con.execute("DROP TABLE package")
+    con.execute("CREATE TABLE package (package_id VARCHAR, project_id VARCHAR, proc_group VARCHAR, method_code VARCHAR, "
+                "tender_to_award_days INTEGER, award_date TIMESTAMP)")
+    con.executemany("INSERT INTO package VALUES (?, ?, ?, ?, ?, ?)", rows)
+    con.close()
+    alerts.set_watch("ana", {"region": ["Eastern and Southern Africa"]})
+    alerts.set_watch("ben", {"country": ["GH"]})                                          # too few awards before
+    assert alerts.award_shifts(now=now) == 1
+    [a] = alerts.recent("ana")["alerts"]
+    assert a["kind"] == "award_shift" and a["title"] == "Award times for RFB in your watch-list rose 50%"
+    assert a["detail"].startswith("median 150 days from tender to award for the 8 awards recorded in the last 12 months, "
+                                  "against 100 days for the 15")
+    assert alerts.award_shifts(now=now + timedelta(days=5)) == 0                          # not again within a month
+    assert alerts.award_shifts(now=now + timedelta(days=31)) == 1
+
+
+def test_the_award_change_event_reaches_the_shift_check(world, monkeypatch):
+    called = []
+    monkeypatch.setattr(alerts, "award_shifts", lambda: called.append(1))
+    plan, _ = rules.plan([{"type": "Package.award_changed", "key": "all"}], rules.DEFAULT_RULES, actions.ORDER)
+    assert ("watch_alerts", ["all"]) in plan
+    actions.watch_alerts(["all"], {}, {})
+    assert called == [1]
