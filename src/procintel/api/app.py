@@ -40,7 +40,10 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
-    api = FastAPI(title="procintel", lifespan=lifespan)
+    # PROCINTEL_DOCS=off hides /docs and /openapi.json (the route list), for a backend reachable from the internet
+    docs = os.environ.get("PROCINTEL_DOCS", "on").strip().lower() != "off"
+    api = FastAPI(title="procintel", lifespan=lifespan, docs_url="/docs" if docs else None,
+                  redoc_url="/redoc" if docs else None, openapi_url="/openapi.json" if docs else None)
     origins = [o.strip() for o in os.environ.get("PROCINTEL_CORS_ORIGINS", CORS_DEFAULT).split(",") if o.strip()]
     api.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PUT", "DELETE"],
                        allow_headers=["Content-Type"])
