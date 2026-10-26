@@ -7,6 +7,9 @@ import { api } from "@/lib/api/client";
 import type { Upload, UploadsResponse } from "@/lib/api/types";
 import { when } from "./when";
 
+// kinds that can join the evidence (the backend checks the title: an ISR, not an aide-memoire; a restructuring paper,
+// not a contract amendment)
+const EVIDENCE_KINDS = new Set(["completion_report", "supervision_report", "amendment"]);
 const WORKING = new Set(["received", "extracted", "classified", "linked"]);
 const STATUS: Record<string, { label: string; cls: string }> = {
   added: { label: "added to the evidence", cls: "text-risk-low" },
@@ -63,8 +66,8 @@ export function UploadView() {
           <button className="underline" onClick={() => input.current?.click()} disabled={busy}>choose files</button>
         </p>
         <p className="mt-1 text-xs text-ink-muted">
-          {data ? `${data.formats.join(", ")} · up to ${data.maxMb} MB each` : ""}. Completion reports that name a tracked
-          project are added to the evidence{data && !data.all ? " once an admin confirms them" : ""}; other documents
+          {data ? `${data.formats.join(", ")} · up to ${data.maxMb} MB each` : ""}. Completion reports, supervision
+          reports (ISRs) and restructuring papers that name a tracked project are added to the evidence{data && !data.all ? " once an admin confirms them" : ""}; other documents
           are kept, classified and linked. Scanned PDF pages are read by OCR.
         </p>
         <input ref={input} type="file" multiple className="hidden" onChange={(e) => send(e.target.files)}
@@ -96,7 +99,7 @@ function UploadCard({ u, admin, onChanged }: { u: Upload; admin: boolean; onChan
     if ("error" in r) setNote(r.error);
     else onChanged();
   }
-  const waiting = admin && u.doc_type === "completion_report" && (u.status === "awaiting_approval" || u.status === "needs_review")
+  const waiting = admin && EVIDENCE_KINDS.has(u.doc_type ?? "") && (u.status === "awaiting_approval" || u.status === "needs_review")
     && (u.links?.projects ?? []).some((p) => p.known);
   return (
     <li className="rounded-xl border border-line bg-surface p-4 text-sm">

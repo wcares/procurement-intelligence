@@ -53,14 +53,32 @@ def test_other_kinds_are_kept_and_unreadable_or_unlinked_ones_go_to_review(tmp_p
     assert out["links"]["projects"][0] == {"id": "P999999", "name": None, "country": None, "known": False}
     assert out["links"]["countries"] == ["Republic of Kenya"]          # found as "Kenya"
     assert process.run(store.save("scan.txt", b"x" * 100, "txt", None)["upload_id"])["status"] == "needs_review"
-    isr = ICR.replace("IMPLEMENTATION COMPLETION AND RESULTS REPORT", "Implementation Status & Results Report")
-    out = process.run(store.save("isr.txt", isr.encode(), "txt", None)["upload_id"])
-    assert out["status"] == "kept" and out["doc_type"] == "supervision_report"
+    aide = ICR.replace("IMPLEMENTATION COMPLETION AND RESULTS REPORT", "Aide-Memoire of the supervision mission")
+    out = process.run(store.save("aide.txt", aide.encode(), "txt", None)["upload_id"])
+    assert out["status"] == "kept" and out["doc_type"] == "supervision_report"      # no ISR layout: kept, not added
     assert out["stages"][2]["detail"] == "supervision report (from its title)"
     assert out["links"]["countries"] == ["Republic of Kenya"]                # "World" (a region code) is not a country
+    amend = ICR.replace("IMPLEMENTATION COMPLETION AND RESULTS REPORT", "Amendment No. 2 to the contract")
+    assert process.run(store.save("am.txt", amend.encode(), "txt", None)["upload_id"])["status"] == "kept"
     unlinked = ICR.replace("P123456", "P000001")
     assert process.run(store.save("icr2.txt", unlinked.encode(), "txt", None)["upload_id"])["status"] == "needs_review"
     assert jobs_store.next_pending() is None                                # nothing was added to the corpus
+
+
+def test_titled_isrs_and_restructuring_papers_join_the_evidence_as_their_own_types(tmp_path, monkeypatch):
+    from procintel.ingestion import supervision
+    _setup(tmp_path, monkeypatch)
+    isr = ICR.replace("IMPLEMENTATION COMPLETION AND RESULTS REPORT", "Implementation Status & Results Report")
+    paper = ICR.replace("IMPLEMENTATION COMPLETION AND RESULTS REPORT", "RESTRUCTURING PAPER ON A PROPOSED PROJECT RESTRUCTURING")
+    got = {}
+    for name, text in [("isr.txt", isr), ("rp.txt", paper)]:
+        out = process.run(store.save(name, text.encode(), "txt", None)["upload_id"])
+        assert out["status"] == "added", out["stages"][-1]
+        got[name] = out["doc_id"]
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    types = dict(con.execute("SELECT doc_id, doc_type FROM documents WHERE doc_id LIKE 'upload-%'").fetchall())
+    con.close()
+    assert types == {got["isr.txt"]: supervision.ISR_TYPE, got["rp.txt"]: supervision.RESTRUCTURING_TYPE}
 
 
 def test_formats_and_keyword_classes():

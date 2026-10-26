@@ -8,14 +8,35 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import re
+
 import pandas as pd
 
 from procintel.core import blob, db
+from procintel.ingestion import supervision
 from procintel.intake import classify, extract, link, ocr, store
 from procintel.pipeline import detect
 from procintel.pipeline import store as pipeline_store
 
 ICR_TYPE = "Implementation Completion and Results Report"   # as the World Bank documents API names them
+ISR_TITLE = re.compile(r"implementation status (?:and|&) results report", re.I)
+RESTRUCTURING_TITLE = re.compile(r"restructuring paper", re.I)
+EVIDENCE_KINDS = "completion reports, supervision reports (ISRs) and restructuring papers"
+
+
+def evidence_type(kind: str, text: str) -> str | None:
+    """The documents-table type an upload joins the evidence as, or None: a completion report; an ISR (not an
+    aide-memoire, which has no ISR layout); a restructuring paper (not a contract amendment). ISRs and restructuring
+    papers are read like the fetched ones (procintel.ingestion.supervision) and stay out of the completion-report
+    statistics."""
+    head = text[:classify.OPENING]
+    if kind == "completion_report":
+        return ICR_TYPE
+    if kind == "supervision_report" and ISR_TITLE.search(head):
+        return supervision.ISR_TYPE
+    if kind == "amendment" and RESTRUCTURING_TITLE.search(head):
+        return supervision.RESTRUCTURING_TYPE
+    return None
 MIN_CHARS = 500     # less text than this: a scan without a text layer, or an empty file
 
 
@@ -70,42 +91,47 @@ def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None
         store.advance(upload_id, "done", "a completion report by the decision model only (no such title in the "
                       "opening); confirm by hand before it is added to the evidence", "needs_review", db_path)
         return store.get(upload_id, db_path)
-    if kind["type"] != "completion_report":
-        store.advance(upload_id, "done", "kept and linked; only completion reports are added to the evidence searched "
-                      "today", "kept", db_path)
+    as_type = evidence_type(kind["type"], text) if kind["titled"] else None
+    if as_type is None:
+        store.advance(upload_id, "done", f"kept and linked; only titled {EVIDENCE_KINDS} are added to the evidence "
+                      "searched", "kept", db_path)
         return store.get(upload_id, db_path)
+    what = as_type.lower()
     if not known:
-        store.advance(upload_id, "done", "a completion report, but no project id in it matches a tracked project; "
-                      "review by hand", "needs_review", db_path)
+        store.advance(upload_id, "done", f"a {what}, but no project id in it matches a tracked project; review by hand",
+                      "needs_review", db_path)
         return store.get(upload_id, db_path)
     if not trusted:
-        store.advance(upload_id, "done", "a completion report about a tracked project; it joins the evidence everyone "
-                      "searches once an admin adds it", "awaiting_approval", db_path)
+        store.advance(upload_id, "done", f"a {what} about a tracked project; it joins the evidence everyone searches "
+                      "once an admin adds it", "awaiting_approval", db_path)
         return store.get(upload_id, db_path)
-    return _add(up, text, known, db_path, jobs_db)
+    return _add(up, text, known, as_type, db_path, jobs_db)
 
 
 def approve(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None) -> dict | None:
-    """An admin adds a waiting completion report to the evidence: one a planner uploaded, or one the decision model
-    alone called a completion report. Raises ValueError when the upload cannot join the evidence."""
+    """An admin adds a waiting report to the evidence: one a planner uploaded, or a completion report only the
+    decision model recognised. Raises ValueError when the upload cannot join the evidence."""
     up = store.get(upload_id, db_path)
     if up is None:
         return None
-    if up["status"] not in ("awaiting_approval", "needs_review") or up["doc_type"] != "completion_report":
-        raise ValueError("only a completion report waiting for review can be added to the evidence")
+    if up["status"] not in ("awaiting_approval", "needs_review"):
+        raise ValueError(f"only {EVIDENCE_KINDS} waiting for review can be added to the evidence")
     known = [p["id"] for p in (up["links"] or {}).get("projects", []) if p["known"]]
     if not known:
         raise ValueError("it names no tracked project, so it cannot be linked to the evidence")
     text = "\n\n".join(_pages(up)[0]).strip()
+    as_type = evidence_type(up["doc_type"] or "", text)
+    if as_type is None:
+        raise ValueError(f"only {EVIDENCE_KINDS} can be added to the evidence")
     store.advance(upload_id, "approved", "added by an admin", None, db_path)
-    return _add(up, text, known, db_path, jobs_db)
+    return _add(up, text, known, as_type, db_path, jobs_db)
 
 
-def _add(up: dict, text: str, known: list[str], db_path: Path | None, jobs_db: Path | None) -> dict:
+def _add(up: dict, text: str, known: list[str], doc_type: str, db_path: Path | None, jobs_db: Path | None) -> dict:
     upload_id = up["upload_id"]
     doc_id = f"upload-{upload_id}"
     title = next((ln.strip() for ln in text.splitlines() if len(ln.strip()) > 10), up["filename"])[:200]
-    _add_document(doc_id, ",".join(known), title, text)
+    _add_document(doc_id, ",".join(known), title, text, doc_type)
     batch = pipeline_store.new_batch()
     pipeline_store.log_derived(batch, [{"type": "Upload.ingested", "key": doc_id}], db_path)
     job = detect.queue_batch(batch, "uploaded report(s)", jobs_db, priority="high")
@@ -143,8 +169,8 @@ def remove(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = N
     return store.get(upload_id, db_path)
 
 
-def _add_document(doc_id: str, project_ids: str, title: str, text: str) -> None:
-    row = pd.DataFrame([{"doc_id": doc_id, "project_id": project_ids, "doc_type": ICR_TYPE,
+def _add_document(doc_id: str, project_ids: str, title: str, text: str, doc_type: str = ICR_TYPE) -> None:
+    row = pd.DataFrame([{"doc_id": doc_id, "project_id": project_ids, "doc_type": doc_type,
                          "doc_date": pd.Timestamp.now(tz="UTC"), "title": title, "pdf_url": None, "txt_url": None,
                          "text": text}])
     con = db.connect()
