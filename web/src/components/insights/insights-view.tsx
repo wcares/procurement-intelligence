@@ -7,6 +7,7 @@ import type { AlertsResponse } from "@/lib/api/types";
 import { AlertsList } from "./alerts-list";
 import { WatchListEditor } from "./watch-list";
 import { WatchTrends } from "./watch-trends";
+import { PastRecommendations } from "./past-recommendations";
 import { OngoingWork } from "@/components/monitoring/ongoing-work";
 
 export function InsightsView() {
@@ -42,6 +43,11 @@ export function InsightsView() {
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">Trends</h2>
         <p className="mb-3 text-xs text-ink-muted">Median days from tender to award by tender year; hollow points: years whose tenders are not all awarded yet. Recommendations for a package are on the Assess page.</p>
         <WatchTrends version={saved} />
+      </section>
+      <section className="md:col-span-2">
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">Past recommendations</h2>
+        <p className="mb-3 text-xs text-ink-muted">The recommendations you asked for on Assess and what you decided; the counts are over everyone&apos;s, so a kind people keep dismissing shows.</p>
+        <PastRecommendations />
       </section>
     </div>
   );

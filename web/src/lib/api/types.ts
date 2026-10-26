@@ -681,6 +681,18 @@ export interface Account {
 }
 
 /** Home dashboard (GET /dashboard and friends; procintel.insights.dashboard). */
+/** Past recommendations (GET /insights/recommendations/history): the planner's own, newest first, with what they
+ * decided; totals by kind over everyone's. */
+export interface RecommendationHistory {
+  items: {
+    responseId: string;
+    at: string;
+    package: { countryCode: string; procGroup: string; methodCode: string; estimatedValueUsd: number | null };
+    recommendations: { id: string; kind: string; title: string; decision: "accepted" | "dismissed" | null }[];
+  }[];
+  totals: Record<string, { shown: number; accepted: number; dismissed: number }>;
+}
+
 /** What changed recently (GET /dashboard/recent): source changes the pipeline detected, by kind, newest first. */
 export interface RecentChanges {
   days: number;

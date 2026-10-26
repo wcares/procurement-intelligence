@@ -1,6 +1,7 @@
 import type {
   DashboardResponse,
   RecentChanges,
+  RecommendationHistory,
   DashRecords,
   HeatmapResponse,
   RankingResponse,
@@ -114,6 +115,7 @@ export const api = {
     const q = new URLSearchParams({ procGroup, ...(methodCode ? { methodCode } : {}), ...(countryCode ? { countryCode } : {}) });
     return call<AwardTrend>(`/insights/trend?${q}`);
   },
+  recommendationHistory: () => call<RecommendationHistory>("/insights/recommendations/history"),
   recommendations: (req: AssessRequest) => call<RecommendationsResponse>("/insights/recommendations", { method: "POST", body: JSON.stringify(req) }),
   markAlertsRead: (ids?: string[]) => call<AlertsResponse>("/insights/alerts/read", { method: "POST", body: JSON.stringify({ ids: ids ?? null }) }),
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),

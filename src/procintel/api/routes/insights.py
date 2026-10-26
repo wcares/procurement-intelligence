@@ -12,7 +12,7 @@ from procintel.api import security
 from procintel.api.schemas import AssessRequest
 from procintel.api.state import state
 from procintel.auth import service
-from procintel.insights import alerts, recommendations
+from procintel.insights import alerts, history, recommendations
 from procintel.learning import feedback
 from procintel.prediction.assess import assess as run_assess
 
@@ -71,6 +71,12 @@ def post_recommendations(req: AssessRequest, request: Request) -> dict:
     feedback.log_response("recommend", body, out, user_id=service.pseudonym(security.user_of(request)),
                           duration_ms=round((time.monotonic() - started) * 1000))
     return out
+
+
+@router.get("/insights/recommendations/history")
+def get_history(request: Request, limit: int = 50) -> dict:
+    """The planner's past recommendations with what they decided, and accept / dismiss counts over everyone's."""
+    return history.past(service.pseudonym(security.user_of(request)), max(1, min(limit, 200)))
 
 
 @router.get("/insights/trend")
