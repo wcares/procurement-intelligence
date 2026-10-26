@@ -3,10 +3,11 @@ in the data and for one a planner describes: what is known so far (group, method
 stated contract duration, whether a notice was re-issued, the project's closing date) against the history of comparable
 awarded packages.
 
-    still in bidding, open a days: the comparable packages that were still open at a days (took longer than a), and how
-        much longer they took: median and 1 in 10, the chance of an award within 30 and 90 days, the expected award
-        date. Conditioning on the time already spent is the survival idea; the history holds only packages that were
-        awarded, and some that look open were awarded without a published award, so this leans optimistic (said so).
+    still in bidding, open a days: a Kaplan-Meier estimate (procintel.monitoring.survival) over comparable tenders,
+        awarded ones as events and ones still open today as censored at their age, given that this one is still open
+        at a days: median and 1 in 10 remaining, the chance of an award within 30 and 90 days, the expected award
+        date. Stale tenders (open past any normal time) stay out. Without package statuses in the history (tests,
+        older callers): the comparable awarded tenders that took longer than a, as before.
     awarded: the expected contract end, from the stated duration or the median of comparable contracts.
     then: the expected signing (median award-to-signing of comparable packages) and contract end after a forecast award.
 
@@ -20,6 +21,8 @@ from datetime import date
 
 import numpy as np
 import pandas as pd
+
+from procintel.monitoring import survival
 
 MIN_N = 10
 SIGNING_DEFAULT = None   # award-to-signing has its own history column (stages); used when given
@@ -37,6 +40,25 @@ def _comparable(history: pd.DataFrame, group: str, method: str | None, col: str,
         if len(s) >= MIN_N:
             return s, label
     return pd.Series(dtype=float), "not enough comparable packages"
+
+
+def _survival(history: pd.DataFrame, group: str, method: str | None, age: int):
+    """Kaplan-Meier over the narrowest comparable scope with at least MIN_N tenders still unawarded at `age`: awarded
+    tenders as events, active ones in bidding as censored at their age (needs the status columns; None without)."""
+    if "phase" not in history or "age_days" not in history:
+        return None
+    for label, f in (((f"{group} via {method}", history[(history.proc_group == group) & (history.method_code == method)]),)
+                     if method else ()) + ((f"all {group}", history[history.proc_group == group]),):
+        done = f.tender_to_award_days.dropna()
+        open_ = pd.to_numeric(f[(f.phase == "bidding") & f.award_date.isna()].age_days, errors="coerce").dropna() \
+            if "award_date" in f else pd.Series(dtype=float)
+        d = np.concatenate([done.to_numpy(float), open_.to_numpy(float)])
+        e = np.concatenate([np.ones(len(done), bool), np.zeros(len(open_), bool)])
+        n_risk = survival.at_risk(d, age)
+        if n_risk >= MIN_N and len(done):
+            times, S = survival.curve(d, e)
+            return times, S, n_risk, int((open_ > age).sum()), label
+    return None
 
 
 def _when(today: pd.Timestamp, days: float | None) -> str | None:
@@ -67,7 +89,27 @@ def forecast(facts: dict, history: pd.DataFrame, today: date | None = None, isr:
             out["warnings"].append({"kind": "slow", "text": f"Open {age} days: slower already than 9 in 10 comparable "
                                     f"tenders ({scope_all}, n={len(all_awarded)}; 1 in 10 took over "
                                     f"{all_awarded.quantile(0.9):.0f} days)."})
-        if len(longer):
+        km = _survival(history, g, m, age)
+        if km is not None:
+            times, S, n_risk, n_open, kscope = km
+            med = survival.remaining_quantile(times, S, age, 0.5)
+            p90 = survival.remaining_quantile(times, S, age, 0.9)
+            award_days = med
+            out["award"] = {"medianDays": round(med) if med is not None else None,
+                            "p90Days": round(p90) if p90 is not None else None,
+                            "date": _when(today, med), "p90Date": _when(today, p90),
+                            "within30": round(survival.within(times, S, age, 30), 2),
+                            "within90": round(survival.within(times, S, age, 90), 2),
+                            "basis": f"{n_risk} comparable tenders still unawarded after {age} days, {n_open} of them "
+                                     f"still open today ({kscope}); survival estimate"}
+            out["caveats"].append("Tenders still open count as waiting (censored), so they no longer pull the forecast "
+                                  "early; tenders open past any normal time are left out, as many were awarded without a "
+                                  "published notice." + ("" if p90 is not None else " Beyond the data for the slow case: "
+                                                         "fewer than 1 in 10 of those tenders had been awarded."))
+            if med is None:
+                out["caveats"].append("Fewer than half of the comparable tenders open this long were awarded in the "
+                                      "data: no median award date.")
+        elif len(longer):   # no package statuses in the history: the earlier estimate from awarded tenders only
             rest = longer - age
             award_days = float(rest.median())
             out["award"] = {"medianDays": round(award_days), "p90Days": round(float(rest.quantile(0.9))),
