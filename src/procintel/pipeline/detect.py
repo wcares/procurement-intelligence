@@ -36,11 +36,12 @@ def detect_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]
         et = entities.ENTITY_TYPES[name]
         if connectors.due(et, params.get("force", False)):
             known = store.states(name)
-            if not known:
-                n = store.seed(name, et.watched, et.read_db())
+            seed = et.read_db() if not known else {}
+            if seed:   # first run: start from what the database holds, without events
+                n = store.seed(name, et.watched, seed)
                 store.log_detection(cur["batch"], name, n, 0, "first run: state seeded from the database")
                 cur["counts"][name] = 0
-            else:
+            else:      # tracked before, or new to the database too: everything the source has is new
                 try:
                     rows, complete = et.read_source(_context(name))
                 except Exception as e:  # a failing source is logged and backs off; the other sources go on

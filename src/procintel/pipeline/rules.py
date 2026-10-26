@@ -36,7 +36,7 @@ class Rule:
 DEFAULT_RULES = [
     Rule("notices-update-packages", ("Notice.added", "Notice.changed"),
          ("apply_notices", "rebuild_tables", "rebuild_firms")),
-    Rule("documents-ingest", ("Document.added", "Document.changed"),
+    Rule("documents-ingest", ("Document.added", "Document.changed", "SupervisionDoc.added", "SupervisionDoc.changed"),
          ("ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents")),
     Rule("uploads-add", ("Upload.ingested",), ("rebuild_tables", "rebuild_firms", "chunk_documents")),
     Rule("passages-index", ("Passages.changed",), ("index_passages", "document_checks")),

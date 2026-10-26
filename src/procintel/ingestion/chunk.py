@@ -299,8 +299,12 @@ def build(db_path: Path = DB_PATH) -> None:
     has_chunks = con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk'").fetchone()
     old = dict(con.execute("SELECT chunk_id, text FROM chunk").fetchall()) if has_chunks else {}
     rows = []
-    for doc_id, text in con.execute("SELECT doc_id, text FROM documents").fetchall():
-        for i, c in enumerate(chunk_document(text)):
+    from procintel.ingestion import isr_chunk, supervision
+    typed = con.execute("SELECT 1 FROM duckdb_columns() WHERE table_name = 'documents' AND column_name = 'doc_type'").fetchone()
+    for doc_id, doc_type, text in con.execute(
+            f"SELECT doc_id, {'doc_type' if typed else 'NULL'}, text FROM documents").fetchall():
+        cut = isr_chunk.chunk_isr if doc_type == supervision.ISR_TYPE else chunk_document   # restructuring papers: ICR layout
+        for i, c in enumerate(cut(text)):
             rows.append({"chunk_id": f"{doc_id}:{i}", "doc_id": doc_id, "seq": i, "section": c.section,
                          "para": c.para, "kind": c.kind, "text": c.text, "n_chars": len(c.text)})
     df = pd.DataFrame(rows)

@@ -165,8 +165,9 @@ DOCUMENT_SCOPE = 120    # the corpus: the newest this many reports (as procintel
 
 
 def documents_from_db() -> dict[str, dict]:
-    return _rows("SELECT doc_id, project_id, doc_type, doc_date, title, pdf_url, txt_url FROM documents",
-                 lambda r: r["doc_id"])
+    from procintel.ingestion import supervision
+    return _rows("SELECT doc_id, project_id, doc_type, doc_date, title, pdf_url, txt_url FROM documents "
+                 f"WHERE doc_type NOT IN {supervision.TYPES}", lambda r: r["doc_id"])
 
 
 def documents_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
@@ -193,6 +194,28 @@ def documents_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
     return out, False
 
 
+# --- SupervisionDoc: ISRs and restructuring papers of the tracked projects -----------------------------------------
+
+def supervision_from_db() -> dict[str, dict]:
+    from procintel.ingestion import supervision
+    return _rows("SELECT doc_id, project_id, doc_type, doc_date, title, pdf_url, txt_url FROM documents "
+                 f"WHERE doc_type IN {supervision.TYPES}", lambda r: r["doc_id"])
+
+
+def supervision_from_source(ctx: dict) -> tuple[dict[str, dict], bool]:
+    """The newest ISRs and restructuring papers per tracked project (procintel.ingestion.supervision). A window per
+    project (older ones drop out as newer appear), so the read is not complete: absence is not a removal."""
+    from procintel.ingestion import supervision
+    from procintel.ingestion.wb_client import WBClient
+    client = WBClient(fresh_listings=True)
+    con = db.connect(read_only=True)
+    try:
+        projects = [p for (p,) in con.execute("SELECT project_id FROM projects ORDER BY 1").fetchall()]
+    finally:
+        con.close()
+    return {r["doc_id"]: r for p in projects for r in supervision.for_project(client, p)}, False
+
+
 ENTITY_TYPES: dict[str, EntityType] = {e.name: e for e in [
     EntityType("Notice", timedelta(hours=1), NOTICE_FIELDS, notices_from_source, notices_from_db,
                "World Bank procurement notices API (search.worldbank.org/api/procnotices)"),
@@ -204,6 +227,8 @@ ENTITY_TYPES: dict[str, EntityType] = {e.name: e for e in [
                "World Bank indicators API: CPIA and Worldwide Governance Indicators per country"),
     EntityType("Document", timedelta(hours=1), DOCUMENT_FIELDS, documents_from_source, documents_from_db,
                "World Bank documents API: Implementation Completion Reports, newest first"),
+    EntityType("SupervisionDoc", timedelta(days=1), DOCUMENT_FIELDS, supervision_from_source, supervision_from_db,
+               "World Bank documents API: the newest ISR and restructuring paper of each tracked project"),
 ]}
 
 

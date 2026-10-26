@@ -21,6 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
+- [ ] Supervision reports (ISRs) and restructuring papers as document types (the brief's "supervision notes and amendments"; open question 2 of docs/event-pipeline-design.md, deferred from the event pipeline's step 2): a document type per kind in the Document entity and the chunker, so their passages are searchable and cited (added 2026-10-25, by me) — STATUS: part 1 done in COMMIT_PENDING: procintel.ingestion.supervision (per tracked project the newest ISR and the newest restructuring paper, PROCINTEL_ISR_PER_PROJECT / PROCINTEL_RESTRUCTURING_PER_PROJECT; restructuring papers are the API's 'Project Paper' type with a title naming a restructuring, so additional-financing papers stay out; stored as 'Restructuring Paper'), a SupervisionDoc entity read daily (its events go to the documents-ingest rule), procintel.ingestion.isr_chunk (ISR layout: running header and dated page footer removed, numbered sections; kept 3 ratings, 4 key issues and status with short paragraphs joined, 5 risk ratings; anchors like 4.1·2-5), chunk.build cutting ISRs with it and restructuring papers with the completion-report chunker (checked on a real paper: 30 passages with numbered paragraphs). Fixed on the way: a tracked type new to the database too would 'seed' an empty state on every run and never read its source. Checked: tests (a real ISR's first 3 pages as a fixture: 4 passages, anchors, header and footer gone; restructuring vs additional financing; a new type reads its source at once), 191 tests pass. Next: part 2, load them live (detection, ingest, passages, embedding, tags), then measure search quality with them in.
 
 ## MVP (in order)
 
@@ -43,7 +44,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Supervision reports (ISRs) and restructuring papers as document types (the brief's "supervision notes and amendments"; open question 2 of docs/event-pipeline-design.md, deferred from the event pipeline's step 2): a document type per kind in the Document entity and the chunker, so their passages are searchable and cited (added 2026-10-25, by me)
 - [ ] Optional: wrap cleaner, embedder and tagger as a LlamaIndex IngestionPipeline (added 2026-10-24, by me)
 
 ### Done
@@ -78,7 +78,7 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Survival model for award time — DEFERRED 2026-10-25: of 859 tenders without an award, 805 are over 2 years old and ~723 have no award notice in the data at all (no-award shares 32-46% for every method, including open-bid works and goods that must publish awards), so they are mostly unpublished or unlinked awards, not open tenders; treating them as censored would inflate predicted times. Revisit after the two items above, if a reliable "still open" signal exists (added 2026-10-24, by me)
+- [ ] Survival model for award time — DEFERRED 2026-10-25: of 859 tenders without an award, 805 are over 2 years old and ~723 have no award notice in the data at all (no-award shares 32-46% for every method, including open-bid works and goods that must publish awards), so they are mostly unpublished or unlinked awards, not open tenders; treating them as censored would inflate predicted times. Revisit after the two items above, if a reliable "still open" signal exists (added 2026-10-24, by me). Re-measured 2026-10-26 after the contract-award signing dates: 691 tenders over 2 years old still have no award (signing dates filled 114 award dates in all), and only 23 tenders younger than 18 months are open; a survival model would add 23 censored cases to 1,424 awarded ones. Still deferred.
 
 ### Done
 
