@@ -18,7 +18,8 @@ def _old(path, table, col, ages):
 def test_dry_run_counts_then_apply_removes_only_what_is_old(tmp_path, monkeypatch):
     for name in ("PIPELINE_DB", "JOBS_DB", "FEEDBACK_DB", "DB_PATH"):
         monkeypatch.setattr(paths, name, tmp_path / f"{name}.duckdb")
-    monkeypatch.setattr(paths, "HTTP_CACHE", tmp_path / "http")
+    monkeypatch.setattr(paths, "DATA_DIR", tmp_path)                   # the local blob store: <data>/cache/http
+    monkeypatch.setattr(paths, "HTTP_CACHE", tmp_path / "cache" / "http")
     monkeypatch.setattr(paths, "LOG_DIR", tmp_path / "logs")
     monkeypatch.setattr(retention, "PILOT_UNTIL", "")
     _old(paths.PIPELINE_DB, "event_log", "detected_at", [40, 31, 5])
@@ -30,7 +31,7 @@ def test_dry_run_counts_then_apply_removes_only_what_is_old(tmp_path, monkeypatc
     con.executemany("INSERT INTO jobs VALUES (?, ?, ?, ?)", [("a", "done", old, old), ("b", "pending", old, None),
                                                              ("c", "done", datetime.now(), datetime.now())])
     con.close()
-    paths.HTTP_CACHE.mkdir()
+    paths.HTTP_CACHE.mkdir(parents=True)
     for name, age in (("old.json", 40), ("new.json", 1)):
         f = paths.HTTP_CACHE / name
         f.write_text("{}")

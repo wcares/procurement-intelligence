@@ -18,5 +18,6 @@ pypdf>=6.0               # uploads: PDF text (procintel.intake)
 python-docx>=1.1         # uploads: Word text
 python-multipart>=0.0.9  # uploads: FastAPI form files
 pytest
+moto>=5.2                # tests: an in-memory S3 for procintel.core.blob (boto3 itself comes with litellm)
 httpx>=0.27              # FastAPI TestClient in tests/test_api.py
 # optional: anthropic>=0.40, only if PROCINTEL_LLM_MODEL points at a Claude model through LiteLLM

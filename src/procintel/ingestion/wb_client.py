@@ -20,11 +20,12 @@ from typing import Any, Iterator
 
 import requests
 
-from procintel.core import paths
+from procintel.core import blob, paths
 
 SEARCH = "https://search.worldbank.org/api"
 INDICATORS = "https://api.worldbank.org/v2"
-CACHE_DIR = paths.HTTP_CACHE
+CACHE_DIR = paths.HTTP_CACHE   # where the cache is in the data folder (local storage)
+CACHE_PREFIX = "cache/http"    # its key prefix in procintel.core.blob (data folder or object storage)
 UA = "procintel-prototype/0.1 (research)"
 
 ICR_TYPE = "Implementation Completion and Results Report"
@@ -40,14 +41,13 @@ class WBClient:
         self.timeout = timeout
         self.s = requests.Session()
         self.s.headers["User-Agent"] = UA
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     # -- low level -----------------------------------------------------
     def _get(self, url: str, params: dict[str, Any] | None = None, text: bool = False, fresh: bool = False) -> Any:
         key = hashlib.sha256((url + json.dumps(params or {}, sort_keys=True)).encode()).hexdigest()[:32]
-        path = CACHE_DIR / (key + (".txt" if text else ".json"))
-        if self.cache and path.exists() and not fresh:
-            raw = path.read_text()
+        blob_key = f"{CACHE_PREFIX}/{key}" + (".txt" if text else ".json")
+        if self.cache and not fresh and (cached := blob.store().get(blob_key)) is not None:
+            raw = cached.decode()
             return raw if text else json.loads(raw)
         last: Exception | None = None
         for attempt in range(4):
@@ -56,7 +56,7 @@ class WBClient:
                 r.raise_for_status()
                 body = r.text if text else r.json()
                 if self.cache:
-                    path.write_text(body if text else json.dumps(body))
+                    blob.store().put(blob_key, (body if text else json.dumps(body)).encode())
                 time.sleep(self.pause)
                 return body
             except (requests.RequestException, ValueError) as e:  # ValueError: bad JSON

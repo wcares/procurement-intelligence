@@ -14,7 +14,7 @@ def _setup(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "DB_PATH", tmp_path / "main.duckdb")
     monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
     monkeypatch.setattr(jobs_store, "DB_PATH", tmp_path / "jobs.duckdb")
-    monkeypatch.setattr(store, "UPLOAD_DIR", tmp_path / "uploads")
+    monkeypatch.setattr(paths, "DATA_DIR", tmp_path)                 # uploads go to <data>/uploads (local blob store)
     monkeypatch.delenv("PROCINTEL_DECIDE_API_BASE", raising=False)
     con = duckdb.connect(str(tmp_path / "main.duckdb"))
     con.execute("CREATE TABLE projects AS SELECT * FROM (VALUES ('P123456', 'Rural Roads', 'Republic of Kenya', 'KE'), "

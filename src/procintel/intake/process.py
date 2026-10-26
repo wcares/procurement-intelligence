@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from procintel.core import db
+from procintel.core import blob, db
 from procintel.intake import classify, extract, link, store
 from procintel.pipeline import detect
 from procintel.pipeline import store as pipeline_store
@@ -22,7 +22,12 @@ def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None
     if up is None or up["status"] != "received":
         return up
     try:
-        pages = extract.pages(Path(up["path"]), up["format"])
+        # the path column holds a blob key; uploads from before object storage hold an absolute file path
+        if up["path"].startswith("/"):
+            pages = extract.pages(Path(up["path"]), up["format"])
+        else:
+            with blob.local_copy(up["path"], suffix=f".{up['format']}") as path:
+                pages = extract.pages(path, up["format"])
     except Exception as e:
         store.advance(upload_id, "extract", f"could not read the file: {e}", "failed", db_path, error=str(e)[:500])
         return store.get(upload_id, db_path)

@@ -86,7 +86,14 @@ def _files(folder, cutoff: datetime, dry: bool) -> int:
 
 
 def http_cache(cutoff: datetime, dry: bool) -> int:
-    return _files(paths.HTTP_CACHE, cutoff, dry)
+    """Cached World Bank responses, wherever they are kept (procintel.core.blob: data folder or object storage)."""
+    from procintel.core import blob
+    from procintel.ingestion.wb_client import CACHE_PREFIX
+    old = [k for k, modified in blob.store().list(CACHE_PREFIX) if modified < cutoff]
+    if not dry:
+        for k in old:
+            blob.store().delete(k)
+    return len(old)
 
 
 def refresh_logs(cutoff: datetime, dry: bool) -> int:

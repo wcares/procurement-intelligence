@@ -1,4 +1,5 @@
-"""Uploaded files and how far each got: stored under DATA_DIR/uploads, recorded in the pipeline store (table upload),
+"""Uploaded files and how far each got: stored by key under "uploads/" (procintel.core.blob: the data folder or object
+storage), recorded in the pipeline store (table upload),
 with every stage it passed and what it found. The same content twice (same SHA-256) is recorded as a duplicate of the
 first and not processed again."""
 from __future__ import annotations
@@ -9,10 +10,10 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from procintel.core import paths
+from procintel.core import blob
 from procintel.pipeline import store as pipeline_store
 
-UPLOAD_DIR = paths.DATA_DIR / "uploads"
+UPLOAD_PREFIX = "uploads"   # key prefix in procintel.core.blob; the path column holds the key
 COLUMNS = ["upload_id", "filename", "format", "size", "sha256", "path", "uploaded_by", "uploaded_at", "status",
            "stages", "doc_type", "type_confidence", "links", "doc_id", "error"]
 
@@ -38,8 +39,7 @@ def _row(r: tuple) -> dict:
     return d
 
 
-def save(filename: str, content: bytes, fmt: str, uploaded_by: str | None, upload_dir: Path | None = None,
-         db_path: Path | None = None) -> dict:
+def save(filename: str, content: bytes, fmt: str, uploaded_by: str | None, db_path: Path | None = None) -> dict:
     """Store the file and record it; a repeat of earlier content is recorded as a duplicate (status 'duplicate')."""
     digest = hashlib.sha256(content).hexdigest()
     con = connect(db_path)
@@ -47,16 +47,14 @@ def save(filename: str, content: bytes, fmt: str, uploaded_by: str | None, uploa
         first = con.execute("SELECT upload_id FROM upload WHERE sha256 = ? AND status <> 'duplicate' "
                             "ORDER BY uploaded_at LIMIT 1", [digest]).fetchone()
         uid = uuid.uuid4().hex[:12]
-        folder = upload_dir or UPLOAD_DIR
-        folder.mkdir(parents=True, exist_ok=True)
-        path = folder / f"{uid}.{fmt}"
+        key = f"{UPLOAD_PREFIX}/{uid}.{fmt}"      # procintel.core.blob: data folder or object storage
         if not first:
-            path.write_bytes(content)
+            blob.store().put(key, content)
         status = "duplicate" if first else "received"
         stage = {"stage": "received", "at": _now().isoformat() + "Z",
                  "detail": f"same content as upload {first[0]}" if first else f"{len(content):,} bytes"}
         con.execute(f"INSERT INTO upload ({', '.join(COLUMNS)}) VALUES ({', '.join('?' * len(COLUMNS))})",
-                    [uid, filename, fmt, len(content), digest, None if first else str(path), uploaded_by, _now(),
+                    [uid, filename, fmt, len(content), digest, None if first else key, uploaded_by, _now(),
                      status, json.dumps([stage]), None, None, None, None, None])
     finally:
         con.close()

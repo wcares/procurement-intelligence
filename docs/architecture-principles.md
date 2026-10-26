@@ -84,8 +84,8 @@ own commit). Packages depend downwards: `api` and `jobs` on the module packages,
 | worker | every pipeline step as jobs, including connector code | a thread in the api process | its own container (same image), scaled separately |
 | tables and state | Postgres | DuckDB files | Postgres |
 | vectors | Qdrant or pgvector | DuckDB table, in-memory search | Qdrant |
-| raw files | object storage | `data/` folder | S3 or MinIO |
-| models | answer, embedding, decision | llama.cpp on the host | GPU containers or hosted endpoints |
+| raw files | object storage | `data/` folder, or S3 / MinIO with `PROCINTEL_BLOB_URL=s3://bucket/prefix` (`procintel.core.blob`, built 2026-10-26: uploads and the API cache) | S3 or MinIO |
+| models | answer, embedding, decision | llama.cpp on the host | GPU containers or hosted endpoints: a change of `PROCINTEL_LLM_API_BASE` / `_MODEL`, `PROCINTEL_EMBED_API_BASE` / `_MODEL`, `PROCINTEL_DECIDE_API_BASE` (and the judge's), nothing in code |
 | sign-in | username and password, roles | — | same; single sign-on optional later |
 
 ### Demo target: the production stack on this Mac (user, 2026-10-25)
