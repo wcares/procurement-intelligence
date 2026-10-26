@@ -140,7 +140,7 @@ admin users who run the pipeline ... exactly the role based").
 
 | role | who | can |
 |---|---|---|
-| **Planner** | World Bank project teams and procurement specialists, borrower implementing agencies | home dashboard, Assess, Ask, interactive visuals; rate answers, flag citations; upload documents to analyse |
+| **Planner** | World Bank project teams and procurement specialists, borrower implementing agencies | home dashboard, Assess, Ask, interactive visuals; rate answers, flag citations; upload documents to analyse (their own, on the Documents page; a completion report joins the shared evidence once an admin adds it; built 2026-10-26) |
 | **Admin** | the team running the platform | everything a planner can, plus Settings, connectors, rules, event log, background jobs, evaluation page, feedback review, promotions |
 | **Reviewer** | domain experts | everything a planner can, plus the Evaluation page to read (quality over time, comparisons, models), the labelling queue and feedback review; no runs, promotions, prompts, pipeline or settings (built 2026-10-26) |
 

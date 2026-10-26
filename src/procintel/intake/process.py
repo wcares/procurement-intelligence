@@ -19,17 +19,22 @@ ICR_TYPE = "Implementation Completion and Results Report"   # as the World Bank 
 MIN_CHARS = 500     # less text than this: a scan without a text layer, or an empty file
 
 
-def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None) -> dict:
+def _pages(up: dict) -> list[str]:
+    # the path column holds a blob key; uploads from before object storage hold an absolute file path
+    if up["path"].startswith("/"):
+        return extract.pages(Path(up["path"]), up["format"])
+    with blob.local_copy(up["path"], suffix=f".{up['format']}") as path:
+        return extract.pages(path, up["format"])
+
+
+def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None, trusted: bool = True) -> dict:
+    """trusted: uploaded by an admin. A planner's completion report would change everyone's evidence, so it waits for
+    an admin (status awaiting_approval, then approve())."""
     up = store.get(upload_id, db_path)
     if up is None or up["status"] != "received":
         return up
     try:
-        # the path column holds a blob key; uploads from before object storage hold an absolute file path
-        if up["path"].startswith("/"):
-            pages = extract.pages(Path(up["path"]), up["format"])
-        else:
-            with blob.local_copy(up["path"], suffix=f".{up['format']}") as path:
-                pages = extract.pages(path, up["format"])
+        pages = _pages(up)
     except Exception as e:
         store.advance(upload_id, "extract", f"could not read the file: {e}", "failed", db_path, error=str(e)[:500])
         return store.get(upload_id, db_path)
@@ -68,7 +73,31 @@ def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None
         store.advance(upload_id, "done", "a completion report, but no project id in it matches a tracked project; "
                       "review by hand", "needs_review", db_path)
         return store.get(upload_id, db_path)
+    if not trusted:
+        store.advance(upload_id, "done", "a completion report about a tracked project; it joins the evidence everyone "
+                      "searches once an admin adds it", "awaiting_approval", db_path)
+        return store.get(upload_id, db_path)
+    return _add(up, text, known, db_path, jobs_db)
 
+
+def approve(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None) -> dict | None:
+    """An admin adds a waiting completion report to the evidence: one a planner uploaded, or one the decision model
+    alone called a completion report. Raises ValueError when the upload cannot join the evidence."""
+    up = store.get(upload_id, db_path)
+    if up is None:
+        return None
+    if up["status"] not in ("awaiting_approval", "needs_review") or up["doc_type"] != "completion_report":
+        raise ValueError("only a completion report waiting for review can be added to the evidence")
+    known = [p["id"] for p in (up["links"] or {}).get("projects", []) if p["known"]]
+    if not known:
+        raise ValueError("it names no tracked project, so it cannot be linked to the evidence")
+    text = "\n\n".join(_pages(up)).strip()
+    store.advance(upload_id, "approved", "added by an admin", None, db_path)
+    return _add(up, text, known, db_path, jobs_db)
+
+
+def _add(up: dict, text: str, known: list[str], db_path: Path | None, jobs_db: Path | None) -> dict:
+    upload_id = up["upload_id"]
     doc_id = f"upload-{upload_id}"
     title = next((ln.strip() for ln in text.splitlines() if len(ln.strip()) > 10), up["filename"])[:200]
     _add_document(doc_id, ",".join(known), title, text)

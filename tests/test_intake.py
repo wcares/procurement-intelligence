@@ -165,3 +165,32 @@ def test_removing_an_upload_deletes_its_file_and_takes_its_report_out_of_the_evi
     assert jobs_store.next_pending() is not None                                  # re-cut and re-index queued
     assert process.remove(up["upload_id"])["status"] == "removed"                 # a second removal changes nothing
     assert process.remove("nope") is None
+
+
+def test_planners_upload_their_own_and_an_admin_adds_their_reports_to_the_evidence(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from procintel.api.app import app
+    from procintel.auth import service
+    _setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(paths, "AUTH_DB", tmp_path / "auth.duckdb")
+    monkeypatch.setenv("PROCINTEL_AUTH", "local")
+    monkeypatch.setenv("PROCINTEL_COOKIE_SECURE", "0")
+    for name, role in [("ana", "planner"), ("bo", "planner"), ("root", "admin")]:
+        service.create_user(name, f"{name}-password-1", role)
+    ana, bo, root = (TestClient(app, client=("127.0.0.1", 5000)) for _ in range(3))
+    for c, name in [(ana, "ana"), (bo, "bo"), (root, "root")]:
+        assert c.post("/auth/login", json={"username": name, "password": f"{name}-password-1"}).status_code == 200
+    uid = ana.post("/intake/uploads", files={"file": ("icr.txt", ICR.encode(), "text/plain")}).json()["upload_id"]
+    got = ana.get(f"/intake/uploads/{uid}").json()
+    assert got["status"] == "awaiting_approval" and got["doc_id"] is None              # not in the evidence yet
+    assert [u["upload_id"] for u in ana.get("/intake/uploads").json()["uploads"]] == [uid]
+    assert bo.get("/intake/uploads").json()["uploads"] == [] and bo.get(f"/intake/uploads/{uid}").status_code == 404
+    assert bo.delete(f"/intake/uploads/{uid}").status_code == 404                      # not bo's to remove
+    assert ana.post(f"/intake/uploads/{uid}/approve").status_code == 403               # planners cannot approve
+    assert root.get("/intake/uploads").json()["all"] is True
+    out = root.post(f"/intake/uploads/{uid}/approve").json()
+    assert out["status"] == "added" and out["doc_id"] == f"upload-{uid}"
+    assert root.post(f"/intake/uploads/{uid}/approve").status_code == 400              # already added
+    uid2 = root.post("/intake/uploads", files={"file": ("icr2.txt", (ICR + " x").encode(), "text/plain")}).json()["upload_id"]
+    assert root.get(f"/intake/uploads/{uid2}").json()["status"] == "added"            # an admin's goes straight in
+    assert ana.delete(f"/intake/uploads/{uid}").json()["status"] == "removed"         # the uploader removes their own

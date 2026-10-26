@@ -70,11 +70,13 @@ def get(upload_id: str, db_path: Path | None = None) -> dict | None:
         con.close()
 
 
-def recent(limit: int = 50, db_path: Path | None = None) -> list[dict]:
+def recent(limit: int = 50, db_path: Path | None = None, uploaded_by: str | None = None) -> list[dict]:
+    """Newest first; uploaded_by (a pseudonym) keeps one person's uploads only."""
     con = connect(db_path)
     try:
-        return [_row(r) for r in con.execute(f"SELECT {', '.join(COLUMNS)} FROM upload ORDER BY uploaded_at DESC "
-                                             "LIMIT ?", [limit]).fetchall()]
+        where, args = ("WHERE uploaded_by = ? ", [uploaded_by]) if uploaded_by else ("", [])
+        return [_row(r) for r in con.execute(f"SELECT {', '.join(COLUMNS)} FROM upload {where}ORDER BY uploaded_at DESC "
+                                             "LIMIT ?", args + [limit]).fetchall()]
     finally:
         con.close()
 

@@ -15,10 +15,12 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   failed: { label: "failed", cls: "text-risk-high" },
   duplicate: { label: "duplicate", cls: "text-ink-muted" },
   removed: { label: "removed", cls: "text-ink-muted" },
+  awaiting_approval: { label: "waiting for an admin", cls: "text-risk-medium" },
 };
 
 /** Add a file and follow it: text extracted by format, kind decided, projects and countries linked; a completion
- * report linked to a tracked project is added to the evidence and its passages indexed by the pipeline. */
+ * report linked to a tracked project is added to the evidence and its passages indexed by the pipeline. Planners see
+ * their own uploads and their reports wait for an admin; admins see every upload and can add waiting reports. */
 export function UploadView() {
   const [data, setData] = useState<UploadsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,8 +64,8 @@ export function UploadView() {
         </p>
         <p className="mt-1 text-xs text-ink-muted">
           {data ? `${data.formats.join(", ")} · up to ${data.maxMb} MB each` : ""}. Completion reports that name a tracked
-          project are added to the evidence; other documents are kept, classified and linked. Scans need OCR, which is
-          not available yet.
+          project are added to the evidence{data && !data.all ? " once an admin confirms them" : ""}; other documents
+          are kept, classified and linked. Scans need OCR, which is not available yet.
         </p>
         <input ref={input} type="file" multiple className="hidden" onChange={(e) => send(e.target.files)}
           accept={data?.formats.map((f) => `.${f}`).join(",")} />
@@ -71,12 +73,12 @@ export function UploadView() {
       </div>
       {error && <p className="text-sm text-risk-high">{error}</p>}
       {data && data.uploads.length === 0 && <p className="text-sm text-ink-muted">No uploads yet.</p>}
-      <ul className="space-y-3">{data?.uploads.map((u) => <UploadCard key={u.upload_id} u={u} onChanged={load} />)}</ul>
+      <ul className="space-y-3">{data?.uploads.map((u) => <UploadCard key={u.upload_id} u={u} admin={data.all} onChanged={load} />)}</ul>
     </div>
   );
 }
 
-function UploadCard({ u, onChanged }: { u: Upload; onChanged: () => void }) {
+function UploadCard({ u, admin, onChanged }: { u: Upload; admin: boolean; onChanged: () => void }) {
   const s = STATUS[u.status] ?? { label: "processing…", cls: "text-brand" };
   const [asking, setAsking] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -89,6 +91,13 @@ function UploadCard({ u, onChanged }: { u: Upload; onChanged: () => void }) {
     }
     setAsking(false);
   }
+  async function approve() {
+    const r = await api.approveUpload(u.upload_id).catch((e) => ({ error: (e as Error).message }));
+    if ("error" in r) setNote(r.error);
+    else onChanged();
+  }
+  const waiting = admin && u.doc_type === "completion_report" && (u.status === "awaiting_approval" || u.status === "needs_review")
+    && (u.links?.projects ?? []).some((p) => p.known);
   return (
     <li className="rounded-xl border border-line bg-surface p-4 text-sm">
       <header className="mb-2 flex flex-wrap items-baseline gap-x-3">
@@ -117,6 +126,9 @@ function UploadCard({ u, onChanged }: { u: Upload; onChanged: () => void }) {
       )}
       {u.status !== "removed" && !WORKING.has(u.status) && (
         <div className="mt-2 flex items-center gap-2 text-xs">
+          {waiting && !asking && (
+            <Button variant="outline" size="xs" className="border-line" onClick={approve}>Add to the evidence</Button>
+          )}
           {asking ? (
             <>
               <span>

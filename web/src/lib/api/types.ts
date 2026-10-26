@@ -615,7 +615,7 @@ export interface Upload {
   format: string;
   size: number;
   uploaded_at: string;
-  /** received → extracted → classified → linked → added | kept; or needs_review, failed, duplicate; removed */
+  /** received → extracted → classified → linked → added | kept; or needs_review, failed, duplicate; awaiting_approval (a planner's completion report); removed */
   status: string;
   stages: { stage: string; at: string; detail: string }[];
   doc_type: string | null;
@@ -629,6 +629,8 @@ export interface UploadsResponse {
   uploads: Upload[];
   formats: string[];
   maxMb: number;
+  /** true for an admin: every upload; a planner sees their own */
+  all: boolean;
 }
 
 export interface PipelineRule {

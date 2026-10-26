@@ -17,7 +17,7 @@ ROUTERS = [
     (prompts.router, "admin"),
     (jobs.router, None),         # admin per route; reload also from the local refresh script
     (pipeline.router, "admin"),
-    (intake.router, "admin"),     # uploads (planners later: docs/ui-design.md 3c)
+    (intake.router, "planner"),   # uploads: planners their own, admins all; approving needs admin (per route)
     (shadows.router, "admin"),
     (evaluation.router, "reviewer"),  # labelling and reading; starting a run needs admin (per route)
 ]
