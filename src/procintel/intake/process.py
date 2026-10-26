@@ -59,7 +59,8 @@ def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None
     links = link.find(text)
     known = [p["id"] for p in links["projects"] if p["known"]]
     store.advance(upload_id, "link", f"{len(links['projects'])} project id(s), {len(known)} known; countries: "
-                  f"{', '.join(links['countries']) or 'none'}", "linked", db_path, links=links)
+                  f"{', '.join(links['countries']) or 'none'}; {len(links['packages'])} package(s) by bid reference, "
+                  f"{len(links['firms'])} firm(s) by name", "linked", db_path, links=links)
 
     if kind["type"] == "completion_report" and not kind["titled"]:
         store.advance(upload_id, "done", "a completion report by the decision model only (no such title in the "

@@ -118,6 +118,17 @@ function UploadCard({ u, admin, onChanged }: { u: Upload; admin: boolean; onChan
           ))}
         </p>
       )}
+      {(u.links?.packages?.length ?? 0) > 0 && (
+        <p className="mt-1 text-xs">
+          Packages:{" "}
+          {u.links!.packages!.map((p) => (
+            <Link key={p.id} href={`/package?id=${encodeURIComponent(p.id)}`} className="mr-2 underline" title={p.description}>{p.ref}</Link>
+          ))}
+        </p>
+      )}
+      {(u.links?.firms?.length ?? 0) > 0 && (
+        <p className="mt-1 text-xs">Firms: {u.links!.firms!.map((f) => f.name).join(" · ")}</p>
+      )}
       {u.doc_id && u.status !== "removed" && (
         <p className="mt-1 text-xs">
           In the evidence as <span className="font-mono">{u.doc_id}</span>; indexing shows in the{" "}

@@ -194,3 +194,24 @@ def test_planners_upload_their_own_and_an_admin_adds_their_reports_to_the_eviden
     uid2 = root.post("/intake/uploads", files={"file": ("icr2.txt", (ICR + " x").encode(), "text/plain")}).json()["upload_id"]
     assert root.get(f"/intake/uploads/{uid2}").json()["status"] == "added"            # an admin's goes straight in
     assert ana.delete(f"/intake/uploads/{uid}").json()["status"] == "removed"         # the uploader removes their own
+
+
+def test_packages_by_bid_reference_and_firms_by_name(tmp_path, monkeypatch):
+    _setup(tmp_path, monkeypatch)
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    con.execute("""CREATE TABLE package AS SELECT * FROM (VALUES ('P123456/KE-KERRA-112233-CW-RFB', 'P123456', 'feeder roads'),
+        ('P123456/KE-9', 'P123456', 'short ref'), ('P999999/XX-OTHER-445566-GO-RFB', 'P999999', 'elsewhere'))
+        t(package_id, project_id, description)""")
+    con.execute("""CREATE TABLE supplier AS SELECT * FROM (VALUES (1, 'Kenya Road Builders Ltd.', 'KENYA ROAD BUILDERS LTD '),
+        (2, 'ACME', 'ACME'), (3, 'Far Away Contractors Ltd', 'FAR AWAY CONTRACTORS LTD')) t(firm_id, name, name_key)""")
+    con.execute("""CREATE TABLE award_supplier AS SELECT * FROM (VALUES ('P123456/KE-KERRA-112233-CW-RFB', 1),
+        ('P123456/KE-KERRA-112233-CW-RFB', 2), ('P999999/XX-OTHER-445566-GO-RFB', 3)) t(package_id, firm_id)""")
+    con.close()
+    text = ("Rural Roads Project (P123456). Contract KE/KERRA/112233-CW-RFB was awarded to kenya road builders, ltd. "
+            "after ACME withdrew; reference KE-9 and XX-OTHER-445566-GO-RFB; Far Away Contractors Ltd bid too.")
+    out = link.find(text)
+    assert [p["id"] for p in out["packages"]] == ["P123456/KE-KERRA-112233-CW-RFB"]   # spelling differences ignored;
+    assert [f["name"] for f in out["firms"]] == ["Kenya Road Builders Ltd."]          # short ones and other projects' left out
+    loose = link.packages_and_firms(text, [])                                        # no project named: all, stricter
+    assert {p["id"] for p in loose[0]} == {"P123456/KE-KERRA-112233-CW-RFB", "P999999/XX-OTHER-445566-GO-RFB"}
+    assert {f["firmId"] for f in loose[1]} == {1, 3}

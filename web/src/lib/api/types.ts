@@ -620,7 +620,13 @@ export interface Upload {
   stages: { stage: string; at: string; detail: string }[];
   doc_type: string | null;
   type_confidence: number | null;
-  links: { projects: { id: string; name: string | null; country: string | null; known: boolean }[]; countries: string[] } | null;
+  links: {
+    projects: { id: string; name: string | null; country: string | null; known: boolean }[];
+    countries: string[];
+    /** packages by bid reference and firms by name (uploads linked before 2026-10-26 have neither) */
+    packages?: { id: string; projectId: string; ref: string; description: string }[];
+    firms?: { firmId: number; name: string }[];
+  } | null;
   doc_id: string | null;
   error: string | null;
 }
