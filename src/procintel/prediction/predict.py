@@ -29,6 +29,8 @@ all packages, computed on the training folds only. A model is used in /assess on
 """
 from __future__ import annotations
 
+import json
+
 import math
 from datetime import datetime, timezone
 from pathlib import Path
@@ -47,6 +49,7 @@ from procintel.prediction.stats import MIN_BENCH_N
 ROOT = paths.ROOT
 DB_PATH = paths.DB_PATH
 MODEL_PATH = paths.MODEL_DIR / "timeline.joblib"
+MODEL_HISTORY = paths.MODEL_DIR / "history.jsonl"   # one line per retrain (the Evaluation page)
 CPIA = ["transparency_corruption", "public_administration", "property_rights_rule_based_gov",
         "business_regulatory_env", "public_sector_mgmt_cluster", "ida_allocation_index"]
 CATEGORICAL = ["proc_group", "method_code", "region", "sector"]
@@ -215,7 +218,22 @@ def retrain(db_path: Path = DB_PATH, path: Path = MODEL_PATH) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(bundle, path)
     print(f"saved {path}")
+    record(bundle, path.parent / MODEL_HISTORY.name)
     return metrics
+
+
+def history_row(bundle: dict) -> dict:
+    """What the Evaluation page shows of one trained model: cross-validated (model, baseline) per metric and where
+    the model is used."""
+    m = bundle["metrics"]
+    return {"trained_at": bundle["trained_at"], "n": m["n"], "projects": m.get("projects"), "folds": m.get("folds"),
+            "metrics": {k: [float(v[0]), float(v[1])] for k, v in m.items() if isinstance(v, (tuple, list))},
+            "use": bundle["use"]}
+
+
+def record(bundle: dict, history: Path = MODEL_HISTORY) -> None:
+    with history.open("a") as f:
+        f.write(json.dumps(history_row(bundle)) + "\n")
 
 
 if __name__ == "__main__":

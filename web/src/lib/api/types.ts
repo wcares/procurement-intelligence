@@ -303,6 +303,55 @@ export interface ShadowsResponse {
   available: { name: string; label: string }[];
 }
 
+/** One evaluation run (eval/history.jsonl); measures absent when the run did not include them. */
+export interface EvalRun {
+  time: string;
+  judged_pairs?: number;
+  bm25_p5?: number;
+  hybrid_p5?: number;
+  bm25_r10?: number;
+  hybrid_r10?: number;
+  gate_prec?: number | null;
+  answered?: number;
+  answerable?: number;
+  supported_sentences?: number;
+  sentences?: number;
+  supported_independent?: number;
+  independent_judge?: string;
+  refused_traps?: number;
+  traps?: number;
+  median_seconds?: number;
+  note?: string;
+  changesBefore?: { at: string; what: string; detail: string }[];
+}
+
+export interface ModelRetrain {
+  trained_at: string;
+  n: number | null;
+  projects?: number;
+  folds?: number;
+  /** per metric: [model, baseline] from project-grouped cross-validation */
+  metrics: Record<string, [number, number] | null>;
+  use?: Record<string, boolean>;
+  source?: string;
+}
+
+/** The Evaluation page (GET /evaluation). */
+export interface EvaluationResponse {
+  quality: EvalRun[];
+  comparisons: {
+    shadows: ShadowBuild[];
+    shadowKinds: { name: string; label: string }[];
+    prompts: { name: string; label: string; active: number; version: number; note: string | null;
+      evaluation: { versions: { active: number; candidate: number }; active: PromptEvalSide; candidate: PromptEvalSide } }[];
+    models: { name: string; run: EvalRun; live: EvalRun | null }[];
+  };
+  models: {
+    retrains: ModelRetrain[];
+    driftChecks: { at: string; retrain?: boolean; why?: string; new_packages?: number; mae_new?: number | null; mae_cv?: number }[];
+  };
+}
+
 /** One side of a prompt evaluation (procintel.learning.prompt_eval). */
 export interface PromptEvalSide {
   answered: number;

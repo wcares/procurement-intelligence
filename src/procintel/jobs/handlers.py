@@ -18,6 +18,8 @@ which is passed back in to resume after a pause or restart; its return value is 
     detect_changes   read each due source, record what changed, queue a pipeline_batch for it (procintel.pipeline)
     pipeline_batch   run the actions the rules ask for, one per step, then reload
     retention        delete what is past its retention (procintel.jobs.retention); background, queued daily
+    evaluate         the evaluation set (procintel.learning.evaluate): search quality, and with answers=True the answers
+                  too (about 10 minutes); appends to eval/history.jsonl; background, one step
 """
 from __future__ import annotations
 
@@ -183,3 +185,12 @@ def retention(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     out = r.apply(dry=bool(params.get("dry")))
     yield {"step": "applied"}
     return out
+
+
+@handler("evaluate", priority="background")
+def evaluate_run(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    from procintel.answering.retrieve import Retriever
+    from procintel.learning import evaluate
+    headline = evaluate.report(Retriever(), answers=bool(params.get("answers", True)))
+    yield {"step": "evaluated"}
+    return {k: headline.get(k) for k in ("time", "hybrid_p5", "hybrid_r10", "gate_prec", "answered", "refused_traps")}

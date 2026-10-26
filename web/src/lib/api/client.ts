@@ -20,6 +20,7 @@ import type {
   DryRunResponse,
   ConnectorsResponse,
   EventLogResponse,
+  EvaluationResponse,
   Upload,
   UploadsResponse,
   Options,
@@ -138,6 +139,9 @@ export const api = {
   activatePrompt: (name: string, version: number) =>
     call<{ prompts: PromptInfo[] }>(`/prompts/${encodeURIComponent(name)}/activate`, { method: "POST", body: JSON.stringify({ version }) }),
   shadows: () => call<ShadowsResponse>("/shadows"),
+  evaluation: () => call<EvaluationResponse>("/evaluation"),
+  runEvaluation: (answers: boolean) =>
+    call<{ queued: string | null; note: string | null }>("/evaluation/run", { method: "POST", body: JSON.stringify({ answers }) }),
   /** build / evaluate / promote are queued as jobs; discard drops the shadow tables at once */
   shadowAction: (name: string, action: "build" | "evaluate" | "promote" | "discard") =>
     call<{ queued?: string | null; note?: string | null; discarded?: string }>(`/shadows/${encodeURIComponent(name)}/${action}`, { method: "POST" }),
