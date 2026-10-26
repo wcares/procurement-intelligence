@@ -1,6 +1,6 @@
 """Watch-lists and alerts (docs/ui-design.md 2.4).
 
-A planner's watch-list names what they follow: countries, sectors, procurement groups, methods, projects. It is a
+A planner's watch-list names what they follow: regions, countries, sectors, procurement groups, methods, projects. It is a
 scope: within one kind any value matches, across kinds all must (Kenya + civil works = Kenyan civil works); a watched
 project matches on its own. The pipeline action watch_alerts (procintel.pipeline.actions) hands each batch's events to
 `from_events`, which writes one alert per planner and kind of change in their scope:
@@ -22,7 +22,7 @@ from pathlib import Path
 from procintel.core import db
 from procintel.pipeline import store as pipeline_store
 
-KINDS = {"country": "country_code", "sector": "sector", "proc_group": "proc_group", "method": "method_code",
+KINDS = {"region": "region", "country": "country_code", "sector": "sector", "proc_group": "proc_group", "method": "method_code",
          "project": "project_id"}
 SLOW_DAYS = 180
 
@@ -88,7 +88,7 @@ def _projects(ids: set[str]) -> dict[str, dict]:
         return {}
     con = db.connect(read_only=True)
     try:
-        q = con.execute("SELECT project_id, name, country, country_code, sector FROM projects "
+        q = con.execute("SELECT project_id, name, country, country_code, region, sector FROM projects "
                         "WHERE project_id IN (SELECT unnest(?))", [sorted(ids)])
         cols = [d[0] for d in q.description]
         return {r[0]: dict(zip(cols, r)) for r in q.fetchall()}
@@ -137,7 +137,8 @@ def changes(events: dict[str, dict], document_rows: dict[str, dict]) -> list[dic
     facts = _projects({c["project_id"] for c in out if c.get("project_id")})
     for c in out:
         p = facts.get(c.get("project_id"), {})
-        c.update({"country_code": p.get("country_code"), "sector": p.get("sector"), "country": p.get("country"),
+        c.update({"country_code": p.get("country_code"), "region": p.get("region"), "sector": p.get("sector"),
+                  "country": p.get("country"),
                   "project_name": p.get("name")})
     return out
 

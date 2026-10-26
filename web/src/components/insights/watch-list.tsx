@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { Options, WatchKind, WatchList } from "@/lib/api/types";
 
-const EMPTY: WatchList = { country: [], sector: [], proc_group: [], method: [], project: [] };
+const EMPTY: WatchList = { region: [], country: [], sector: [], proc_group: [], method: [], project: [] };
 
 /** What the planner follows. Alerts appear when the pipeline records changes inside this scope. */
 export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
@@ -38,8 +38,10 @@ export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
     <div className="space-y-3 text-sm">
       <p className="text-xs text-ink-muted">
         Pick what you follow. Within a row any choice matches; across rows all must (Kenya + Civil Works = Kenyan civil
-        works). A project you add is followed on its own.
+        works; a region and a country together narrow to that country). A project you add is followed on its own.
       </p>
+      <Chips label="Regions" values={[...new Set(opts.countries.map((c) => c.region))].filter((r) => r && r !== "Other").sort().map((r) => [r, r])}
+        chosen={watch.region} onToggle={(v) => toggle("region", v)} />
       <Chips label="Countries" values={opts.countries.map((c) => [c.code, c.name])} chosen={watch.country} onToggle={(v) => toggle("country", v)} />
       <Chips label="What is bought" values={opts.procGroups.map((g) => [g.code, g.label])} chosen={watch.proc_group} onToggle={(v) => toggle("proc_group", v)} />
       <Chips label="Methods" values={methods.map((m) => [m.code, dupe(m.label) ? `${m.label} (${m.code})` : m.label])} chosen={watch.method} onToggle={(v) => toggle("method", v)} />

@@ -12,8 +12,9 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "DB_PATH", tmp_path / "main.duckdb")
     monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
     con = duckdb.connect(str(tmp_path / "main.duckdb"))
-    con.execute("CREATE TABLE projects AS SELECT * FROM (VALUES ('P1', 'Roads', 'Republic of Kenya', 'KE', 'Transport'), "
-                "('P2', 'Schools', 'Republic of Ghana', 'GH', 'Education')) t(project_id, name, country, country_code, sector)")
+    con.execute("CREATE TABLE projects AS SELECT * FROM (VALUES ('P1', 'Roads', 'Republic of Kenya', 'KE', "
+                "'Eastern and Southern Africa', 'Transport'), ('P2', 'Schools', 'Republic of Ghana', 'GH', "
+                "'Western and Central Africa', 'Education')) t(project_id, name, country, country_code, region, sector)")
     con.execute("CREATE TABLE package AS SELECT * FROM (VALUES ('P1/B1', 240), ('P1/B2', 90)) t(package_id, tender_to_award_days)")
     con.execute("CREATE TABLE documents AS SELECT 'd9' AS doc_id, 'P2' AS project_id, 'ICR Schools' AS title")
     con.close()
@@ -106,3 +107,12 @@ def test_mitigations_come_only_from_supported_answers(monkeypatch):
     out = rec.mitigations(None, risks, "CW")
     assert len(asked) == 2 and "award takes longer than 6 months" in asked[0]     # high first, at most two, no low
     assert [r["risk"] for r in out] == ["slow"]                                    # the unsupported one gives nothing
+
+
+def test_a_watch_list_can_follow_a_region(world):
+    alerts.set_watch("dee", {"region": ["Eastern and Southern Africa"], "proc_group": ["CW"]})
+    assert alerts.get_watch("dee")["region"] == ["Eastern and Southern Africa"]
+    events = {"n1": notice("n1", "P1", "CW"), "n2": notice("n2", "P2", "CW")}       # Kenya in the region, Ghana not
+    assert alerts.from_events(events, {}) == 1
+    [a] = alerts.recent("dee")["alerts"]
+    assert a["title"] == "1 new procurement notice in Republic of Kenya"

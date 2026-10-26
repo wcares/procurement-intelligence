@@ -349,7 +349,7 @@ export interface ModelRetrain {
 }
 
 /** A planner's watch-list: within a kind any value matches, across kinds all must; projects match on their own. */
-export type WatchKind = "country" | "sector" | "proc_group" | "method" | "project";
+export type WatchKind = "region" | "country" | "sector" | "proc_group" | "method" | "project";
 export type WatchList = Record<WatchKind, string[]>;
 
 export interface Alert {
