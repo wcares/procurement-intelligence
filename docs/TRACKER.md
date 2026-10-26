@@ -21,7 +21,6 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
-- [ ] Full technical proposal document per the brief's four modules, after the MVP write-up (added 2026-10-24, by me)
 
 ## MVP (in order)
 
@@ -211,6 +210,7 @@ _(empty)_
 
 ### Done
 
+- [x] Full technical proposal document per the brief's four modules, after the MVP write-up (added 2026-10-24, by me) — STATUS: done in 3a772db: docs/proposal.md rewritten as the full proposal (the MVP write-up is in the git history): the problem and roles, architecture with the prototype-to-production mapping, the four modules each with design, what runs, measured evidence and gaps (sources and coverage; schema with exact keys, entity resolution and sector-time links; per-type chunking; the event pipeline; pre-tender models with repeated CV and the project variant; survival for live tenders; evidence-based re-bid and amendment risks; hybrid retrieval with gate; recommendations, goal seeking, monitoring; seven validation layers; the ICR vs ISR method; the closed loop with the 2026-10-26 drift and retrain as a worked case; pilot phases and KPIs with baselines), the pages, a rubric map and limits. Every figure read from the running system on 2026-10-26 (a script over the tables, eval files and the saved model); one stale figure from the MVP write-up corrected on the way: countries without CPIA are 21 of 80, with WGI for 18 of them, not 20.
 - [x] MVP write-up per module (docs/proposal.md): what is built, design choices, measured evidence and gaps for each of the four modules, the conflicting-evidence method, and a proposed three-phase pilot with KPIs and how each is computed — 7f1ee44 — every figure cross-checked against TRACKER Done entries, commit messages and eval/report.md; pilot sizes and durations marked as proposals
 - [x] README: what it is, quick look on mock data, Python and model setup (llama.cpp commands, idle sleep), data build steps with measured times, refresh, run, architecture, evaluation summary, limitations, layout; requirements.txt corrected (dropped unused networkx and rank-bm25, marked anthropic optional, added bm25s, PyStemmer, joblib and httpx that are imported) plus requirements.lock — 8722ed8 — every command checked to have an entry point; a fresh venv from requirements.txt alone passes all 66 tests
 
