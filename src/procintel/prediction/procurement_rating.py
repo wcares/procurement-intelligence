@@ -85,7 +85,9 @@ def check(parsed: dict | None, outcome: str | None, last_ip: str | None) -> dict
 def build(db_path: Path = DB_PATH) -> None:
     con = db.connect(db_path)
     passages: dict[str, list[str]] = {}
-    for doc_id, text in con.execute("""SELECT doc_id, text FROM chunk WHERE kind = 'text'
+    from procintel.ingestion.supervision import completion_reports_only
+    icr = completion_reports_only(con)
+    for doc_id, text in con.execute(f"""SELECT doc_id, text FROM chunk WHERE kind = 'text' AND {icr}
                                        AND regexp_matches(section, 'Fiduciary', 'i') ORDER BY doc_id, chunk_id""").fetchall():
         passages.setdefault(doc_id, []).append(text)
     overall = {d: (o, ip) for d, o, ip in con.execute("SELECT doc_id, outcome, isr_last_ip FROM rating_check").fetchall()}
@@ -98,7 +100,7 @@ def build(db_path: Path = DB_PATH) -> None:
     con.execute("""CREATE OR REPLACE TABLE procurement_check (doc_id VARCHAR, closing VARCHAR, lowest VARCHAR,
                    verdict VARCHAR, conflict BOOLEAN, quote VARCHAR, note VARCHAR)""")
     con.executemany("INSERT INTO procurement_check VALUES (?, ?, ?, ?, ?, ?, ?)", rows)
-    n_docs = con.execute("SELECT count(*) FROM documents").fetchone()[0]
+    n_docs = con.execute(f"SELECT count(*) FROM documents WHERE {icr}").fetchone()[0]
     print(f"procurement_check: {len(rows)} of {n_docs} reports state a procurement rating; "
           f"{sum(r[4] for r in rows)} rate it lower than a satisfactory overall verdict")
     for r in rows:

@@ -15,7 +15,7 @@ from datetime import date
 import pandas as pd
 
 from procintel.core import db
-from procintel.ingestion import sectors
+from procintel.ingestion import sectors, supervision
 from procintel.prediction.predict import LONG_DAYS
 
 PROJECT_URL = "https://projects.worldbank.org/en/projects-operations/project-detail/{}"  # its procurement tab lists the notices
@@ -69,14 +69,15 @@ class Dashboard:
                 SELECT dp.project_id, bool_or(c.lowest IN {BELOW_SATISFACTORY}) AS below
                 FROM procurement_check c JOIN document_project dp USING (doc_id)
                 WHERE c.lowest IS NOT NULL GROUP BY 1""").df()
-            problems = con.execute("""
+            icr = supervision.completion_reports_only(con, "c.doc_id")   # "what the completion reports say"
+            problems = con.execute(f"""
                 SELECT dp.project_id, count(*) FILTER (WHERE cp.problem) AS problems, count(*) AS tagged
                 FROM chunk_problem cp JOIN chunk c USING (chunk_id) JOIN document_project dp USING (doc_id)
-                GROUP BY 1""").df()
-            kinds = con.execute("""
+                WHERE {icr} GROUP BY 1""").df()
+            kinds = con.execute(f"""
                 SELECT dp.project_id, cp.kind, count(*) AS n
                 FROM chunk_problem cp JOIN chunk c USING (chunk_id) JOIN document_project dp USING (doc_id)
-                WHERE cp.problem AND cp.kind IS NOT NULL GROUP BY 1, 2""").df()
+                WHERE cp.problem AND cp.kind IS NOT NULL AND {icr} GROUP BY 1, 2""").df()
         finally:
             con.close()
         self.countries = countries

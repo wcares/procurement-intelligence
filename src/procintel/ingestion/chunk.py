@@ -195,6 +195,9 @@ def _split_long(text: str, limit: int | None = None) -> list[str]:
 
 
 def chunk_document(text: str) -> list[Chunk]:
+    # restructuring papers come with Windows line ends, which the line patterns here do not expect (none of the
+    # completion reports had one, so their passages are unchanged by this)
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     lines: list[str] = []
     for page in text.split("\x0c"):
         lines.extend(strip_page_furniture(page))

@@ -49,3 +49,13 @@ def test_a_type_new_to_the_database_reads_its_source_instead_of_seeding_forever(
         out = s.value
     assert out["events"] == {"SupervisionDoc": 1} and out["job"]  # read at once: the document is new
     assert [e["type"] for e in store.batch_events(out["batch"])] == ["SupervisionDoc.added"]
+
+
+def test_windows_line_ends_cut_like_unix_ones():
+    from procintel.ingestion import chunk
+    text = ("I. PROJECT STATUS AND RATIONALE FOR RESTRUCTURING\n\n1.      The project closing date is extended by six months "
+            "because the main civil works contract was delayed by a re-tender after the first bids exceeded the cost estimate.\n"
+            "2.      Procurement is rated Moderately Satisfactory; the procurement plan was updated in STEP.\n")
+    unix = chunk.chunk_document(text)
+    assert len(unix) == 2 and [c.para for c in unix] == ["1", "2"]
+    assert [(c.para, c.text) for c in chunk.chunk_document(text.replace("\n", "\r\n"))] == [(c.para, c.text) for c in unix]

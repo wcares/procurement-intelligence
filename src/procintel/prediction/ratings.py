@@ -92,7 +92,9 @@ def check(parsed: dict) -> dict | None:
 def build(db_path: Path = DB_PATH) -> None:
     con = db.connect(db_path)
     rows = []
-    for doc_id, text in con.execute("SELECT doc_id, text FROM documents").fetchall():
+    from procintel.ingestion.supervision import completion_reports_only
+    icr = completion_reports_only(con)
+    for doc_id, text in con.execute(f"SELECT doc_id, text FROM documents WHERE {icr}").fetchall():
         c = check(parse(text))
         if c:
             rows.append((doc_id, c["outcome"], c["isr_n"], c["isr_last_date"], c["isr_last_do"], c["isr_last_ip"],
@@ -100,7 +102,7 @@ def build(db_path: Path = DB_PATH) -> None:
     con.execute("""CREATE OR REPLACE TABLE rating_check (doc_id VARCHAR, outcome VARCHAR, isr_n INTEGER,
         isr_last_date VARCHAR, isr_last_do VARCHAR, isr_last_ip VARCHAR, isr_min_do VARCHAR, conflict BOOLEAN, note VARCHAR)""")
     con.executemany("INSERT INTO rating_check VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
-    n_docs = con.execute("SELECT count(*) FROM documents").fetchone()[0]
+    n_docs = con.execute(f"SELECT count(*) FROM documents WHERE {icr}").fetchone()[0]
     n_conf = sum(r[7] for r in rows)
     print(f"rating_check: {len(rows)} of {n_docs} reports have both an outcome and ISR ratings; {n_conf} conflicts")
     for r in con.execute("SELECT doc_id, outcome, isr_last_do, isr_last_date FROM rating_check WHERE conflict").fetchall():

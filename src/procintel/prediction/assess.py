@@ -259,7 +259,8 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
     precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "",
                                                 req.get("sector") or "", country_name, method)
     caveats = ["Timeline and risk numbers are statistics over historical World Bank procurement notices in the "
-               "ingested sample; precedents are ICR evaluation passages.", how]
+               "ingested sample; precedents are passages from completion reports (ICRs), supervision reports (ISRs) and "
+               "restructuring papers.", how]
     if not gov:
         caveats.append("No CPIA governance scores are available for this country (CPIA covers IDA countries only)"
                        + ("; Worldwide Governance Indicators are shown instead." if wg else "."))

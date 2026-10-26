@@ -39,6 +39,7 @@ DEFAULT_RULES = [
     Rule("documents-ingest", ("Document.added", "Document.changed", "SupervisionDoc.added", "SupervisionDoc.changed"),
          ("ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents")),
     Rule("uploads-add", ("Upload.ingested",), ("rebuild_tables", "rebuild_firms", "chunk_documents")),
+    Rule("documents-recut", ("Documents.changed",), ("chunk_documents",)),
     Rule("passages-index", ("Passages.changed",), ("index_passages", "document_checks")),
     Rule("projects-update", ("Project.changed",), ("apply_projects", "rebuild_tables", "sector_links"),
          fields=("status", "sector", "closing_date", "board_approval", "commitment_usd")),

@@ -63,7 +63,7 @@ export function Recommendations({ request }: { request: AssessRequest | null }) 
             </p>
           ))}
           {r.note && <p className="mt-1 text-muted">{r.note}</p>}
-          <p className="mt-1 text-muted">Basis: {r.basis === "statistic" ? "award-time statistics" : "passages from past completion reports"}</p>
+          <p className="mt-1 text-muted">Basis: {r.basis === "statistic" ? "award-time statistics" : "passages from past project reports"}</p>
           <div className="mt-1 flex gap-3">
             {rated[r.id] ? <span className="text-muted">{rated[r.id]}</span> : (
               <>

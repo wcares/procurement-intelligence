@@ -41,3 +41,13 @@ def for_project(client, project_id: str) -> list[dict]:
         papers = [d for d in docs if d.get("txturl") and _RESTRUCTURING.search(d.get("display_title") or "")]
         out += [row(d, RESTRUCTURING_TYPE, project_id) for d in papers[:RESTRUCTURING_PER_PROJECT]]
     return out
+
+
+def completion_reports_only(con, col: str = "doc_id") -> str:
+    """An SQL condition on a document id column: the document is a completion report (or an upload of one), not a
+    supervision report or restructuring paper. For the checks written for completion reports (outcome and
+    procurement ratings, re-bid and amendment evidence, problem counts): what they report is "what the completion
+    reports say". TRUE when the documents table has no doc_type column (older databases, tests)."""
+    typed = con.execute("SELECT 1 FROM duckdb_columns() WHERE table_name = 'documents' "
+                        "AND column_name = 'doc_type'").fetchone()
+    return f"{col} NOT IN (SELECT doc_id FROM documents WHERE doc_type IN {TYPES})" if typed else "TRUE"

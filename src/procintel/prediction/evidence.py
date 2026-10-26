@@ -50,10 +50,12 @@ def build(kinds: list[Kind], db_path: Path = DB_PATH) -> None:
     con.execute("""CREATE TABLE IF NOT EXISTS project_evidence (kind VARCHAR, project_id VARCHAR, source VARCHAR,
                    ref VARCHAR, quote VARCHAR)""")
     total = con.execute("SELECT count(*) FROM project").fetchone()[0]
+    from procintel.ingestion.supervision import completion_reports_only
+    icr = completion_reports_only(con)   # the evidence is reported as what the completion reports say
     for kind in kinds:
         rows = []
         for doc_id, chunk_id, text in con.execute(
-                "SELECT doc_id, chunk_id, text FROM chunk WHERE kind = 'text' AND regexp_matches(text, ?, 'i')",
+                f"SELECT doc_id, chunk_id, text FROM chunk WHERE kind = 'text' AND {icr} AND regexp_matches(text, ?, 'i')",
                 [kind.pattern]).fetchall():
             if reports(kind, text):
                 for (pid,) in con.execute("SELECT project_id FROM document_project WHERE doc_id = ?", [doc_id]).fetchall():
