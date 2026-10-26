@@ -21,6 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
+- [ ] Full technical proposal document per the brief's four modules, after the MVP write-up (added 2026-10-24, by me)
 
 ## MVP (in order)
 
@@ -215,4 +216,3 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Full technical proposal document per the brief's four modules, after the MVP write-up (added 2026-10-24, by me)

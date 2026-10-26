@@ -1,166 +1,314 @@
-# Procurement Intelligence Platform: technical proposal (MVP write-up)
+# Procurement Intelligence Platform: technical proposal
 
-This answers the four modules of `assessment.md` §4. Each module says what the working prototype does, the design
-choices behind it, the measured evidence, and what is not done yet. Every figure comes from a run recorded in a commit,
-in `eval/report.md`, or in `docs/TRACKER.md`; the tracker also holds the ordered list of next steps.
-
-Scope of the prototype: 120 Implementation Completion and Results Reports (ICRs), the 121 projects they cover, 10,370
-procurement notices and 5,598 CPIA scores for 72 countries, all from World Bank public APIs, stored in DuckDB and
-served by a FastAPI backend to a Next.js web app. All models run locally through llama.cpp and are swappable by
-configuration.
+This proposal answers the four modules of `assessment.md` §4 with a design that runs: a working prototype on World Bank
+public data, built and measured alongside the design. Each module states the design, what the prototype does, the
+measured evidence, and the open gaps. Every figure comes from the running system as of 2026-10-26 (tables in DuckDB,
+`eval/report.md`, `eval/history.jsonl`, the saved model, or a run recorded in `docs/TRACKER.md`). The design documents
+behind it: `docs/architecture-principles.md`, `docs/data-model.md`, `docs/event-pipeline-design.md`,
+`docs/ui-design.md`, `docs/pilot-plan.md`. The MVP write-up this replaces is in the git history.
 
 ---
 
-## Module 1: Ingestion and knowledge representation
+## 1. The problem and who it serves
 
-**What it does.** One pipeline (`ingest → model → chunk → embed → tag`) turns three kinds of source into one
-relational model joined on `project_id`:
+When a World Bank-financed project buys works, goods or services, each tender (a *package*) has to be planned: which
+procurement method, how long it will realistically take, what is likely to go wrong. That knowledge exists, but in
+three silos: procurement registries record what happened (notices, awards, contracts), supervision and completion
+reports explain why it went well or badly, and governance indicators describe the context. Planners reconcile them by
+hand and repeat past mistakes: unrealistic schedules, re-tenders, cancellations, mismatched specifications.
+
+The platform serves two roles, enforced in the backend:
+
+| role | who | uses |
+|---|---|---|
+| **planner** | World Bank task teams and procurement specialists, borrower implementing agencies | assess a planned package; ask questions of the evidence; follow ongoing projects; recommendations and goal seeking |
+| **admin** | the team running the platform | everything above, plus data pipeline, connectors, rules, evaluation, prompts, models, users |
+
+It supports the planner's decision and never makes it: it does not choose a bidder, and the Procurement Regulations
+still decide which methods a contract may use.
+
+**What a planner gets, for a package.** How comparable packages went (timeline by stage, typical and slow case); a
+forecast for this package (a gradient-boosted model where it beats the historical median, else the median); risk flags
+(slow award, re-tendering, amendments, governance), each with its evidence; quoted lessons from comparable projects;
+similar past contracts; recommendations drawn only from statistics and cited passages; for a package already under
+way, a forecast from where it is now; and, working backwards from a target ("awarded within 90 days"), the set-ups that
+met it most often.
+
+---
+
+## 2. Architecture
+
+```
+ World Bank APIs ─┐                                        ┌─► Assess · Ask · Insights · package pages (planners)
+ (projects, notices, │   connectors     event pipeline      │
+  documents, contracts,├─► poll / push ─► detect changes ─► rules ─► actions ─► tables · passages · vectors · tags
+  indicators)       │   (configurable)   (state + events)    │        (jobs,   · models · alerts
+ uploads (PDF, Word) ─┘                                       │         idle    │
+                                                              │         time)   └─► backend (FastAPI) ─► web (Next.js)
+                     evaluation · shadow builds · drift checks · feedback ◄──────────┘
+```
+
+| layer | prototype | production (configuration only) |
+|---|---|---|
+| tables and state | DuckDB files | Postgres (`PROCINTEL_DB_URL`; checked: same answers on Postgres 17) |
+| vectors | DuckDB table, in-memory search | Qdrant (`PROCINTEL_VECTOR_URL`) |
+| raw files | data folder | S3 or MinIO (`PROCINTEL_BLOB_URL`) |
+| models | llama.cpp on the host: Saluki 27B (answers), EmbeddingGemma 2 (vectors), Laya (decisions) | any endpoint by URL (`PROCINTEL_LLM_API_BASE`, `_EMBED_`, `_DECIDE_`, `_JUDGE_`), through LiteLLM |
+| background work | a worker thread that runs jobs only while the app is idle | separate worker containers claiming jobs from Postgres |
+| deployment | `next dev` + `uvicorn` | Docker Compose: web, api, worker, postgres, qdrant (built and run, `compose.yaml`) |
+
+The governing rule (`docs/architecture-principles.md`): every part is replaceable by configuration or registration,
+nothing hard-coded. Models, thresholds, prompts (versioned, evaluated before activation), pipeline rules, connector
+settings and package-status parameters are all settings, validated, with dry runs where a change has reach.
+
+---
+
+## 3. Module 1: ingestion pipeline and knowledge representation
+
+### 3.1 Sources and coverage (as of 2026-10-26)
 
 | source | form | becomes |
 |---|---|---|
-| Projects API | JSON records | `project` (121 rows), with country, sector, instrument, dates |
-| Procurement notices API | JSON + HTML notice text | `notice_m` (10,370), `package` (7,002 tenders keyed `project/bid_ref`, with tender-to-award days), `supplier` (4,702), `award_supplier` (5,913) |
-| Documents API (WDS) | ICR plain-text exports, 100+ pages | `document_m` (120), `chunk` (18,992 citable passages), `chunk_vec` (vectors), `chunk_tag` (labels), `rating_check` (ICR vs ISR) |
-| Indicators API | CPIA and WGI series | `cpia` (5,598 country-year-indicator rows), `wgi` (11,104 rows, 69 of 72 countries) |
-| Finances One data catalog (DS00005) | signed contracts | `contract_award` (16,414 contracts, 96 of 121 projects; the rest are policy and results-based operations) |
+| Projects API | JSON | 151 projects in 80 countries: 121 with completion reports, 30 ongoing (Active, approved since 2021, closing 2028-2032) |
+| Procurement notices API | JSON + notice HTML | 11,895 notices → 8,175 packages (keyed project + bid reference), 1,423 with a measured tender-to-award time |
+| Finances One (DS00005) | signed contracts | 16,414 contract awards; their signing dates fill 114 missing award dates |
+| Documents API | plain-text exports of 100+-page reports | 120 completion reports (ICRs), 114 supervision reports (ISRs), 92 restructuring papers → 22,060 citable passages |
+| Indicators API | country series | CPIA (6,444 rows, 59 countries; IDA countries only) and WGI (11,104 rows, 69 countries) |
+| uploads | PDF, Word, text, HTML | stored, extracted, classified, linked; completion reports about tracked projects join the evidence |
 
-The entity-relationship diagram, grain of every table and measured gaps are in `docs/data-model.md`.
+### 3.2 Entity-relationship schema and reconciliation across keys
 
-**Design choices.**
+The model is relational with an explicit link layer (`docs/data-model.md` has every table's grain and the measured
+gaps). The brief's example, a supplier contract row linked to a section of an ICR lesson via project, sector and time,
+is answered in three steps of increasing looseness:
 
-- *Linking on stable keys first.* A contract row, its tender, its project and the ICR that evaluates that project all
-  share `project_id`; ICRs covering several projects are split into `document_project`. This is exact, which matters
-  for citations. Sector and time are carried as attributes for filtering, not used as fuzzy join keys yet.
-- *A report-aware chunker instead of generic splitting.* ICRs number their paragraphs, so chunks follow numbered
-  paragraphs and keep `section` and `¶` as the citation anchor. Running headers, footers, page numbers and footnote
-  blocks are removed first: before that fix 1,360 of 19,169 chunks (7%) contained page furniture; after it, none, while
-  keeping 99.8% of the real words in that step (every removed line audited). Across the whole pipeline 86% of a
-  report's words reach the index (measured 2026-10-25): the rest are running headers, the table of contents, headings
-  (kept as section labels), abbreviation and staff lists and the data sheet, removed on purpose. Two rules that dropped
-  real findings were fixed then: a footnote cut that removed up to a page of body text, and "Annex 4." headings in
-  mixed case, whose annex was swallowed by a skipped section. Text without sentence breaks is capped at 1,400
-  characters so it fits an embedding window (107 chunks were over).
-- *Embeddings:* EmbeddingGemma 2 with its retrieval prompts, truncated to 256 of 768 dimensions (trained for it),
-  stored with the model name and a text hash so a rebuild only embeds new or changed passages (18,992 in 326 s; a
-  re-run embeds none).
-- *Labels from a decision model:* every passage gets a problem-type tag from Laya, a small model that returns
-  calibrated probabilities instead of text (18,140 passages in 653 s).
+1. **Exact keys first.** Contract, notice, package, project and report share `project_id`; a report covering several
+   projects is split into `document_project`. Citations rest on these exact links.
+2. **Entity resolution where keys disagree.** Notices of one tender are grouped into a package by bid reference; an
+   award filed under a re-tender suffix ("-1") is relinked to its tender (10 cases) and the original of an X / X-N pair
+   is marked as re-tendered (28); supplier ids of the same firm are merged (5,415 ids → 5,019 firms).
+3. **Sector and temporal proximity.** A contract is linked to the completion reports of other projects in the same
+   sector family that were running when it was tendered (`package_icr_link`, 70,618 links), so Assess can draw
+   same-sector lessons from other countries when a country's own reports cover other sectors.
 
-Supplier firm ids of the same firm are merged (4,702 ids into 4,344 firms; table `firm`).
+Passages carry `doc_id`, section and paragraph (the citation anchor), and get a vector, a procurement-topic tag and,
+where the tagger flags a possible problem, a problem label.
 
-Contracts are also linked to the completion reports of other projects in the same major sector that were running
-when they were tendered (table `package_icr_link`), and Assess draws same-sector lessons from other countries when a
-country's own reports come from a different sector.
+### 3.3 Parsing, chunking and embedding long reports
 
-**Not done yet.** tables are flattened in the text exports (page-image indexing with the multimodal embedding model is the
-candidate fix); the two sources missing at first were found under new addresses (2026-10-25): contract awards in the Finances One
-data catalog, whose signing dates give 114 packages a missing award date (tender-to-award times 1,178 -> 1,292; signing
-follows the award notice by a median of 2 days), and WGI under the codes `GOV_WGI_<x>.EST`, shown in Assess for the 20
-countries without CPIA (CPIA covers IDA countries only). WGI was tried as a model input and left out: day error
-improved (MAE 76.1 -> 74.6) but the >180-day risk scores got slightly worse (Brier 0.152 -> 0.157, AUC 0.798 -> 0.793).
+- **Layout-aware chunking per document type.** Completion reports and restructuring papers number their paragraphs,
+  so passages follow numbered paragraphs and keep section and ¶ as the anchor; running headers, footers, page numbers
+  and footnote blocks are removed first (before that fix 7% of passages carried page furniture; after it none, 99.8% of
+  real words kept). ISRs have their own chunker: numbered sections, unnumbered paragraphs joined up to a size, and the
+  ratings and risk tables kept as table passages; results-indicator tables, which text extraction scrambles, are left
+  out. Across the pipeline 86% of a report's words reach the index; the rest are removed on purpose (contents,
+  headings kept as labels, staff lists, data sheets).
+- **Embeddings:** EmbeddingGemma 2 with its retrieval prompts, truncated to 256 dimensions; stored with the model name
+  and a text hash, so a rebuild embeds only new or changed passages and passages that only moved keep their vectors,
+  tags and evaluation labels.
+- **Tags from a decision model:** Laya returns calibrated probabilities for fixed choices (procurement topic per
+  passage, 20,663 tagged); the answer model then labels whether a flagged passage describes a problem (3,776 labelled,
+  1,582 problems; 29 of 30 right in a hand check, the problem *kind* only 8 of 13, so only problem/no-problem is shown).
+- **Tables:** flattened tables are detected and marked as table passages; image-based table extraction is a gap (§9).
 
-## Module 2: Predictive and prescriptive engines
+### 3.4 An event-driven pipeline instead of rebuilds
 
-**Timeline and risk prediction.** Gradient-boosted trees (scikit-learn HistGradientBoosting, trained from scratch)
-predict tender-to-award days (median and 90th percentile, quantile loss) and the probability of exceeding 180 days.
-Inputs are what a planner knows before tendering: procurement group and method, region, sector and the country's CPIA
-scores as of the tender year.
+Six source types are tracked (`docs/event-pipeline-design.md`): notices, projects, contract awards, indicators,
+completion reports, and ISRs / restructuring papers. Each read is compared with stored fingerprints; differences become
+events (`Notice.added`, `Project.changed`, ...); 11 default rules turn events into 15 registered actions (write rows,
+rebuild tables, cut and index passages, checks, alerts, drift check, reload), coalesced so an action asked for by many
+events runs once per batch. Rules are editable by admins with validation, cycle detection and a dry run on the last
+week's events. Connectors are configuration (poll interval, on/off, or push through a signed webhook), back off when a
+source fails without stopping the others, and are shown with cursor, last success and last error. The weekly full
+refresh remains as a reconciliation.
 
-| metric (5-fold CV grouped by project, 1,145 packages) | model | baseline the app showed before |
-|---|---|---|
-| typical days, mean absolute error | 74.4 | 81.2 (median of comparable packages) |
-| 90th percentile, pinball loss | 25.2 | 26.0 |
-| > 180 days, Brier score | 0.147 | 0.167 |
-| > 180 days, AUC | 0.81 | 0.74 |
+---
 
-A model is shown only where it beats the baseline by at least 2%, labelled "model" next to the historical statistic.
-One finding shaped the design: only awarded tenders have a duration, so recent years look fast (median 258 days for
-2019 tenders, 75 for 2025). A first version that used the tender year learned this artefact and predicted 70 days for
-Kenyan civil works where 37% of comparable packages took over 180. The year was removed and training requires 18
-months of follow-up. The proper fix, a survival model that counts never-awarded tenders as censored, is the next step;
-amendment and re-bidding probabilities follow it.
+## 4. Module 2: predictive and prescriptive engines
 
-**Retrieval of precedents and lessons.** BM25 (LlamaIndex) and vector search run over the same filtered passages and
-are merged by reciprocal rank fusion. On the evaluation set, hybrid precision@5 is 0.77 against 0.64 for BM25, and
-pooled recall@10 0.76 against 0.62. Assess shows quoted lessons from comparable projects; passages the tagger is
-confident describe no problem (indicator tables, staffing lists) are filtered out. Answers are written by a local
-27B model (Underdog-Saluki, Qwen3.8 fine-tune) from at most five passages, in 13–30 s.
+### 4.1 Timeline and risk models
 
-**Not done yet.** Retrieval is single-pass, not the multi-step ("agentic") loop the brief describes; similar past
-specifications are not matched yet; precedents can still include tables for countries with one ICR.
+**Before tendering.** Gradient-boosted trees (scikit-learn) predict tender-to-award days (median, 90th percentile) and
+the chance of exceeding 180 days, from what a planner knows: procurement group and method, region, sector, CPIA scores
+of the tender year, contract value; and, when the package's project is known, years from project approval and project
+size (a second variant). Training uses only packages with 18 months of follow-up (1,336), because recent tenders enter
+the data only if awarded quickly, which made a first version learn that recent years are fast.
 
-## Module 3: Guardrails, faithfulness and attribution
-
-**Layers, in order.**
-
-1. *Citation by construction:* every answer sentence carries the passage numbers it rests on; the UI shows each
-   passage with project, section, paragraph and a link to the source PDF, and highlights the quoted sentence.
-2. *Evidence gate:* a passage counts as evidence only if the decision model judges it relevant to the question.
-   If none qualifies, the question is refused with a reason instead of answered.
-3. *Sentence fact-check:* each generated sentence is checked against the passages it cites; unsupported ones are
-   dropped and the drop is reported. In a live run this caught "Firms stopped showing up to bid because the cancellation
-   was substantial", which its source does not say; word overlap would have passed it.
-4. *Honest caveats:* each response names the retrieval and checking method actually used, flags a cut-off model
-   output as a failure, and falls back to quoted sentences when a model fails.
-
-The decision model was chosen by a test written before any run (26 labelled decisions): Laya (0.45 GB) was the only
-candidate without a PyTorch dependency to pass every bar (fact-check 12/12, relevance 6/6, tagging 6/8, 29 ms per
-decision).
-
-**Conflicting evidence.** Each ICR's outcome rating is compared with the project's last supervision (ISR)
-development-objective rating, both parsed from the report. A disagreement (opposite sides of satisfactory, or 2+
-points apart) appears as a caveat wherever that report is cited, with both ratings and the ISR date. Method: the ICR is
-the later, evidence-based verdict and is treated as final; the ISR is shown as context; the two are never averaged.
-104 of 120 reports could be judged; 11 disagree. Where a table row could not be read reliably, no verdict is given.
-
-**Measured faithfulness.** 15/15 answerable questions answered, 53/55 answer sentences supported by their citations,
-5/5 unanswerable questions refused, including three that sound like procurement questions but are not covered. The
-relevance labels behind these numbers agree with a hand check on 28 of 30.
-
-**Not done yet.** The faithfulness judge is the model that wrote the answers (an independent judge is next);
-procurement-specific conflicts (ISR tables carry no procurement rating); a larger evaluation set.
-
-## Module 4: Continuous learning and implementation
-
-**The loop that runs today.**
-
-```
-World Bank APIs ──► refresh ──► only new/changed passages embedded and tagged ──► models retrained ──► evaluation
-       ▲                                                                                                │
-       └────────────── planners use Assess / Ask ──► feedback (useful, not useful, flagged citation) ◄───┘
-```
-
-- `python -m procintel.ingestion.refresh` re-fetches listings, keeps existing reports, rebuilds what depends on them, retrains
-  the prediction models and logs what changed (documents, notices, passages, metrics before and after). Measured:
-  2.9 min with fetching, 6 s without.
-- Every answer and assessment is logged with an id; feedback attaches to that exact response. Flagged citations are
-  listed in the evaluation report as candidates for the test set or the chunker.
-- The evaluation report compares each run with the previous one (`eval/history.jsonl`), so a refresh that degrades
-  retrieval is visible.
-- A settings page tunes models, endpoints and thresholds live, validated, with saving; model servers release their
-  memory after 5 idle minutes.
-
-**Pilot rollout (proposed; full plan with entry and exit criteria, KPI definitions and baselines in
-`docs/pilot-plan.md`, measurable KPIs from the logs via `python -m procintel.learning.kpi`).**
-
-| phase | who | what is measured |
-|---|---|---|
-| 1. Shadow (4–6 weeks) | 5–10 procurement specialists, current packages | retrieval precision of flagged vs accepted citations; share of answers rated useful; refusal rate on real questions |
-| 2. Assisted planning (one region, one quarter) | planners use Assess when preparing procurement plans | predicted vs actual tender-to-award time on packages tendered in the pilot; planning time per package against the prior quarter |
-| 3. Wider rollout | more regions, scheduled refresh | weekly active users; feedback volume; evaluation trend after each refresh |
-
-KPIs and how each is computed: retrieval precision/recall from the evaluation set plus flagged citations; answer
-faithfulness from the sentence checks; prediction error on packages awarded after the model was trained; planning
-cycle time from timestamps of plan drafts (needs the planners' system); adoption from the response log.
-
-**Not done yet.** Scheduled refresh and live reload of the backend; retraining triggered by feedback or evaluation
-drift; feedback-driven additions to the evaluation set.
-
-## Summary
-
-| module | MVP status | strongest evidence | biggest gap |
+| metric (5-fold CV grouped by project, averaged over 5 random project splits) | model | model, project known | historical median |
 |---|---|---|---|
-| 1 Ingestion | done | 0 leaky passages after cleaning; 86% of words indexed, the rest removed on purpose | page images for tables |
-| 2 Prediction & retrieval | done | award-time error 74 vs 81 days; hybrid P@5 0.77 vs 0.64 | censoring (survival model) |
-| 3 Guardrails | done | 53/55 sentences supported, 5/5 refusals, fabrication caught live | independent faithfulness judge |
-| 4 Continuous learning | done | one-command refresh with change log; feedback in the evaluation report | scheduling and drift-triggered retraining |
+| typical days, mean absolute error | 82.5 | 80.8 | 84.9 |
+| > 180 days, Brier score | 0.168 | 0.165 | 0.174 |
+| > 180 days, AUC | 0.77 | 0.78 | 0.72 |
+| 90th percentile, pinball loss | 30.8 | 29.2 | 29.3 |
+
+A model is used only where it beats the baseline by at least 2%, decided on the repeated runs: a single run was a coin
+toss near that bar (gains from -1.1% to +5.8% over five splits). So the typical time and the over-180 risk come from
+the model and the slow case from history; every model number is labelled with its test error.
+
+**Under way: survival.** For a package already in bidding, the forecast is a Kaplan-Meier estimate over comparable
+tenders, given that this one is still open at its age: awarded tenders are events, tenders still open are censored at
+their age, and tenders open past any normal time (status *stale*) are left out, since many were awarded without a
+published notice. Counting open tenders as waiting moved the median forecast for the 244 live tenders from 74 to 109
+days and the chance of an award within 90 days from 53% to 43%: the earlier estimate, from awarded tenders only, had
+leaned early.
+
+**Risks beyond time.** Re-tendering and amendment risks come from evidence, not a classifier: re-bid evidence in
+notices (re-tender references, awards under a suffix) and in completion-report passages (71 passages from 26 projects),
+amendment evidence (15 from 11 projects), each stated as "at least N of M comparable projects" because the evidence
+only shows positives. Governance (CPIA; for 18 of the 21 countries without CPIA, which covers IDA countries only, WGI) flags context risk.
+
+### 4.2 Retrieval for precedents and lessons (RAG)
+
+Hybrid retrieval: BM25 and vector search over the same filtered passages (country, procurement group, sector), merged
+by reciprocal rank fusion; the question is also rephrased into the reports' vocabulary and searched again when that
+adds evidence; an evidence gate (the answer model) keeps only passages that help answer; answers are written only from
+those, at most four cited sentences. On the evaluation set (100 questions, 80 answerable; 1,437 judged question-passage
+pairs, the judge agreeing with a hand check on 28 of 30): hybrid precision@5 0.70 against 0.54 for BM25 alone, recall@10
+0.71 against 0.48 (with ISRs and restructuring papers in; 0.78 before they enlarged the pool of relevant passages), gate
+precision 0.90.
+
+Assess surfaces quoted lessons from comparable projects (same country and group first, widening to the region or
+sector when too few), similar past contracts by description embedding (with award time, value and re-tendering), and
+an answer map that shows which sources back each sentence.
+
+### 4.3 Prescriptive: recommendations, goal seeking, monitoring
+
+- **Recommendations** come only from statistics and cited passages: a method that was clearly faster for the same kind
+  of purchase (median at least 20% shorter, 10+ packages each, with the value-threshold caveat), and, for the flagged
+  risks, what past projects did, asked through the answer pipeline so every sentence is cited and checked. With no
+  supporting evidence, none is made.
+- **Goal seeking** works backwards from a target ("awarded within 90 days"): methods and lot splits ranked by the share
+  of comparable packages that met it, with n and scope; lot values outside what a method was used for are flagged for
+  the thresholds; worded as association ("packages set up this way were faster"), not cause.
+- **Monitoring** stamps every package of every tracked project active (bidding or contract running), finished,
+  replaced (re-tendered) or stale, by configurable rules with reasons and a dry run (now: 495 active, 6,438 finished,
+  30 replaced, 1,212 stale); active packages get the survival forecast, the contract end, and warnings (slower than 9 in
+  10, re-issued notice, contract ending after the project closes, a downgrade in the newest ISR).
+
+---
+
+## 5. Module 3: guardrails, faithfulness and source attribution
+
+### 5.1 Validation layers
+
+1. **Citation by construction.** Every answer sentence and recommendation carries the passages it rests on; every risk
+   flag carries its evidence (notices, packages, passages, indicators) with links to the source documents.
+2. **Evidence gate.** A passage counts as evidence only if judged to help answer the question; if none qualifies the
+   question is refused with the reason, not answered.
+3. **Sentence check.** Each generated sentence is checked against its cited passages and dropped if unsupported, and
+   the drop is reported. In a live run it caught "firms stopped showing up to bid because the cancellation was
+   substantial", which its source does not say.
+4. **An independent judge in evaluation.** A second model checks the answer model's sentences; where the two disagree
+   (7 of 285 sentences) the case goes to a person in the labelling queue.
+5. **Honest outputs.** Every response names the methods and models actually used, labels model numbers with their test
+   error and statistics with their sample, falls back to quoted sentences when a model fails, and says when evidence is
+   too thin ("not enough comparable packages", "beyond the data").
+6. **Predictions are never data.** Forecasts are drawn as forecasts, replaced by real dates when they arrive, never
+   written into the records and never used to train.
+7. **Inputs are checked too.** Uploaded files are classified by their own title before any model guess (the decision
+   model alone called a supervision report a completion report at 84%; that file was taken back out of the evidence
+   and the rule changed), and only a titled completion report about a tracked project joins the evidence.
+
+Measured on the evaluation set: 77 of 80 answerable questions answered, 277 of 285 sentences supported by their
+citations according to the answer model and 282 of 285 according to the independent judge, 20 of 20 trap questions
+refused.
+
+### 5.2 Conflicting institutional evidence
+
+Each completion report's outcome rating is compared with the project's last ISR development-objective rating, both
+parsed from the report (104 of 120 could be judged; 11 disagree). The method: the completion report is the later,
+evidence-based verdict and is treated as final; the ISR is shown as context, with its date; the two are never averaged;
+a disagreement appears as a caveat wherever that report is cited. Procurement ratings in completion reports are
+checked against the overall verdict the same way (52 reports state one; 6 rate procurement below a satisfactory
+overall verdict). Statistics that report "what the completion reports say" read completion reports only, so ISRs and
+restructuring papers add evidence without changing those counts.
+
+---
+
+## 6. Module 4: continuous learning and implementation strategy
+
+### 6.1 The closed loop
+
+New milestones (notices, awards), supervision notes (ISRs), amendments and restructurings (restructuring papers,
+re-issued notices) enter as events; the rules re-cut and re-index only what changed (vectors, tags, checks), rebuild
+the tables, and queue a drift check when award times change. The loop ran for real on 2026-10-26: adding the ongoing
+portfolio labelled 70 new packages, the drift check found the model's error on them at 130 days against 76 in
+cross-validation and retrained it; the retrained model no longer cleared the 2% bar on a single run, the app fell back
+to the historical medians (the guard working), and the investigation led to the repeated-run decision and the project
+variant, which put the model back in use. Every retrain is kept in a model history with its metrics.
+
+Index and prompt changes are tested before they go live: an alternative index is built as a *shadow* next to the live
+one and promoted only if it measures better (semantic chunking was tried and not promoted: precision@5 0.67 against
+0.70); a new prompt version answers the same sample questions as the active one before it can be activated.
+
+Users feed the loop: every response is logged with a pseudonymous user id; ratings and flagged citations attach to it;
+citations flagged on two separate responses are demoted in search; refused and not-useful questions become candidates
+for the evaluation set, and relevance labels and judge disagreements go to people in a labelling queue. An Evaluation
+page shows quality over time with the changes between runs (refreshes, retrains, promotions, question-set changes),
+comparisons with promote / discard, and model history. Logs and history are kept 30 days.
+
+### 6.2 Pilot rollout and KPIs
+
+Full plan with entry and exit criteria in `docs/pilot-plan.md`:
+
+| phase | who and what | move on when |
+|---|---|---|
+| 0. Pre-pilot | logging of user ids, package references, response times | the KPI script reports them on test data (done) |
+| 1. Shadow (4-6 weeks) | 5-10 procurement specialists on packages they already plan | 150+ rated responses, 60%+ useful, flagged citations under 5 per 100, no acted-on unsupported claim |
+| 2. Assisted planning (one region, one quarter) | planners use Assess for procurement plans | predicted vs actual award time on 30+ packages; half the group active weekly |
+| 3. Wider rollout | more regions, scheduled pipeline, feedback-driven evaluation | — |
+
+KPIs, each with how it is computed and today's baseline: retrieval precision (0.70) and recall (0.71) from the
+evaluation set; faithfulness (282/285 by the independent judge); refusals of unanswerable questions (20/20); award-time
+error on pilot packages against the median baseline; useful share and flagged citations from ratings; weekly active
+users from the pseudonymous log; response time (34 s per question, median); planning cycle time from the planners' own
+plan records, before and after.
+
+---
+
+## 7. What a user sees
+
+| page | for | shows |
+|---|---|---|
+| Overview | planners | what went wrong in past procurement, ranked and by year, every number clickable to its records |
+| Assess a package | planners | stage timeline with the package's own estimate and risks placed by stage; forecast, flags with evidence, governance, similar contracts as a chart, quoted lessons; "already started?" forecast from today; set a goal; recommendations |
+| Ask the evidence | planners | cited answers, an answer map, country and type filters |
+| Insights | planners | alerts on a personal watch-list, trends, ongoing work (projects and packages with status, forecasts and warnings), package pages with a live timeline |
+| Pipeline | admins | connectors, event log, rules, upload, status rules |
+| Evaluation | admins | quality over time, comparisons, prediction-model history, labelling queue |
+| Settings | admins | models, thresholds, profiles, prompts, users, jobs |
+
+---
+
+## 8. How this meets the rubric
+
+| dimension | where |
+|---|---|
+| System and knowledge architecture (30) | §2 configuration-replaceable layers, Postgres / Qdrant / object storage by setting; §3.2 relational schema with exact keys, entity resolution and sector-time links; §3.3 per-type chunking of long reports with tables marked; §3.4 event pipeline |
+| Analytical and AI methodology (30) | §4.1 models with grouped, repeated CV against a stated baseline, survival with censoring for live tenders; §4.2 hybrid retrieval with gate and measured precision / recall; §5 validation layers, independent judge, citation by construction |
+| Domain alignment and data use (25) | §3.1 all five World Bank sources plus uploads; procurement stages (plan, bidding, award, signing, contract) in the timeline and monitoring; missing and incomplete reporting handled explicitly: follow-up window for training, censored open tenders, stale status for unpublished awards, positive-only evidence stated as "at least" |
+| Operationalization and scalability (15) | §2 Compose deployment and production mapping; §6 closed loop shown working on real drift; §6.2 phased pilot with KPIs and baselines |
+
+---
+
+## 9. Limits and next steps
+
+- **Coverage.** 151 projects and 30 ongoing ones is a sample; the pipeline scales by connector settings, but the
+  statistics for rarer methods and regions stay thin (methods with fewer than 10 packages are not used for estimates).
+- **Tables in reports** are extracted from text exports; image-based extraction for tables and annexes is not built.
+- **Re-tendering and amendments** rest on positive-only evidence, so they are not rates; a calibrated probability needs
+  labelled negatives.
+- **The slow case** (90th percentile) still does not beat history; the model is used only for the typical time and
+  the over-180 risk.
+- **Retrieval** is a fixed pipeline with one rephrasing step rather than a multi-step agent; similar past technical
+  specifications are matched by description, not by specification documents.
+- **Not built:** OCR for scanned uploads, the subscribe connector mode, a Reviewer role, image page indexing.
+- **Planning cycle time** cannot be measured from public data; it needs the planners' own records in the pilot.
+
+---
+
+## Appendix: running it
+
+`README.md` covers set-up; `docker compose up` runs the full stack; `python -m procintel.learning.evaluate run`
+reproduces the evaluation; `python -m procintel.prediction.predict` retrains and prints the cross-validation table
+above; `docs/TRACKER.md` lists every change with its commit and how it was checked.
