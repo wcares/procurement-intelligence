@@ -66,7 +66,7 @@ export function DashboardView() {
     <div className="space-y-6">
       <SummaryCards s={dash.summary} />
       <RecentChangesCard />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card title="Riskiest first" note={m?.note}>
           <div className="mb-3 flex flex-wrap gap-2">
             <select className={box} value={measure} onChange={(e) => { const next = dash.measures.find((x) => x.key === e.target.value); setMeasure(e.target.value); if (next?.groups && !next.groups.includes(group)) setGroup(next.groups[0]); }} aria-label="Measure">
@@ -97,7 +97,7 @@ export function DashboardView() {
         <p className="text-xs text-ink-muted">Cells with fewer than {heat?.minN ?? 5} awards are left out. Click a cell for its packages.</p>
       </Card>
       <Card title="What the completion reports say went wrong">
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <ProblemMix mix={dash.problemMix} />
           <ProblemTrend rows={dash.trends.problems} few={dash.fewProjects} />
         </div>

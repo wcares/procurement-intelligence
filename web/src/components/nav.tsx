@@ -26,7 +26,7 @@ export function Nav() {
   }
   return (
     <>
-      <nav className="flex gap-1 text-sm">
+      <nav className="flex flex-wrap gap-1 text-sm">
         {NAV.filter((n) => hasRole(user.role, n.role)).map((n) => (
           <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-ink-muted hover:bg-subtle hover:text-foreground">
             {n.label}
