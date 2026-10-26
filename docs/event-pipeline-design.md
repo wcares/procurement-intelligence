@@ -1,6 +1,8 @@
 # Event-driven update pipeline: design
 
-Status: proposed (2026-10-25), not built. Tracked in docs/TRACKER.md, Module 4 queue.
+Status: built (2026-10-25/26) in `procintel.pipeline`, `procintel.intake` and the admin Pipeline pages; each section
+says what was built and what is still design only. Not built yet: connectors defined by configuration rather than
+as code, and the push (webhook) and subscribe modes (all sources poll today); OCR for scanned uploads.
 Follows docs/architecture-principles.md: every part replaceable by configuration or registration, nothing hardcoded.
 
 ## 1. Why
@@ -48,7 +50,8 @@ engine.
 |---|---|---|---|
 | Project | project_id | status, closing date, sector, commitment, approval date | Projects API (one listing call per refresh) |
 | Notice | notice_id | type, version, notice date, award date, price, suppliers | procurement notices API, newest first, stop at the last seen date |
-| Document | doc_id | document type, text fingerprint | documents API listing (ICR now; ISR and restructuring papers later) |
+| Document | doc_id | document type, text fingerprint | documents API listing (completion reports) |
+| SupervisionDoc | doc_id | document type, text fingerprint | documents API per tracked project: the newest ISR and restructuring paper (built 2026-10-26) |
 | Passage | chunk_id | text fingerprint (exists: `text_hash`) | derived from documents by the chunker |
 | ContractAward | wb_contract_number | signing date, amount, supplier | Finances One DS00005, per project |
 | Indicator | (country, indicator, year) | value | indicators API (CPIA, WGI) |
@@ -297,7 +300,10 @@ events and jobs; a live run on the real sources comparing the event-driven resul
 
 ## 11. Open questions
 
-- Detection interval: hourly is cheap for the APIs used; is a shorter interval useful for planners?
-- Should ISRs and restructuring papers come in at step 2 or as their own task first?
-- Who may edit rules in a multi-user deployment (pilot)? Today the Settings page has no sign-in.
-- Retention of the event log (all, or the last N months).
+- Detection interval: hourly is cheap for the APIs used; is a shorter interval useful for planners? (Still open;
+  hourly, per entity type, ISRs and restructuring papers daily.)
+- Should ISRs and restructuring papers come in at step 2 or as their own task first? (Answered: their own task,
+  built 2026-10-26.)
+- Who may edit rules in a multi-user deployment (pilot)? (Answered: admins only, enforced in the backend since sign-in
+  and roles, 2026-10-25.)
+- Retention of the event log (all, or the last N months). (Answered: 30 days, user 2026-10-25; section 6d.)

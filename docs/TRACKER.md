@@ -44,6 +44,7 @@ _(empty)_
 
 ### Improvements
 
+- [ ] Connectors defined by configuration (mode, interval, cursor, source settings) rather than as code, and the push (webhook with signature check) and subscribe modes of docs/event-pipeline-design.md section 6b; all sources poll and are code-defined today (design review, 2026-10-26)
 - [ ] Optional: wrap cleaner, embedder and tagger as a LlamaIndex IngestionPipeline (added 2026-10-24, by me)
 
 ### Done
@@ -144,6 +145,7 @@ _(empty)_
 
 ### Improvements
 
+- [ ] Production storage and models per docs/architecture-principles.md: raw files (uploads, report texts, the HTTP cache) in object storage (S3 or MinIO) instead of the data folder, and the models as GPU containers or hosted endpoints by URL (design review, 2026-10-26)
 
 ### Done
 
@@ -175,9 +177,11 @@ _(empty)_
 
 ### Queue
 
+- [ ] U5 remainder (user, 2026-10-25: "predictions shown on the timeline"): the planned package's own estimate (model or median, and the slow case) drawn over the stage timeline in Assess, per docs/ui-design.md section 2 (found missing in the design review, 2026-10-26)
 
 ### Improvements
 
+- [ ] Reviewer role (docs/ui-design.md 3c, 'later'): domain experts label evaluation items and review feedback, with no pipeline control (design review, 2026-10-26)
 - [ ] Dashboard follow-ups (from U2): governance (CPIA / WGI) as a ranking measure, problems by closing year as a chart, a 'what changed recently' block from the change-detection log, dashboard data in the in-app mock (the home page shows an error in mock mode today), and shadcn/ui after renaming the app's --muted / --accent tokens (added 2026-10-25, by me)
 - [ ] Upload follow-ups (from U4): remove an upload (and its document from the evidence); OCR for scanned PDFs; links to packages and firms (bid reference, supplier names); uploads by planners (docs/ui-design.md 3c); ISRs and restructuring papers into the evidence once they are a document type (Module 1 improvement)
 - [ ] Insights follow-ups (from U8): the full list of past recommendations with accept / dismiss counts on the Insights page; alerts for award-time shifts ("award times for RFB in your region rose 20%") from the trend; watch-list scope by region

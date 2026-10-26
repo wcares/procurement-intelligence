@@ -222,16 +222,18 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | # | date | request | status |
 |---|---|---|---|
 | U1 | 2026-10-24 | Configuration dashboard for backend settings | done (Settings page, profiles, search-quality check) |
-| U2 | 2026-10-25 | Home dashboard with graphs: most risky things that happened in the past, worst to best, trends over time | queued |
-| U3 | 2026-10-25 | Interactive visual for query results besides the text report: risks at each tender stage, with colours, clickable | queued |
-| U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | queued, after event pipeline step 1 |
-| U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | decided (section 4, Components); applies to U2-U4 |
-| U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | queued (section 3b) |
-| U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | queued (section 3c), before the pre-pilot logging |
-| U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | queued (section 2.4) |
+| U2 | 2026-10-25 | Home dashboard with graphs: most risky things that happened in the past, worst to best, trends over time | done (25111f2); follow-ups in the tracker |
+| U3 | 2026-10-25 | Interactive visual for query results besides the text report: risks at each tender stage, with colours, clickable | done (c0c02bf stage timeline, 840bec5 answer map, 08f5182 similar contracts and lessons) |
+| U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | done (ba23530 connectors, event log, rules; d058319 upload) |
+| U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | libraries in use (ECharts, Recharts, React Flow, TanStack Table; shadcn/ui waits for a token rename); the planned package's own estimate on the stage timeline is NOT built yet (tracker) |
+| U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | done (3f7bccf, 468a741) |
+| U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | done (84a1041) |
+| U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | done (95091b0); follow-ups in the tracker |
 
 ## 7. Open questions
 
 - One chart library instead of two: ECharts alone can do everything, at the cost of styling it to match shadcn/ui.
-- Which measure ranks the dashboard by default (delay is the most complete today).
-- Whether the problem-mix chart waits for better problem kinds.
+  (2026-10-26: still two; Recharts in two dashboard charts, ECharts for the rest.)
+- Which measure ranks the dashboard by default (delay is the most complete today). (Delay is the default.)
+- Whether the problem-mix chart waits for better problem kinds. (It shows, with the reliability caution: the kinds
+  were right on 8 of 13 in a hand check.)
