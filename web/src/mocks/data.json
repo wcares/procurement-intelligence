@@ -8,6 +8,11 @@
     "region": "Latin America and Caribbean"
    },
    {
+    "code": "BB",
+    "name": "Barbados",
+    "region": "Latin America and Caribbean"
+   },
+   {
     "code": "CF",
     "name": "Central African Republic",
     "region": "Western and Central Africa"
@@ -48,6 +53,11 @@
     "region": "Western and Central Africa"
    },
    {
+    "code": "FM",
+    "name": "Federated States of Micronesia",
+    "region": "East Asia and Pacific"
+   },
+   {
     "code": "BR",
     "name": "Federative Republic of Brazil",
     "region": "Latin America and Caribbean"
@@ -76,6 +86,11 @@
     "code": "MA",
     "name": "Kingdom of Morocco",
     "region": "Middle East and North Africa"
+   },
+   {
+    "code": "TO",
+    "name": "Kingdom of Tonga",
+    "region": "East Asia and Pacific"
    },
    {
     "code": "KG",
@@ -218,6 +233,11 @@
     "region": "Eastern and Southern Africa"
    },
    {
+    "code": "KI",
+    "name": "Republic of Kiribati",
+    "region": "East Asia and Pacific"
+   },
+   {
     "code": "XK",
     "name": "Republic of Kosovo",
     "region": "Europe and Central Asia"
@@ -288,6 +308,11 @@
     "region": "Western and Central Africa"
    },
    {
+    "code": "TG",
+    "name": "Republic of Togo",
+    "region": "Western and Central Africa"
+   },
+   {
     "code": "TN",
     "name": "Republic of Tunisia",
     "region": "Middle East and North Africa"
@@ -328,14 +353,29 @@
     "region": "East Asia and Pacific"
    },
    {
+    "code": "WS",
+    "name": "Samoa",
+    "region": "East Asia and Pacific"
+   },
+   {
     "code": "VN",
     "name": "Socialist Republic of Vietnam",
+    "region": "East Asia and Pacific"
+   },
+   {
+    "code": "SB",
+    "name": "Solomon Islands",
     "region": "East Asia and Pacific"
    },
    {
     "code": "SO",
     "name": "Somali Democratic Republic",
     "region": "Eastern and Southern Africa"
+   },
+   {
+    "code": "VC",
+    "name": "St. Vincent and the Grenadines",
+    "region": "Latin America and Caribbean"
    },
    {
     "code": "TV",
@@ -433,7 +473,7 @@
      "GO",
      "NC"
     ],
-    "n": 1953
+    "n": 2247
    },
    {
     "code": "INDV",
@@ -441,7 +481,7 @@
     "procGroups": [
      "CS"
     ],
-    "n": 1844
+    "n": 2178
    },
    {
     "code": "RFB",
@@ -451,15 +491,7 @@
      "GO",
      "NC"
     ],
-    "n": 1390
-   },
-   {
-    "code": "CQS",
-    "label": "Consultant Qualification  Selection",
-    "procGroups": [
-     "CS"
-    ],
-    "n": 484
+    "n": 1451
    },
    {
     "code": "CDS",
@@ -467,7 +499,15 @@
     "procGroups": [
      "CS"
     ],
-    "n": 398
+    "n": 614
+   },
+   {
+    "code": "CQS",
+    "label": "Consultant Qualification  Selection",
+    "procGroups": [
+     "CS"
+    ],
+    "n": 537
    },
    {
     "code": "QCBS",
@@ -475,7 +515,7 @@
     "procGroups": [
      "CS"
     ],
-    "n": 358
+    "n": 477
    },
    {
     "code": "DIR",
@@ -485,7 +525,7 @@
      "GO",
      "NC"
     ],
-    "n": 345
+    "n": 434
    },
    {
     "code": "LCS",
@@ -493,7 +533,7 @@
     "procGroups": [
      "CS"
     ],
-    "n": 43
+    "n": 54
    },
    {
     "code": "QBS",
@@ -501,7 +541,7 @@
     "procGroups": [
      "CS"
     ],
-    "n": 26
+    "n": 27
    },
    {
     "code": "FBS",
@@ -509,7 +549,7 @@
     "procGroups": [
      "CS"
     ],
-    "n": 21
+    "n": 23
    },
    {
     "code": "UN",
@@ -525,115 +565,115 @@
  },
  "benchmarks": {
   "all": {
-   "n": 1292,
-   "median": 108.0,
+   "n": 1423,
+   "median": 111.0,
    "p25": 60.0,
-   "p75": 213.25,
-   "p90": 329.0,
-   "shareOver180": 0.30727554179566563
+   "p75": 216.0,
+   "p90": 330.0,
+   "shareOver180": 0.3106113843991567
   },
   "CS": {
-   "n": 769,
-   "median": 122.0,
-   "p25": 71.0,
-   "p75": 230.0,
-   "p90": 358.0,
-   "shareOver180": 0.3511053315994798
+   "n": 869,
+   "median": 131.0,
+   "p25": 72.0,
+   "p75": 239.0,
+   "p90": 378.8000000000002,
+   "shareOver180": 0.3613348676639816
   },
   "CW": {
-   "n": 218,
-   "median": 109.0,
-   "p25": 62.25,
-   "p75": 231.75,
+   "n": 225,
+   "median": 107.0,
+   "p25": 62.0,
+   "p75": 231.0,
    "p90": 342.0,
-   "shareOver180": 0.3532110091743119
+   "shareOver180": 0.3466666666666667
   },
   "GO": {
-   "n": 265,
-   "median": 79.0,
-   "p25": 44.0,
-   "p75": 145.0,
-   "p90": 229.19999999999996,
-   "shareOver180": 0.16981132075471697
+   "n": 283,
+   "median": 77.0,
+   "p25": 41.5,
+   "p75": 137.5,
+   "p90": 224.60000000000002,
+   "shareOver180": 0.15901060070671377
   },
   "NC": {
-   "n": 40,
+   "n": 46,
    "median": 54.0,
-   "p25": 23.5,
-   "p75": 116.5,
-   "p90": 213.30000000000004,
-   "shareOver180": 0.125
+   "p25": 25.25,
+   "p75": 105.75,
+   "p90": 191.0,
+   "shareOver180": 0.10869565217391304
   },
   "CS/CQS": {
-   "n": 182,
-   "median": 134.0,
-   "p25": 78.0,
-   "p75": 196.0,
-   "p90": 285.0,
-   "shareOver180": 0.2857142857142857
+   "n": 198,
+   "median": 137.5,
+   "p25": 78.25,
+   "p75": 205.0,
+   "p90": 330.0,
+   "shareOver180": 0.31313131313131315
   },
   "CS/INDV": {
-   "n": 394,
-   "median": 85.0,
-   "p25": 48.0,
-   "p75": 135.75,
-   "p90": 220.7,
-   "shareOver180": 0.1598984771573604
+   "n": 442,
+   "median": 87.5,
+   "p25": 49.0,
+   "p75": 145.0,
+   "p90": 224.0,
+   "shareOver180": 0.16968325791855204
   },
   "CS/LCS": {
-   "n": 18,
-   "median": 178.5,
-   "p25": 111.25,
-   "p75": 233.25,
-   "p90": 294.5,
-   "shareOver180": 0.5
+   "n": 19,
+   "median": 165.0,
+   "p25": 109.5,
+   "p75": 227.5,
+   "p90": 291.0,
+   "shareOver180": 0.47368421052631576
   },
   "CS/QCBS": {
-   "n": 172,
-   "median": 287.0,
-   "p25": 216.25,
-   "p75": 440.5,
-   "p90": 561.2,
-   "shareOver180": 0.8313953488372093
+   "n": 207,
+   "median": 282.0,
+   "p25": 202.5,
+   "p75": 405.5,
+   "p90": 543.4,
+   "shareOver180": 0.7971014492753623
   },
   "CW/RFB": {
-   "n": 212,
-   "median": 111.5,
-   "p25": 66.25,
-   "p75": 232.75,
-   "p90": 340.70000000000005,
-   "shareOver180": 0.3584905660377358
+   "n": 215,
+   "median": 112.0,
+   "p25": 67.0,
+   "p75": 233.5,
+   "p90": 342.0,
+   "shareOver180": 0.3581395348837209
   },
   "GO/RFB": {
-   "n": 188,
+   "n": 190,
    "median": 111.5,
-   "p25": 63.75,
-   "p75": 172.5,
+   "p25": 64.25,
+   "p75": 171.75,
    "p90": 283.0,
-   "shareOver180": 0.23404255319148937
+   "shareOver180": 0.23157894736842105
   },
   "GO/RFQ": {
-   "n": 77,
+   "n": 93,
    "median": 33.0,
    "p25": 17.0,
-   "p75": 66.0,
-   "p90": 102.4,
-   "shareOver180": 0.012987012987012988
+   "p75": 59.0,
+   "p90": 100.59999999999998,
+   "shareOver180": 0.010752688172043012
   },
   "NC/RFB": {
-   "n": 29,
-   "median": 56.0,
-   "p25": 29.0,
+   "n": 33,
+   "median": 63.0,
+   "p25": 51.0,
    "p75": 147.0,
-   "p90": 247.79999999999998,
-   "shareOver180": 0.1724137931034483
+   "p90": 236.40000000000003,
+   "shareOver180": 0.15151515151515152
   },
   "NC/RFQ": {
-   "n": 11,
+   "n": 13,
    "median": 22.0,
-   "p25": 18.5,
-   "p75": 37.5,
-   "p90": 68.0,
+   "p25": 20.0,
+   "p75": 32.0,
+   "p90": 63.40000000000002,
    "shareOver180": 0.0
   }
  },
@@ -1086,6 +1126,38 @@
     "value": 3.0
    }
   ],
+  "FM": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.816667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.9
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
   "GE": [
    {
     "indicator": "business_regulatory_env",
@@ -1470,6 +1542,38 @@
     "value": 2.0
    }
   ],
+  "KI": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.891667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.1
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
+   }
+  ],
   "LA": [
    {
     "indicator": "business_regulatory_env",
@@ -1822,6 +1926,38 @@
     "value": 3.5
    }
   ],
+  "SB": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 2.983333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 2.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 2.8
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.0
+   }
+  ],
   "SL": [
    {
     "indicator": "business_regulatory_env",
@@ -2014,6 +2150,38 @@
     "value": 2.0
    }
   ],
+  "TG": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.783333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.3
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 2.5
+   }
+  ],
   "TJ": [
    {
     "indicator": "business_regulatory_env",
@@ -2044,6 +2212,38 @@
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 2.5
+   }
+  ],
+  "TO": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.0
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.483333
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.7
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 3.5
    }
   ],
   "TV": [
@@ -2174,6 +2374,38 @@
     "value": 3.0
    }
   ],
+  "VC": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.441667
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
+   }
+  ],
   "VN": [
    {
     "indicator": "business_regulatory_env",
@@ -2236,6 +2468,38 @@
     "indicator": "transparency_corruption",
     "year": 2025,
     "value": 3.0
+   }
+  ],
+  "WS": [
+   {
+    "indicator": "business_regulatory_env",
+    "year": 2025,
+    "value": 3.5
+   },
+   {
+    "indicator": "ida_allocation_index",
+    "year": 2025,
+    "value": 3.95
+   },
+   {
+    "indicator": "property_rights_rule_based_gov",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_administration",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "public_sector_mgmt_cluster",
+    "year": 2025,
+    "value": 4.0
+   },
+   {
+    "indicator": "transparency_corruption",
+    "year": 2025,
+    "value": 4.0
    }
   ],
   "XK": [
@@ -2933,6 +3197,60 @@
    "score": 3
   },
   {
+   "id": "40113716:109",
+   "docId": "40113716",
+   "projectId": "P126498",
+   "projectName": "Rwanda Feeder Roads Development Project",
+   "countryCode": "RW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Rwanda - Feeder Roads Development Project\n",
+   "section": "Key Factors During Implementation",
+   "quote": "37. Capacity, contract management, and safeguards performance gaps affected implementation. Understaffing at RTDA and districts (mapped to the SPIU), together with delays in recruiting critical technical and safeguards staff, constrained supervision at several points in the AF period , the OHS incidents arising from these gaps, and the full corrective response, are set out in section IV.B. Procurement record-keeping in the STEP system lagged, and frequent contract amendments and extensions were noted. More recently, the Bank and RTDA observed inadequate levels of service on some completed roads under OPRC maintenance (e.g., edge breaks, drainage deficiencies), prompting calls to strengthen contract management and ensure timely defect rectification to protect asset value.",
+   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40113716:161",
+   "docId": "40113716",
+   "projectId": "P126498",
+   "projectName": "Rwanda Feeder Roads Development Project",
+   "countryCode": "RW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Rwanda - Feeder Roads Development Project\n",
+   "section": "B. Key Outputs",
+   "quote": "Objective 3/outcome : Strenghtened project implementation 2. Roads rehabilitated, Rural 3. Employment generated under rehabilitation contracts Intermediate Results Indicators 5. Rural/feeder roads receiving maintenance 6. Local Community Associations (LCAs) established 8. Employment generated under maintenance contracts 1.4200 km Rural / feeder roads with readily available design and bidding Key Outputs document s (linked to the achievement of the Component) 2.Project emplemented according to planned time and budget",
+   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40113716:78",
+   "docId": "40113716",
+   "projectId": "P126498",
+   "projectName": "Rwanda Feeder Roads Development Project",
+   "countryCode": "RW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Implementation Completion and Results Report",
+   "title": "Rwanda - Feeder Roads Development Project\n",
+   "section": "B. Significant Changes During Implementation",
+   "quote": "resilience technical assistance, with the closing date subsequently extended twice to December 31, 2022, and June 30, 2023, respectively. The second Additional Financing , approved on June 6, 2023, provided targeted resources to complete remaining road works, maintenance, and climate resilience activities, and extended the closing date to December 31, 2025. Rationale for Changes and Their Implication on the Original Theory of Change 14. Overall, the restructurings maintained the project\u2019s original ambition and results chain while addressing key implementation bottlenecks and sustainability risks. Extensions and AFs were used to complete work affected by COVID-19 disruptions, procurement and contract management delays, counterpart funding constraints, District Road class 1(DC1) widening costs, and climate-resilience needs. They did not alter the PDO or reduce ambition.",
+   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
+   "procGroups": [
+    "CW",
+    "CS",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
    "id": "40121693:163",
    "docId": "40121693",
    "projectId": "P167830",
@@ -2990,60 +3308,6 @@
    "quote": "Rationale for Changes and Their Implication on the Original Theory of Change 15. The changes approved through the restructurings were driven by a combination of Mid-Term Review findings on indicator quality and measurability, external factors including security conditions and the COVID-19 pandemic, and implementation challenges including institutional delays and procurement challenges. The June 2023 extension was necessitated by startup delays. The project was implemented by",
    "url": "https://documents.worldbank.org/curated/en/099081026173533045/pdf/BOSIB-87f0fe9a-9bd6-42d5-aae8-e0f0f3ecb4b5.pdf",
    "procGroups": [],
-   "score": 3
-  },
-  {
-   "id": "40113716:109",
-   "docId": "40113716",
-   "projectId": "P126498",
-   "projectName": "Rwanda Feeder Roads Development Project",
-   "countryCode": "RW",
-   "region": "Eastern and Southern Africa",
-   "docType": "Implementation Completion and Results Report",
-   "title": "Rwanda - Feeder Roads Development Project\n",
-   "section": "Key Factors During Implementation",
-   "quote": "37. Capacity, contract management, and safeguards performance gaps affected implementation. Understaffing at RTDA and districts (mapped to the SPIU), together with delays in recruiting critical technical and safeguards staff, constrained supervision at several points in the AF period , the OHS incidents arising from these gaps, and the full corrective response, are set out in section IV.B. Procurement record-keeping in the STEP system lagged, and frequent contract amendments and extensions were noted. More recently, the Bank and RTDA observed inadequate levels of service on some completed roads under OPRC maintenance (e.g., edge breaks, drainage deficiencies), prompting calls to strengthen contract management and ensure timely defect rectification to protect asset value.",
-   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
-   "procGroups": [
-    "NC"
-   ],
-   "score": 5
-  },
-  {
-   "id": "40113716:161",
-   "docId": "40113716",
-   "projectId": "P126498",
-   "projectName": "Rwanda Feeder Roads Development Project",
-   "countryCode": "RW",
-   "region": "Eastern and Southern Africa",
-   "docType": "Implementation Completion and Results Report",
-   "title": "Rwanda - Feeder Roads Development Project\n",
-   "section": "B. Key Outputs",
-   "quote": "Objective 3/outcome : Strenghtened project implementation 2. Roads rehabilitated, Rural 3. Employment generated under rehabilitation contracts Intermediate Results Indicators 5. Rural/feeder roads receiving maintenance 6. Local Community Associations (LCAs) established 8. Employment generated under maintenance contracts 1.4200 km Rural / feeder roads with readily available design and bidding Key Outputs document s (linked to the achievement of the Component) 2.Project emplemented according to planned time and budget",
-   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
-   "procGroups": [
-    "CW",
-    "NC"
-   ],
-   "score": 3
-  },
-  {
-   "id": "40113716:78",
-   "docId": "40113716",
-   "projectId": "P126498",
-   "projectName": "Rwanda Feeder Roads Development Project",
-   "countryCode": "RW",
-   "region": "Eastern and Southern Africa",
-   "docType": "Implementation Completion and Results Report",
-   "title": "Rwanda - Feeder Roads Development Project\n",
-   "section": "B. Significant Changes During Implementation",
-   "quote": "resilience technical assistance, with the closing date subsequently extended twice to December 31, 2022, and June 30, 2023, respectively. The second Additional Financing , approved on June 6, 2023, provided targeted resources to complete remaining road works, maintenance, and climate resilience activities, and extended the closing date to December 31, 2025. Rationale for Changes and Their Implication on the Original Theory of Change 14. Overall, the restructurings maintained the project\u2019s original ambition and results chain while addressing key implementation bottlenecks and sustainability risks. Extensions and AFs were used to complete work affected by COVID-19 disruptions, procurement and contract management delays, counterpart funding constraints, District Road class 1(DC1) widening costs, and climate-resilience needs. They did not alter the PDO or reduce ambition.",
-   "url": "https://documents.worldbank.org/curated/en/099062926183558396/pdf/BOSIB-f8a06deb-6491-454f-9168-db3b3ed65a9d.pdf",
-   "procGroups": [
-    "CW",
-    "CS",
-    "NC"
-   ],
    "score": 3
   },
   {
@@ -4290,6 +4554,1001 @@
    "quote": "and complaints were handled through established mechanisms and resolved in a timely manner. Delays in a few packages (mainly due to bid evaluation and supplier performance) were mitigated through time-bound actions. 53. Overall, the project complied with the Bank\u2019s environmental, social, and fiduciary requirements, despite facing significant challenges. The project\u2019s experience underscores the importance of strong institutional capacity, and adaptive, participatory approaches to ensure efficient and effective implementation.",
    "url": "https://documents.worldbank.org/curated/en/099061026133015873/pdf/BOSIB-a15a6c29-823c-4c02-ad53-82b3cd27a0e5.pdf",
    "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34345486:24",
+   "docId": "34345486",
+   "projectId": "P118518",
+   "projectName": "Moldova Agriculture Competitiveness Project",
+   "countryCode": "MD",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Moldova Agriculture Competitiveness Project - P118518",
+   "section": "Ii. Summary Of Project Status And Proposed Changes",
+   "quote": "facility's design and construction; finally the complex and thorough bid evaluation followed by a US$14.0 million contract award on July 31, 2023. The award process also included successful negotiations to reduce the cost of the assignment (adjustments in scope), aligning it with the available project financing.",
+   "url": "https://documents.worldbank.org/curated/en/099062024161020930/pdf/P118518-17aa2e66-2e8e-4b11-80c1-1bd86ac336ae.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40042488:50",
+   "docId": "40042488",
+   "projectId": "P125590",
+   "projectName": "Uganda North-Eastern Road Corridor Asset Management Project (NERAMP)",
+   "countryCode": "UG",
+   "region": "Eastern and Southern Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Uganda North-Eastern Road Corridor Asset Management Project (NERAMP) - P125590",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "Component 1. As noted in para \u2026. above, only Lot 2 i. Component 1. As noted in paragraphs 11 and 12 above, only Lot 2 contract will be covered by the contract will be covered by the extension. All Lot 1 activities extension with the inclusion of the critical sections of the Awoja swamp crossing under Lot 1A. The will be implemented by GOU remainder of the Lot 1 activities will be implemented by GOU. The consultancy services for Project Component 2. As noted in para \u2026. only project supervision Management and Monitoring under Lot 2 will also be funded from the IDA credit. contract costs associated with Lot 2 will be funded",
+   "url": "https://documents.worldbank.org/curated/en/099091025163012425/pdf/P125590-f6d6acc4-55ec-41a5-8ccc-5b076c745cd0.pdf",
+   "procGroups": [
+    "CS",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "34159297:21",
+   "docId": "34159297",
+   "projectId": "P128050",
+   "projectName": "East-West Roads Project (Almaty-Korgos Section): Western Europe - Western China International Transit Corridor (CAREC - 1b)",
+   "countryCode": "KZ",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - East-West Roads Project (Almaty-Korgos Section): Western Europe - Western China International Transit Corridor (CAREC - 1b) - P128050",
+   "section": "Ii. Summary Of Project Status And Proposed Changes",
+   "quote": "3. Procurement of all the existing contracts under the EWRP has been completed, with the last one commencing in April 2023 following the retendering of a terminated contract. Overall, the contract for one section of the Balkhash- Burylbaital road (Section 1) has been substantially completed and two (Sections 2 and 5) out of five remaining sections/contracts are expected to be completed by the Project\u2019s current closing date. According to the agreed project completion action plan, the finalization of the contracts for sections 3, 4 and 6 of the road is expected to go beyond the existing project closing date with the first two sections planned to be completed by September 2024 and the last one by November 2025.",
+   "url": "http://documents.worldbank.org/curated/en/099091123134530093/pdf/P1280500ad363801b0ba8f0f56e3772bfac.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 6
+  },
+  {
+   "id": "40084188:32",
+   "docId": "40084188",
+   "projectId": "P132317",
+   "projectName": "Philippine Rural Development Project",
+   "countryCode": "PH",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Philippine Rural Development Project - P132317",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "4. The request for cancellation of the unwithdrawn Loan Proceeds was discussed between the Bank Task Team and the Department of Agriculture (DA) in May 2025. Specifically, DA confirmed that it would no longer need to draw down the remaining Loan Proceeds as sufficient funds were already available in the Designated Account to cover all outstanding project expenditures. Consistent with prudent fiscal management, the DA and the Department of Finance (DOF) agreed to pursue the cancellation in order to avoid unnecessary commitment fees on undisbursed balances. Both agencies further recognized that commitment fees would continue to accrue during the four-month grace period following the project\u2019s closing date unless the cancellation was formally processed.",
+   "url": "https://documents.worldbank.org/curated/en/099020326075011880/pdf/P132317-79f4b676-6aad-45a7-b074-fe0d6afa2ef9.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34437380:51",
+   "docId": "34437380",
+   "projectId": "P144534",
+   "projectName": "Renewable Energy Integration",
+   "countryCode": "TR",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Renewable Energy Integration - P144534",
+   "section": "Status Of The Contracts",
+   "quote": "5. Mentioned in paragraph 4, three contracts will not be completed by June 2025. Gebze GIS sub-project (Contract\u2019s value is about USD13.65 million), has already disbursed 37% of the contract value as of October 30, 2024 (USD5.2 million) and another USD4.3 million is expected to be disbursed for activities that have already been completed. TE\u0130A\u015e and the contractor have reached an agreement that would enable the completion of Gebze by around August 2025. The completion of this contract will also enable to commission subproject 5 by the end of September 2025. Regarding the Polateli subproject, works have only been initiated. TE\u0130A\u015e and the World Bank have agreed that the Polateli contract will be supported under the new operation under preparation, i.e. the Transforming the Power Transmission System (TPTS) Project. This operation is expected to be approved mid-2025.",
+   "url": "https://documents.worldbank.org/curated/en/099121724121524380/pdf/P144534-cf14333f-4dad-4054-a9d0-ad8d35dd8c9f.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 6
+  },
+  {
+   "id": "34437380:38",
+   "docId": "34437380",
+   "projectId": "P144534",
+   "projectName": "Renewable Energy Integration",
+   "countryCode": "TR",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Renewable Energy Integration - P144534",
+   "section": "Status Of The Contracts",
+   "quote": "3 CONTRACT 2.2 \u221a \u221a 93,790,963 98,493,061 1,232,000 1,232,000 September 2025 4 CONTRACT 34 \u221a 18,125,475 14,243,155 3,882,320 1,812,547 2,069,773 March 2025 5 CONTRACT 4 \u221a 13,648,701 5,402,737 6,882,314 1,363,650 1,363,650 6,882,314 August 2025 6 CONTRACT 5.1 \u221a 100,000 100,000 7 CONTRACT 5.2 \u221a 56,210,204 49,743,933 910,000 March 2025 910,000 8 CONTRACT 5.3 \u221a 810,000 810,000",
+   "url": "https://documents.worldbank.org/curated/en/099121724121524380/pdf/P144534-cf14333f-4dad-4054-a9d0-ad8d35dd8c9f.pdf",
+   "procGroups": [],
+   "score": 6
+  },
+  {
+   "id": "34437380:36",
+   "docId": "34437380",
+   "projectId": "P144534",
+   "projectName": "Renewable Energy Integration",
+   "countryCode": "TR",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Renewable Energy Integration - P144534",
+   "section": "Status Of The Contracts",
+   "quote": "AF LOAN ORIGINAL CONTRACTS (11 Subprojects under 5 Contracts) Actual Estimated disbursement Accruals from Estimated Total (as of end of Estimated beginning-July Disbursements from September Accruals by to end- end-September Value 2024 end-June September Estimated 2024 till end- (US$ (US$ 2025 2025 Penalty September 2025 Actual/ Expected Contract Awarded Completed equivalent) equivalent) (US$) (US$) (US$) (US$) Completion Date 1 CONTRACT 1 \u221a 20,296,241 14,149,923 4,116,694 2,030,000 1,122,404 5,024,290 December 2024",
+   "url": "https://documents.worldbank.org/curated/en/099121724121524380/pdf/P144534-cf14333f-4dad-4054-a9d0-ad8d35dd8c9f.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "34437380:42",
+   "docId": "34437380",
+   "projectId": "P144534",
+   "projectName": "Renewable Energy Integration",
+   "countryCode": "TR",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Renewable Energy Integration - P144534",
+   "section": "Status Of The Contracts",
+   "quote": "AF LOAN SURPLUS FUND CONTRACTS (5 Subprojects under 4 Contracts) Estimated Total Estimated Disbursements Actual Estimated Accruals from from end- disbursement Accruals by beginning-July to September 2024 till Actual/ Value (in as of end of end-June end-September Estimated end-September Expected (US$ September 2024 2025 2025 Penalty 2025 Completion Contract Awarded Completion equivalent) (US$ equivalent) (US$) (US$) (US$) (US$) Date",
+   "url": "https://documents.worldbank.org/curated/en/099121724121524380/pdf/P144534-cf14333f-4dad-4054-a9d0-ad8d35dd8c9f.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "34439784:34",
+   "docId": "34439784",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Lake Qaraoun Pollution Prevention Project - P147854",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "4. The first extension was approved for an initial duration of 6 months, given that the Project\u2019s progress towards achieving the PDO was rated moderately satisfactory, overall implementation progress was rated moderately unsatisfactory and the low disbursement of the Project which was around 20 percent of the total project financing. The weak performance was mainly due to the delays in the execution of works which faced procurement delays, as well as external factors, including the financial crisis of 2019, which led to the halt of 2 contracts and the re-bidding of 2 other contracts, the COVID 19 pandemic which affected the workflow starting March 2020 and the Port of Beirut explosion in August 2020, which significantly affected the CDR offices. It was agreed with the Government that a second extension would be granted pending improvements in Project\u2019s progress.",
+   "url": "https://documents.worldbank.org/curated/en/099122024165525110/pdf/P147854-05cc8d8a-d17a-47db-8a55-1ed9e959fd6c.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 6
+  },
+  {
+   "id": "34439784:42",
+   "docId": "34439784",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Lake Qaraoun Pollution Prevention Project - P147854",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "12. Procurement is rated Moderately Satisfactory. The Council of Development and Reconstruction (CDR), which is responsible for Project procurement, has carried out project procurement as per Bank Procurement Guidelines.",
+   "url": "https://documents.worldbank.org/curated/en/099122024165525110/pdf/P147854-05cc8d8a-d17a-47db-8a55-1ed9e959fd6c.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "34439784:38",
+   "docId": "34439784",
+   "projectId": "P147854",
+   "projectName": "Lake Qaraoun Pollution Prevention Project",
+   "countryCode": "LB",
+   "region": "Middle East and North Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Lake Qaraoun Pollution Prevention Project - P147854",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "8. Status of contracts: All works contracts have been completed except for those under the contract for the remaining works (87 km of sewer network and six pumping stations), which was signed on July 11, 2024, for a value of $10.3 million, and was only able to complete 17 km of networks out of the 87 km, and none of the pumping stations could be implemented, due to the security situation. The remaining activities were on track to be completed by the end of the second extension, had there not been the impacts of the escalated conflict, and they will be completed with this additional extension to allow for the implementation to continue. The Bank team will work with the CDR to ensure that the works will be completed within the new closing date.",
+   "url": "https://documents.worldbank.org/curated/en/099122024165525110/pdf/P147854-05cc8d8a-d17a-47db-8a55-1ed9e959fd6c.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "34210044:22",
+   "docId": "34210044",
+   "projectId": "P149952",
+   "projectName": "East-West Highway Corridor Improvement",
+   "countryCode": "GE",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - East-West Highway Corridor Improvement - P149952",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "4. Subsequent to the approval of the AF, the single contract awarded for carrying out the works under the parent project was terminated in 2018 for poor performance and later re-tendered. However, a period of 2 years for implementation was lost due to the said contract being re-awarded only in December 2020. Most importantly, the project has suffered from delays in mobilization of equipment and labor due to the pandemic and the resulting closure of Chinese ports and limited access to mobile, skilled workforce. Moreover, geological conditions in Georgia have adversely affected the implementation of these contracts. There has been no extension to the project closing date sought previously in relation to the above or for any implementation delays.",
+   "url": "http://documents.worldbank.org/curated/en/099120723121530037/pdf/P14995201812bd05e09ac20f80dcf4eef9b.pdf",
+   "procGroups": [
+    "CW",
+    "GO"
+   ],
+   "score": 7
+  },
+  {
+   "id": "34210044:42",
+   "docId": "34210044",
+   "projectId": "P149952",
+   "projectName": "East-West Highway Corridor Improvement",
+   "countryCode": "GE",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - East-West Highway Corridor Improvement - P149952",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "15. The project currently has two ongoing civil works contracts under Component 1, as described above. Both contracts are behind the implementation schedule, owing primarily to the COVID-19 pandemic-related travel restrictions that have hindered contractors\u2019 mobilization on site. The constraints to the availability of sufficiently skilled personnel and equipment coming from outside of Georgia have added to these delays. Adverse geological conditions have also contributed to the delay in works implementation. All the above factors have disproportionately affected the contracts that are extremely complex in nature. As indicated above, the parent project has also suffered from a termination of the single civil works contract due to poor performance that has cost two years in project implementation.",
+   "url": "http://documents.worldbank.org/curated/en/099120723121530037/pdf/P14995201812bd05e09ac20f80dcf4eef9b.pdf",
+   "procGroups": [
+    "CW",
+    "GO"
+   ],
+   "score": 6
+  },
+  {
+   "id": "34210044:38",
+   "docId": "34210044",
+   "projectId": "P149952",
+   "projectName": "East-West Highway Corridor Improvement",
+   "countryCode": "GE",
+   "region": "Europe and Central Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - East-West Highway Corridor Improvement - P149952",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "12. Progress on Procurement: All large contracts are awarded and are being implemented as elaborated above. No more substantial contracts are expected to be procured under the project. The procurement performance rating is MS, with project procurement risk being Moderate.",
+   "url": "http://documents.worldbank.org/curated/en/099120723121530037/pdf/P14995201812bd05e09ac20f80dcf4eef9b.pdf",
+   "procGroups": [],
+   "score": 6
+  },
+  {
+   "id": "34338400:48",
+   "docId": "34338400",
+   "projectId": "P152057",
+   "projectName": "Social Protection Integration",
+   "countryCode": "HN",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Social Protection Integration - P152057",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "18. Overall implementation. PRS will continue as the project implementer. The Technical Committee will continue to monitor implementation of the CCT Program. Procurement arrangements remain the same. However, the Project Procurement Strategy for Development and Procurement Plan will be updated to reflect this restructuring. All procurement procedures, delegations of authority, and any additional approvals from other units in PRS will be defined in the POM which will be updated to reflect the new implementation arrangements.",
+   "url": "http://documents.worldbank.org/curated/en/099061024142510900/pdf/P1520571c3dee60e119c871120b3a6db660.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "34338400:24",
+   "docId": "34338400",
+   "projectId": "P152057",
+   "projectName": "Social Protection Integration",
+   "countryCode": "HN",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Social Protection Integration - P152057",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "6. The Project\u2019s Procurement Risk is Substantial stemming from multiple factors which include the PRS's nascent organizational structure, the team's inexperience with WB projects, and potential delays from additional approvals and staff turnover. To address these concerns, several mitigation measures were agreed in an action plan following the MTR. These include maintaining experienced staff, training on WB procedures, updating the Project Operational Manual (POM) to reflect the ongoing restructuring and a clear delegation system within the PRS, and promptly filling key Project Implementing Unit (PIU) positions as per the WB's guidelines. These strategies are designed to effectively tackle the identified risks, aiming to facilitate smoother procurement processes and enhance project execution within the PRS.",
+   "url": "http://documents.worldbank.org/curated/en/099061024142510900/pdf/P1520571c3dee60e119c871120b3a6db660.pdf",
+   "procGroups": [
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "34338400:22",
+   "docId": "34338400",
+   "projectId": "P152057",
+   "projectName": "Social Protection Integration",
+   "countryCode": "HN",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Social Protection Integration - P152057",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "4. The Project\u2019s progress towards achievement of the PDO and Overall Implementation Progress were rated Moderately Satisfactory (MS) as reported in the last Implementation Status and Results (ISR) Report. As of May 2024, the Project has disbursed 73.9 percent of funds (70.5 percent of the original credit, and 75.36 percent of the AF), out of which 11 percent has been executed, 27 percent is committed or under procurement processes expected to be awarded by the end of June 2024, and 62 percent are committed for CCT payments to be delivered by end of 2024. Procurement and financial management are also rated MS, while the overall safeguards performance is now Moderately Unsatisfactory. The Recipient has no audits that are overdue or deemed unsatisfactory by The World Bank (WB), nor is the Project subject to suspension of disbursements.",
+   "url": "http://documents.worldbank.org/curated/en/099061024142510900/pdf/P1520571c3dee60e119c871120b3a6db660.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40022326:44",
+   "docId": "40022326",
+   "projectId": "P153437",
+   "projectName": "Smallholder Commercialization and Agribusiness Development Project",
+   "countryCode": "SL",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Smallholder Commercialization and Agribusiness Development Project - P153437",
+   "section": "Costs & Financing",
+   "quote": "Component / sub- Activity Completion Date Responsibility Comments component Asphalt Pavement works on December 26, 2025 Consultant/ This activity is pending. 15 approach road (Construction & contractors Testing) (Lot 4) Completion of approach roads on December 31, 2025 Consultant/ This activity is ongoing. 16 the design and build of a rural contractors bridge at Manowa (Lot 4) Project handover 31 January 2026 SLRA/ This activity is pending. 17 Contractors Corrections of Defects during the January 31, 2027 SLRA / This activity is pending . 18 defect liability period for all 4 Contractors bridges Issuance of final completion January 31, 2027 PCU/SLRA/ This activity is pending. 19 certificate Consultant.",
+   "url": "https://documents.worldbank.org/curated/en/099061725082594934/pdf/P153437-1cab8a34-6414-46a3-b3db-8123d09ef034.pdf",
+   "procGroups": [
+    "CW",
+    "CS"
+   ],
+   "score": 3
+  },
+  {
+   "id": "34463401:52",
+   "docId": "34463401",
+   "projectId": "P155201",
+   "projectName": "Municipal Development and Urban Resilience Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Municipal Development and Urban Resilience Project - P155201",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "19. Transferring of unsigned contracts to the Cap Haitien Urban Development (CHUD) Project (P196851). Three contracts for additional works in the ravines of Belle-H\u00f4tesse, Sonson and ruelle Nazon, whose designs were financed under the project, will be cancelled and transferred to the CHUD project. The bids for these works are already awarded, however, contracts are not yet signed. The construction and completion of these works would potentially take more than nine months, posing a risk for the Government and the Bank if financed under MDUR. However, the CHUD project has enough time ahead (closing date is March 31, 2027) and these three contracts fit well within the project development objective.",
+   "url": "https://documents.worldbank.org/curated/en/099030625195518792/pdf/P155201-3327494e-5676-456f-9999-6e16ab3db0ce.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 7
+  },
+  {
+   "id": "34463401:53",
+   "docId": "34463401",
+   "projectId": "P155201",
+   "projectName": "Municipal Development and Urban Resilience Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Municipal Development and Urban Resilience Project - P155201",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "20. The results framework will be adjusted to reflect the contracts transfer. The current PDO is valid and achievable, but the result framework must be reviewed due to the cancellation of the Belle-H\u00f4tesse, Sonson, and Ruelle Nazon contracts, as detailed in the annex.",
+   "url": "https://documents.worldbank.org/curated/en/099030625195518792/pdf/P155201-3327494e-5676-456f-9999-6e16ab3db0ce.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34463401:43",
+   "docId": "34463401",
+   "projectId": "P155201",
+   "projectName": "Municipal Development and Urban Resilience Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Municipal Development and Urban Resilience Project - P155201",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "11. The project is compliant with all covenants and there are no overdue financial audits. Financial audits have been submitted in time and have been acceptable to the Bank. However, there are two overdue IFRs due to some discrepancies in the project financial data, and the PIU is working to reconcile them. There are no outstanding procurement issues and the Procurement Plan and the PPSD have been revised and updated, but some information on STEP requires updating to reflect the latest status of contracts under both agencies.",
+   "url": "https://documents.worldbank.org/curated/en/099030625195518792/pdf/P155201-3327494e-5676-456f-9999-6e16ab3db0ce.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40022257:52",
+   "docId": "40022257",
+   "projectId": "P155759",
+   "projectName": "Citizen-Centric Judicial Modernization and Justice Service Delivery",
+   "countryCode": "TZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Citizen-Centric Judicial Modernization and Justice Service Delivery - P155759",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "9. A number of factors have contributed to the delay in court constructions under the project. These include (a) limited financial capacity of contractors to execute works; (b) inadequate oversight/supervision of the construction works; (c) heavy rainfall between December 2023 and May 2024 (when most construction could not be carried out); (d) significant increase in the cost of materials that affected the purchasing power of the contractors and caused delays in procuring local and imported materials (the construction estimates were prepared in 2023 and early 2024 before significant cost increases in the market); and (e) procurement delays where some construction lots did not get bidders during the first round and had to be re-tendered.",
+   "url": "https://documents.worldbank.org/curated/en/099061725043019859/pdf/P155759-066048eb-e4f9-41ee-923b-2659300f6785.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 4
+  },
+  {
+   "id": "34322137:16",
+   "docId": "34322137",
+   "projectId": "P158504",
+   "projectName": "Lao Road Sector Project 2  (LRSP2)",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Lao Road Sector Project 2  (LRSP2) - P158504",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "A. Project Status 3. Progress towards achievement of the PDO is Satisfactory and overall implementation progress is Moderately Satisfactory. All PDO indicators (6) have met their targets. All contracts for local road improvement financed by IDA have been completed, and 1,221 km have received routine maintenance through the Performance-Based Contract (PBC). All PBCs under the first three-year are completed. The improvement of National Road No. 13 South (NR13S) under the Output and Performance-Based Road Contract (OPBRC) has been completed and is now in the maintenance phase. Sectoral planning tools developed has been established and institutionalized. Overall Disbursement for original IDA is at 92 percent, and AF is 77 percent, respectively. There are no outstanding audit reports. The project is in compliance with all issues related to legal, fiduciary, safeguards, and INT.",
+   "url": "http://documents.worldbank.org/curated/en/099052124082089015/pdf/P15850418de98c04119de5107b6065486d5.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40017797:95",
+   "docId": "40017797",
+   "projectId": "P158522",
+   "projectName": "Tamil Nadu Irrigated Agriculture Modernization Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Tamil Nadu Irrigated Agriculture Modernization Project - P158522",
+   "section": "Water Resources Department Activities",
+   "quote": "Total 49.900 23.500 17.500 8.900 Award of Work DPR Submission - G.O - 15.07.2025 contract - completion 150 OFD Works 20.06.2025 14.08.2025, 50% of work - 100% of work - report 2 identified Procurement Plan Commencement 20.09.2025 30.10.2025 submission and World Bank approval - uploading - of Work - STEP updation 30.06.2025 20.07.2025 18.08.2025 15.11.2025",
+   "url": "https://documents.worldbank.org/curated/en/099053025080027418/pdf/P158522-680af841-d65d-4c0f-b2fb-85685876866d.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40017797:41",
+   "docId": "40017797",
+   "projectId": "P158522",
+   "projectName": "Tamil Nadu Irrigated Agriculture Modernization Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Tamil Nadu Irrigated Agriculture Modernization Project - P158522",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "11. Cancellation of loan funds. A total of US$6.55 million of the remaining balance of US$38 million will remain unutilized and will be cancelled. The cancellation will be drawn from Category 1 and 2 of the Loan Agreement. This will lead to the following changes in the allocation made under each category of the Loan Agreement, as follows:",
+   "url": "https://documents.worldbank.org/curated/en/099053025080027418/pdf/P158522-680af841-d65d-4c0f-b2fb-85685876866d.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34439941:46",
+   "docId": "34439941",
+   "projectId": "P160739",
+   "projectName": "Maldives Clean Environment Project",
+   "countryCode": "MV",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Maldives Clean Environment Project - P160739",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "13. Given the Maldives\u2019 fiscal constraints, intrinsic procurement and market related challenges and limited capacity of WAMCO in waste management, this additional time will be critical to address the remaining project challenges comprehensively and provide the necessary support to the government to onboard private sector partners for operationalization of Vandhoo RWMC. The extension will also enable the WB to provide the much-needed contract management support to the MoCCEE to fully achieve the objectives of the envisioned PPP or JV contract. The government\u2019s current reliance on WAMCO to operate Vandhoo also highlights the urgent need to establish a financially sustainable waste management system in the country with the help of international expertise and subject knowledge.",
+   "url": "https://documents.worldbank.org/curated/en/099122124055034536/pdf/P160739-9c47dc43-08a8-473c-a2f3-8266e1e392b7.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40011298:35",
+   "docId": "40011298",
+   "projectId": "P161227",
+   "projectName": "Bangladesh Municipal Water Supply and Sanitation Project",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Bangladesh Municipal Water Supply and Sanitation Project - P161227",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "Table 1: Proposed IDA Credit Cancellation Table 1: Estimated IDA Credit Estimated IDA Revised Revised IDA IDA Credit Cancellation Project Components Total Cost Financing Estimated Total Financing Cancellation (US$ M)1 (US$ M) 1 Cost incl. GoB (US$ M) (US$ M) (US$ M) Component 1 - Sector Support and 11.87 5.825 7.13 3.77 2.05 Capacity Strengthening Component 2- Investment for Water 79.64 37.585 70.40 33.82 3.76 Supply Infrastructure Component 3 - Improving Sanitation 76.17 38.085 68.17 34.53 3.56 and Drainage Component 4 - Project 14.77 5.505 14.57 5.27 0.23 Implementation and Management Support Project Total 182.45 87.00 160.27 77.39 9.61 1 Figures based on cancellation request received in June 2023.",
+   "url": "https://documents.worldbank.org/curated/en/099050725022525380/pdf/P161227-aac3b4a1-1587-40ae-bb2b-208011bb27db.pdf",
+   "procGroups": [
+    "GO"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40079219:56",
+   "docId": "40079219",
+   "projectId": "P161928",
+   "projectName": "Operation for Supporting Rural Bridges (SupRB)",
+   "countryCode": "BD",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Operation for Supporting Rural Bridges (SupRB) - P161928",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "a. Procurement management. Program procurement systems are functioning well. Under the IPF component, twelve of the eighty-four packages will be cancelled as requested by government. As noted above, thirty-nine packages have been, and the ongoing thirty-three packages are on track to be completed by the closing date.",
+   "url": "https://documents.worldbank.org/curated/en/099122425100542198/pdf/P161928-d7f65a8c-6094-4205-a4d8-65211cceba3d.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34339720:25",
+   "docId": "34339720",
+   "projectId": "P161973",
+   "projectName": "Natural Resources Governance Project in CAR",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Natural Resources Governance Project in CAR - P161973",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "6. Cancellation of a portion of the IDA funds: The project will cancel US$1.6 million equivalent to 1,209,043,84 SDR of the remaining US$2.4 million between category 2 (604.521.82SDR equivalent to US$800.000) and Category 3 (US$800,000). The remaining funds that are not to be cancelled will be used to pay the committed contracts and final staff salaries. The cancelled amount will remain at the disposal of the CMU and the discussion as mentioned earlier is to incorporate this into an additional financing for the PGNSP to be used for mining and forestry activities, which will be managed by the digital governance project management unit (PIU).",
+   "url": "https://documents.worldbank.org/curated/en/099061224135536248/pdf/P161973-f7a53777-5d50-494e-9ecf-67de62971cd0.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "34339720:20",
+   "docId": "34339720",
+   "projectId": "P161973",
+   "projectName": "Natural Resources Governance Project in CAR",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Natural Resources Governance Project in CAR - P161973",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "2. A discussion by senior management four months ago outlined a potential plan to cancel a portion of the IDA funds prior to the project close. The cancelled funds would be destined for a soon to be prepared Additional Financing (AF) under the Public Sector Digital Governance Project (PGNSP) which has recently started implementation in CAR. At the Government\u2019s request, the cancelled funds would be used to finish the implementation of outstanding PGRN activities in the mining and forestry sectors. Unfortunately, the Government\u2019s request to cancel the funds took almost 3 months to be submitted and therefore the request was only received at the end of April, which meant that the 6-month period to request a restructuring prior to restructuring could not be maintained.",
+   "url": "https://documents.worldbank.org/curated/en/099061224135536248/pdf/P161973-f7a53777-5d50-494e-9ecf-67de62971cd0.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "34339720:34",
+   "docId": "34339720",
+   "projectId": "P161973",
+   "projectName": "Natural Resources Governance Project in CAR",
+   "countryCode": "CF",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Natural Resources Governance Project in CAR - P161973",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "insurance etc). This means that the preparation of the AF agreement should include retroactive financing to cover the gap in in arrangements. 18. Procurement arrangements: All procurement for the GEF activities (if needed as none are envisioned) will be done by the digital governance PIU procurement specialist. 19. Implementation schedule: If the AF is not processed quickly, implementation of the activities to be implemented under the PGNSP project will lag and lose momentum achieved under the PGRN. In addition, if there is a long gap between the closure of the project and the preparation of the AF to the PGNSP Project, the GEF may require pre-financing form the PGNSP project, and in this case the AF should include retroactive financing to cover these costs.",
+   "url": "https://documents.worldbank.org/curated/en/099061224135536248/pdf/P161973-f7a53777-5d50-494e-9ecf-67de62971cd0.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34455364:45",
+   "docId": "34455364",
+   "projectId": "P162149",
+   "projectName": "Dominica Geothermal Risk Mitigation Project",
+   "countryCode": "DM",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Dominica Geothermal Risk Mitigation Project - P162149",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "11. Procurement. Procurement performance is downgraded to Moderately Unsatisfactory due to the DGDC's inability to manage contracts effectively and adhere to fundamental procurement principles such as the management of contract amendments. Data in Systematic Tracking of Exchange in Procurement (STEP) is incomplete and inconsistent making post procurement reviews difficult to implement. An action plan has been agreed to address the identified procurement weaknesses with strong oversight from the Bank.",
+   "url": "https://documents.worldbank.org/curated/en/099021125185034062/pdf/P162149-bc964b05-ff2b-4064-9b88-bf0e1e54fb90.pdf",
+   "procGroups": [],
+   "score": 8
+  },
+  {
+   "id": "34455364:44",
+   "docId": "34455364",
+   "projectId": "P162149",
+   "projectName": "Dominica Geothermal Risk Mitigation Project",
+   "countryCode": "DM",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Dominica Geothermal Risk Mitigation Project - P162149",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "Credit 63760 and three Trust Funds (TF A9532, TF A9533, and TF A9545 were declared ineligible by the Bank in its letter to the Government of Commonwealth of Dominica (GOCD) of April 2, 2024, and requested refund of the said expenditures. It was agreed that a technical and financial audit of the three affected contracts would be carried out to assess all variations made in the scope of the original contracts to help DGDC define the final contract value for expanded scope, with supporting documentation for Bank\u2019s review and to inform contract amendments, before closing the contracts. An auditor was contracted in December 2024 and the audit initiated in January 2025. A draft report is anticipated in February 2025 and the final report in March 2025. The results of the audit will inform the Bank and the GoCD on the potential next steps to resolve the issue of ineligible expenditures.",
+   "url": "https://documents.worldbank.org/curated/en/099021125185034062/pdf/P162149-bc964b05-ff2b-4064-9b88-bf0e1e54fb90.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "34455364:41",
+   "docId": "34455364",
+   "projectId": "P162149",
+   "projectName": "Dominica Geothermal Risk Mitigation Project",
+   "countryCode": "DM",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Dominica Geothermal Risk Mitigation Project - P162149",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "10. An independent auditor\u2019s review of the project reports for the period from July 1, 2022, to June 30, 2023, received by the Bank on December 30, 2023, revealed that DGDC paid its contractors and consultants above the contracted amounts for three contracts under Components 1 and 3, prior to appropriate amendments to contracts being completed. The Bank review of the interim financial reports from July 1, 2023, to December 31, 2023, also identified additional payments made above the contract value. These additional payments were also confirmed by the auditors in their June 30, 2024, audit report. These payments in the total amount of US$1.923 million under IDA",
+   "url": "https://documents.worldbank.org/curated/en/099021125185034062/pdf/P162149-bc964b05-ff2b-4064-9b88-bf0e1e54fb90.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40013393:45",
+   "docId": "40013393",
+   "projectId": "P162297",
+   "projectName": "Strengthening Foundations for Learning Project",
+   "countryCode": "TN",
+   "region": "Middle East and North Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Strengthening Foundations for Learning Project - P162297",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "7. Procurement. Project performance in procurement is rated Moderately Satisfactory following the February 2025 mission. While the project\u2019s closing date is set for June 30th, 2025, there are many activities under implementation that require close monitoring, notably construction and rehabilitation of 20 remaining schools and procurement of goods, such as books and IT equipment for 1000 schools. Additionally, the use of UNOPs was provided for under the project to accelerate the implementation of project activities related to purchase of IT equipment for schools, where UNOPs accelerated delivery timelines is expected to facilitate the procurement of large equipment for the project.",
+   "url": "https://documents.worldbank.org/curated/en/099051425093516467/pdf/P162297-7388a368-9b6e-43e3-85f0-1fd62e095e5d.pdf",
+   "procGroups": [
+    "CW",
+    "GO"
+   ],
+   "score": 4
+  },
+  {
+   "id": "40013393:54",
+   "docId": "40013393",
+   "projectId": "P162297",
+   "projectName": "Strengthening Foundations for Learning Project",
+   "countryCode": "TN",
+   "region": "Middle East and North Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Strengthening Foundations for Learning Project - P162297",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "Key remaining activities with contract value, estimated signing and completion dates Expected contract Value/allocation Remaining projects / activities / contracts completion date in case in $ of extension",
+   "url": "https://documents.worldbank.org/curated/en/099051425093516467/pdf/P162297-7388a368-9b6e-43e3-85f0-1fd62e095e5d.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34338222:45",
+   "docId": "34338222",
+   "projectId": "P162605",
+   "projectName": "North Central Region Emission Reductions Program",
+   "countryCode": "VN",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - North Central Region Emission Reductions Program - P162605",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "9. As the initial payment schedule was delayed due to the delay in effectiveness of the ERPA and completion of the validation and verification for the ER Monitoring Report for the first reporting period, the disbursement estimates will also need to be updated. With this and the potential payments for Additional ERs, it is proposed to update the disbursement estimates to include a payment of the Contract Volume and part of the Additional ERs in FY24, and any further payments for Additional ERs in FY25.",
+   "url": "http://documents.worldbank.org/curated/en/099061024122012328/pdf/P1626051784d6407e18cf415b8c1a8d8aec.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40078543:30",
+   "docId": "40078543",
+   "projectId": "P162971",
+   "projectName": "Cambodia Higher Education Improvement Project",
+   "countryCode": "KH",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Cambodia Higher Education Improvement Project - P162971",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "5. However, overall implementation progress is rated \u201cModerately Unsatisfactory\u201d due to significant delays in large civil works and persistent safety issues. Five major construction packages at ITC, RUA, and RUPP have experienced serious delays, with progress slowing to less than one percent per month since August 2025 due to contractor technical",
+   "url": "https://documents.worldbank.org/curated/en/099122225221532487/pdf/P162971-904e446e-b9f4-4728-8d19-2f23917192c9.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40023121:40",
+   "docId": "40023121",
+   "projectId": "P163568",
+   "projectName": "Gambia Electricity Restoration and Modernization Project",
+   "countryCode": "GM",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Gambia Electricity Restoration and Modernization Project - P163568",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "10. Component 3: Urgent institutional support for sector turnaround (US$32.4 million, all IDA). Activities have progressed well under this component. The contract for the service contractor to support NAWEC\u2019s turnaround has been satisfactorily completed with key outputs fed into the Millennium Challenge Account (MCA) threshold program for the energy sector. Several critical reports have been adopted, mainly NAWEC\u2019s strategic development plan for the period 2019 \u2013 2025. The Information Management System (IMS) is fully operational, enabling the complete integration of critical business processes within NAWEC. The State-Owned Enterprise Commission (SOE- C) has been provided access to the reporting environment under the IMS for adequate monitoring of financial and operational indicators. Activities related to performance contract auditing have been satisfactorily completed,",
+   "url": "https://documents.worldbank.org/curated/en/099061925104039043/pdf/P163568-61e55131-31b2-4ac2-bb2e-0c0849f63629.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40023121:38",
+   "docId": "40023121",
+   "projectId": "P163568",
+   "projectName": "Gambia Electricity Restoration and Modernization Project",
+   "countryCode": "GM",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Gambia Electricity Restoration and Modernization Project - P163568",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "8. Component 1: On-grid solar PV with storage (US$28.4million, of which IDA US$1.7million, EIB Credit US$26.7 million). This component is co-financed with the European Investment Bank (EIB). Despite initial procurement delays, which resulted in a relaunch of the bidding process, all activities have been completed. The President laid the foundation stone in February 2023. The solar park was inaugurated on March 9, 2024, and is currently responsible for approximately 6% of the total energy production.",
+   "url": "https://documents.worldbank.org/curated/en/099061925104039043/pdf/P163568-61e55131-31b2-4ac2-bb2e-0c0849f63629.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40076758:34",
+   "docId": "40076758",
+   "projectId": "P164031",
+   "projectName": "Ogun State Economic Transformation Project",
+   "countryCode": "NG",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Ogun State Economic Transformation Project - P164031",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "C. Loan Cancellation 7. The Government has requested a cancellation of $13,585,083.33m. The restructuring will cancel SDR 9,999,546.09 from Part 2 of the Project that will be unused at the time of project closing.",
+   "url": "https://documents.worldbank.org/curated/en/099121725133034713/pdf/P164031-ec2399d2-4671-4911-a335-52d493cd83fe.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40040785:78",
+   "docId": "40040785",
+   "projectId": "P164052",
+   "projectName": "Mali Drylands Development Project",
+   "countryCode": "ML",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Mali Drylands Development Project - P164052",
+   "section": "Total Ida Financing",
+   "quote": "24. Mobilizing Financing for Development (MFD)/Private Capital Enabled (PCE), procurement, financial management: No changes are foreseen with regard to MFD, PCE or financial management arrangements. With regard to procurement methods, the only changes proposed under this Restructuring are to accommodate GoM's request to sole- source the purchase of fertilizers valued at around 9,838,580,000 CFA francs. This request has been reviewed and endorsed by the Chief Procurement Officer for the Bank's Africa Region, and the Government has advanced with this procurement. At this time, the disbursement estimates remain unchanged, reflecting PDAZAM's continued efforts even after Restructuring to completely disburse its IDA resources before Project Closing.",
+   "url": "https://documents.worldbank.org/curated/en/099090125155536451/pdf/P164052-22d7f439-4e48-4b4a-96c5-ce96f162800b.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40076287:126",
+   "docId": "40076287",
+   "projectId": "P164302",
+   "projectName": "Enhancing Government Effectiveness for Improved Public Services",
+   "countryCode": "CI",
+   "region": "Western and Central Africa",
+   "docType": "Implementation Status and Results Report",
+   "title": "Disclosable Version of the ISR - Enhancing Government Effectiveness for Improved Public Services - P164302 - Sequence No : 14",
+   "section": "Meer, Menet-Fp",
+   "quote": "2:Cummulative deployment of the recipient's e- procurement system to all ministries for Allocated 0.00 0.00 0.00 electronic review of Amount bidding documents and award of public procurement contracts (Percentage) DLI allocation 10.44",
+   "url": "https://documents.worldbank.org/curated/en/099121625140070178/pdf/P164302-81dd8158-1f4b-43ba-ac09-8d66ad0badd2.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40023627:38",
+   "docId": "40023627",
+   "projectId": "P164331",
+   "projectName": "Malawi - Electricity Access Project",
+   "countryCode": "MW",
+   "region": "Eastern and Southern Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Malawi - Electricity Access Project - P164331",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "5. As of April 31, 2025, ESCOM had connected 125,095 households, achieving 71% of the target. Delays in procurement coupled with the slower than expected mobilization of contractors, caused the connection to slow down in 2024, causing the delay in achieving the connection target on time.",
+   "url": "https://documents.worldbank.org/curated/en/099062125023514088/pdf/P164331-4a1d11c4-4ac7-42fb-8395-6631df762e6e.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34460543:41",
+   "docId": "34460543",
+   "projectId": "P165542",
+   "projectName": "Strengthening Institutions for Refugee Administration Project",
+   "countryCode": "PK",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Strengthening Institutions for Refugee Administration Project - P165542",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "11. Procurement Management was rated Moderately Unsatisfactory in the last Implementation Support Mission. Subsequently, several actions have been taken to improve procurement progress. This includes identifying a service provider for the Refugee Learning Program which will be contracted on completion of this restructuring, development of Terms of Reference for the Organizational and Functional review and Legal and Policy Review, collaboration with GIZ on the Terms of Reference for the Complaints Handling Mechanism and the Management Information System.",
+   "url": "https://documents.worldbank.org/curated/en/099022725060532866/pdf/P165542-043e2330-bc55-4d53-b5d5-f1e9be46f641.pdf",
+   "procGroups": [
+    "CS",
+    "NC"
+   ],
+   "score": 4
+  },
+  {
+   "id": "34460543:46",
+   "docId": "34460543",
+   "projectId": "P165542",
+   "projectName": "Strengthening Institutions for Refugee Administration Project",
+   "countryCode": "PK",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Strengthening Institutions for Refugee Administration Project - P165542",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "15. As with the three other operations receiving financing from IDA18 RSW, the Project experienced a delay of approximately 12 months between Board Approval and Effectiveness. It faced further delays in receiving the necessary approval (PC-1) from the Government of Pakistan. Approval of the PC-1 was obtained in March 2023, which effectively marked the start of implementation for the Government. Therefore, there was a two-year delay between the World Bank Board\u2019s approval of the Project and the start of Project activities on the ground.",
+   "url": "https://documents.worldbank.org/curated/en/099022725060532866/pdf/P165542-043e2330-bc55-4d53-b5d5-f1e9be46f641.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "34401582:67",
+   "docId": "34401582",
+   "projectId": "P166170",
+   "projectName": "Network Reinforcement and Access Project",
+   "countryCode": "SZ",
+   "region": "Eastern and Southern Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Network Reinforcement and Access Project - P166170",
+   "section": "Ii. Description Of Proposed Change",
+   "quote": "date of the project. Meanwhile, contractor workers on site have signed their works contract as well as the Code of Conduct (CoC) and as of March 2023, the contractor\u2019s social teams have commenced the submission of monthly reports. Implementation of Resettlement Action Plan (RAP) is underway. As of the latest mission in May 2024, 241 out of 286 project-affected persons (PAPs) have been compensated, and financial literacy training has been provided. Upon full implementation of the RAP, the client will prepare RAP Completion Report in line with ESS5 requirements.",
+   "url": "https://documents.worldbank.org/curated/en/099100924031017281/pdf/P166170-52717809-4e92-4448-aa95-29b0dd000df0.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 3
+  },
+  {
+   "id": "34327789:44",
+   "docId": "34327789",
+   "projectId": "P166853",
+   "projectName": "Climate Smart Management of Grassland Ecosystems",
+   "countryCode": "CN",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Climate Smart Management of Grassland Ecosystems - P166853",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "9. Fiduciary: Procurement was delayed in the past year due to the slow progress of hiring Procurement Agency, which was finally put in place in April 2024. The external auditors had identified some weaknesses in contract management in the audit report for FY2022 and actions have been taken by the related entities to address them. All procurement and financial management activities are in compliance with Bank\u2019s policies and requirements.",
+   "url": "http://documents.worldbank.org/curated/en/099053124030018788/pdf/P166853159653006c186f212d840b89ecf1.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40078093:55",
+   "docId": "40078093",
+   "projectId": "P166868",
+   "projectName": "Strengthening Teaching-Learning  And Results for States",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Strengthening Teaching-Learning  And Results for States - P166868",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "Table 1. Proposed cancellation by DLI and IPF component in US$ Proposed for Revised Allocated Disbursed Balance Rationale for Cancellation Amount (US$) (US$) (US$) Cancellation (US$) (US$) (1) Disbursement under the Program for: (a) DLI # 1: Increase in Balance funds are students achieving canceled to account minimum proficiency in 50,000,000 20,000,000 30,000,000 9,000,000 41,000,000 for cost savings due grade 3 language in to currency selected states fluctuation. (b) DLI # 2: Improvement in secondary school 30,000,000 30,000,000 0 0 30,000,000 NA completion rate in selected states (c) DLI # 3: Improvement in governance index 20,000,000 20,000,000 0 0 20,000,000 NA scores in selected states (d) DLI # 4: Strengthened Dropped due to learning assessment 25,000,000 8,000,000 17,000,000 17,000,000 8,000,000 India\u2019s decision to systems",
+   "url": "https://documents.worldbank.org/curated/en/099122125230027832/pdf/P166868-4556145a-3e57-4b71-974c-800e48c6e6ed.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40078239:70",
+   "docId": "40078239",
+   "projectId": "P167350",
+   "projectName": "Green National Highways Corridor Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Green National Highways Corridor Project - P167350",
+   "section": "Disbursements",
+   "quote": "Revise Contract documents Updated design and A list of A list of 2 Updated design Value 22-Feb-2024 30-Nov-2025 for implementation of contract documents recommendations to recommendations to and contract documents safety and green for construction improve contract improve contract",
+   "url": "https://documents.worldbank.org/curated/en/099122225055539505/pdf/P167350-cec27c55-9d54-4bc6-8a4d-e34cf4cd233e.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40078239:28",
+   "docId": "40078239",
+   "projectId": "P167350",
+   "projectName": "Green National Highways Corridor Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Green National Highways Corridor Project - P167350",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "2. Restructurings. The GNHCP was first restructured on July 6, 2022, to include unfinished activities (road improvement and maintenance, institutional development, and road safety) from the National Highways Interconnectivity Improvement Project (NHIIP, P121185), which closed on September 30, 2020. On December 11, 2023, US$33.65 million was cancelled from the loan as the Government of India decided to cancel two contract packages and retender them using government funds. The second restructuring approved on March 14, 2025 involved: (i) modifications to PBCs and the result indicators; (ii) extension of the loan closing date to December 31, 2025; (iii) partial cancellation of the loan in the amount of US$66.35 million; and (iv) retroactive extension of the eligibility for financing the balance work of NHIIP until the revised closing date of GNHCP.",
+   "url": "https://documents.worldbank.org/curated/en/099122225055539505/pdf/P167350-cec27c55-9d54-4bc6-8a4d-e34cf4cd233e.pdf",
+   "procGroups": [
+    "CW",
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40046138:30",
+   "docId": "40046138",
+   "projectId": "P167359",
+   "projectName": "Benin - Stormwater Management and Urban Resilience Project",
+   "countryCode": "BJ",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Benin - Stormwater Management and Urban Resilience Project - P167359",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "3. Progress towards the achievement of the PDO is rated Satisfactory and implementation progress is rated Moderately Satisfactory. These ratings reflect ongoing delays in civil works and social risk management. Specifically, delays persist in: (i) executing works in the AAc Basin due to a non-performing contractor; (ii) implementing livelihood restoration plans; and (iii) addressing complaints. To date, disbursement rate is 92 percent.",
+   "url": "https://documents.worldbank.org/curated/en/099092225203017338/pdf/P167359-2a030c59-f625-4810-9d5d-6ce04ba5129d.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40065093:35",
+   "docId": "40065093",
+   "projectId": "P170874",
+   "projectName": "Indonesia Disaster Resilience Initiatives Project (IDRIP)",
+   "countryCode": "ID",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Indonesia Disaster Resilience Initiatives Project (IDRIP) - P170874",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "7. Partial Loan Cancellation. An amount of US$26.733 million will be cancelled from the current IBRD loan amount of US$160 million, and the loan amount will be reduced to US$133,267,000 million. 8. Disbursement Estimates. The disbursement estimates from the loan will be revised to reflect disbursements from the loan to date and the amounts to be disbursed during the remainder of the project, based on the partial cancellation. The table on Expected Disbursements in Section 4 Detailed Changes contains the current and proposed disbursement estimates.",
+   "url": "https://documents.worldbank.org/curated/en/099102825021021173/pdf/P170874-3f0ec0a7-8950-4915-9126-06c11ae13d72.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40077325:32",
+   "docId": "40077325",
+   "projectId": "P171976",
+   "projectName": "Haiti Digital Acceleration Project",
+   "countryCode": "HT",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Haiti Digital Acceleration Project - P171976",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "5. Fiduciary. Financial audits have been submitted on time and have been acceptable to the Bank, although the project received qualified audit opinions for each of the past four years. There are no outstanding procurement issues, and the Procurement Plan and the Project Procurement Strategy for Development have been revised and updated, but some information on the Systematic Tracking of Exchanges in Procurement requires updating to reflect the latest status of contracts prior to project closing.",
+   "url": "https://documents.worldbank.org/curated/en/099121825160526562/pdf/P171976-84f0a888-051c-4a92-90f2-4db55a4442af.pdf",
+   "procGroups": [],
+   "score": 5
+  },
+  {
+   "id": "40073340:30",
+   "docId": "40073340",
+   "projectId": "P172605",
+   "projectName": "Salvador Social Multi-Sector Service Delivery Project II",
+   "countryCode": "BR",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Salvador Social Multi-Sector Service Delivery Project II - P172605",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "Management Unit (PMU) will focus on four ongoing procurement processes through electronic bidding with a combined estimated value of US$2.78 million. Furthermore, the PMU is managing four contracts still under execution, along with others being finalized or signed. To improve monitoring and support for execution, the PMU is submitting monthly progress reports on signed and ongoing contracts, including delivery schedules and payment status. The Project is compliant with legal covenants. Management of Environment and Social (E&S) aspects is rated Satisfactory, and risks are assessed as moderate. The PMU is implementing the Project\u2019s E&S instruments and associated tools.",
+   "url": "https://documents.worldbank.org/curated/en/099120425171023841/pdf/P172605-5ccf2c4b-b9e3-4b81-929d-9dadb10d3181.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40078705:23",
+   "docId": "40078705",
+   "projectId": "P172689",
+   "projectName": "BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM",
+   "countryCode": "AR",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Status and Results Report",
+   "title": "Disclosable Version of the ISR - BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM - P172689 - Sequence No : 10",
+   "section": "Buenos Aires Water Supply And Sanitation With A Focus On Vulnerable Areas Program",
+   "quote": "2. AySA will ensure that no expenses under the Program arise from a contract awarded to a Action Description company or individual debarred or suspended by the WB. (Compliance with the eligibility requirements related to fraud and corruption (according to the WBG ACGs) Source DLI# Responsibility Timing Timing Value Status Throughout Fiduciary Systems NA AySA Other Program In Progress Implementation Completion List of contracts awarded to firms and individuals is sent to the Bank annually. Measurement",
+   "url": "https://documents.worldbank.org/curated/en/099122325092527509/pdf/P172689-8007620a-42e4-4024-910d-c99b84c63ecd.pdf",
+   "procGroups": [],
+   "score": 4
+  },
+  {
+   "id": "40078705:27",
+   "docId": "40078705",
+   "projectId": "P172689",
+   "projectName": "BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM",
+   "countryCode": "AR",
+   "region": "Latin America and Caribbean",
+   "docType": "Implementation Status and Results Report",
+   "title": "Disclosable Version of the ISR - BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM - P172689 - Sequence No : 10",
+   "section": "Buenos Aires Water Supply And Sanitation With A Focus On Vulnerable Areas Program",
+   "quote": "3. Preparation and implementation of a clause in the bidding documents on the handling of Action Description complaints, which includes a detailed description of the procedure through which a timely and fair revision of the complaint is ensured. Source DLI# Responsibility Timing Timing Value Status Preparation within the first 12 months from the Effective Date and Fiduciary Systems NA AySA Other application Completed thereafter throughout Program Implementation Completion Clause on the treatment of procurement-related complaints to be included in the bidding Measurement documents, prepared and implemented in a satisfactory manner to the Bank",
+   "url": "https://documents.worldbank.org/curated/en/099122325092527509/pdf/P172689-8007620a-42e4-4024-910d-c99b84c63ecd.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40078675:51",
+   "docId": "40078675",
+   "projectId": "P172689",
+   "projectName": "BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM",
+   "countryCode": "AR",
+   "region": "Latin America and Caribbean",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - BUENOS AIRES WATER SUPPLY AND SANITATION WITH A FOCUS ON VULNERABLE AREAS PROGRAM - P172689",
+   "section": "Buenos Aires Water Supply And Sanitation With A Focus On Vulnerable Areas Program",
+   "quote": "7. Most of the works are either paralyzed or cancelled due to lack of transfer of resources to AySA (including Program funds). Without these resources AySA is unable to give continuity to the signed and ongoing contracts. In spite of these issues, AySA has been able to continue implementation of limited activites with the company's own resources, particularly the ones related to digitalization, energy efficiency and reduction of losses, which are well aligned with the government's strategy of privatization. Only 8 of the 48 agreements signed for works to connect households to sewerage networks in vulnerable areas were finalized in 2024/2025, the remainder have been cancelled.",
+   "url": "https://documents.worldbank.org/curated/en/099122325080517122/pdf/P172689-ca3eac7c-c8c5-4a17-9f3c-1593dad01dcb.pdf",
+   "procGroups": [
+    "CW"
+   ],
+   "score": 3
+  },
+  {
+   "id": "40065147:44",
+   "docId": "40065147",
+   "projectId": "P173958",
+   "projectName": "Mizoram Health Systems Strengthening Project",
+   "countryCode": "IN",
+   "region": "South Asia",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Mizoram Health Systems Strengthening Project - P173958",
+   "section": "Ii. Description Of Proposed Changes",
+   "quote": "15. Additional activities under Component 1: Building on the progress achieved in drug quality testing, and recognizing the persistent shortages of essential medicines highlighted in the recent supply chain and procurement assessment, the state\u2014together with the World Bank task team during the MTR\u2014proposed the inclusion of supply chain strengthening activities under Components 1 and 3. The proposed activities under Component 1 include: (a) Establishment of a technical working committee for the procurement of drugs, (b) Strengthening state level forecasting and quantification systems (prescription audits at facilities) and (c) Standardizing procurement practices (Revision of existing procurement policy, establishing framework contracts, enhancing inventory management and provisional plan for buffer stocks and minimize drugs wastage).",
+   "url": "https://documents.worldbank.org/curated/en/099102825071524365/pdf/P173958-61d4fa06-2200-4742-98b3-c408a0c0a6aa.pdf",
+   "procGroups": [
+    "GO"
+   ],
+   "score": 5
+  },
+  {
+   "id": "34382549:118",
+   "docId": "34382549",
+   "projectId": "P178045",
+   "projectName": "Support to Regional Knowledge Capacity on Economic Transformation, Resilience, and Recovery",
+   "countryCode": "3W",
+   "region": "Western and Central Africa",
+   "docType": "Restructuring Paper",
+   "title": "Africa - Support to Regional Knowledge Capacity on Economic Transformation, Resilience, and Recovery Project : Additional Financing - Restructuring\n",
+   "section": "Iv. Appraisal Summary",
+   "quote": "arrangements are in place, including an experienced Procurement Specialist. Procurement for the AF will be carried out in accordance with the World Bank Procurement Regulation for IPF Borrowers, dated November 2020 and the World Bank Guidelines on Preventing and Combating Fraud and Corruption in Projects Financed by IBRD Loans and IDA Credits and Grants\ufffd?, dated October 15, 2006, and revised in January 2011, and as of July 1, 2016.",
+   "url": "https://documents.worldbank.org/curated/en/099082324192035626/pdf/P178045-24acf9d2-a4c0-4e05-8cc2-a463ab942daa.pdf",
+   "procGroups": [],
+   "score": 3
+  },
+  {
+   "id": "40048883:52",
+   "docId": "40048883",
+   "projectId": "P181359",
+   "projectName": "Lao Airlines Sustainable Development Project",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Lao Airlines Sustainable Development Project - P181359",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "\u2022 Procurement performance has been Moderately Satisfactory. The procurement plan in the Systematic Tracking of Exchanges in Procurement indicates three transactions for consultant services have been completed (one firm and two individual consultants) and two activities have been cancelled.",
+   "url": "https://documents.worldbank.org/curated/en/099092925091518259/pdf/P181359-f1f8ee4a-c092-4097-b337-93e5d4c9424b.pdf",
+   "procGroups": [
+    "CS",
+    "NC"
+   ],
+   "score": 5
+  },
+  {
+   "id": "40048883:45",
+   "docId": "40048883",
+   "projectId": "P181359",
+   "projectName": "Lao Airlines Sustainable Development Project",
+   "countryCode": "LA",
+   "region": "East Asia and Pacific",
+   "docType": "Restructuring Paper",
+   "title": "Disclosable Restructuring Paper - Lao Airlines Sustainable Development Project - P181359",
+   "section": "I. Project Status And Rationale For Restructuring",
+   "quote": "\u2022 Passenger Service System (PSS) upgrades are anticipated, with a final contract award in process. QV opted to finance the PSS using its own resources rather than the grant funds to simplify the payment breakdown of one- off implementation fees and sustaining cost structure for this type of multi-year vendor contract, which remains a priority activity for the airline and project outcomes.",
+   "url": "https://documents.worldbank.org/curated/en/099092925091518259/pdf/P181359-f1f8ee4a-c092-4097-b337-93e5d4c9424b.pdf",
+   "procGroups": [
+    "NC"
+   ],
    "score": 3
   }
  ]

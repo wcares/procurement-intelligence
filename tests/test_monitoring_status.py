@@ -88,3 +88,26 @@ def test_ongoing_projects_are_active_open_recent_with_notices_and_not_tracked(tm
         def notices(self, rows, project_id):
             return (3 if project_id == "P4" else 40), []
     assert [p["id"] for p in ongoing.choose(5, Client(), TODAY)] == ["P1"]
+
+
+def test_monitoring_routes(history, tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from procintel.api.app import app
+    from procintel.monitoring import isr_ratings, views
+    monkeypatch.setattr(paths, "STATUS_RULES", tmp_path / "status_rules.json")
+    df = pd.DataFrame(history + [pkg("P9/a", project="P9", tender="2026-09-01"),
+                                 pkg("P9/b", project="P9", tender="2026-01-01", award="2026-03-01", dur=2000, closing="2027-01-01")])
+    monkeypatch.setattr(status, "frame", lambda con=None: df)
+    monkeypatch.setattr(views, "_reissued", lambda ids: set())
+    monkeypatch.setattr(isr_ratings, "latest", lambda ids: {})
+    c = TestClient(app, client=("127.0.0.1", 5000))
+    ps = c.get("/monitoring/projects").json()["projects"]
+    assert [p["projectId"] for p in ps] == ["P9"] and ps[0]["packages"]["active"] == 2 and ps[0]["packagesWithWarnings"] == 1
+    p = c.get("/monitoring/projects/P9").json()
+    assert [x["packageId"] for x in p["packageList"]][0] == "P9/b" and p["packageList"][0]["warnings"] == ["after_closing"]
+    assert c.get("/monitoring/package", params={"id": "P9/a"}).json()["phase"] == "bidding"
+    assert c.get("/monitoring/package", params={"id": "nope"}).status_code == 404
+    f = c.post("/monitoring/forecast", json={"procGroup": "CW", "methodCode": "RFB", "tenderStart": "2026-09-01"}).json()
+    assert f["award"] is not None
+    assert c.post("/monitoring/status-rules/dry-run", json={"stale_max_days": 5}).status_code == 400
+    assert c.put("/monitoring/status-rules", json={"stale_max_days": 365}).json()["rules"]["stale_max_days"] == 365

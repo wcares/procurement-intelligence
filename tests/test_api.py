@@ -19,11 +19,12 @@ def test_options(client):
 
 
 def test_assess_matches_known_benchmark(client):
-    # Kenya / civil works / RFB: 212 packages, median 111.5 days (198 / 116 before contract signing dates filled
+    # Kenya / civil works / RFB: 215 packages, median 112 days (212 / 111.5 before the ongoing portfolio, 2026-10-26;
+    # 198 / 116 before contract signing dates filled
     # missing award dates; 195 / 113 before re-bid awards under "-N" references were linked, both 2026-10-25);
     # regenerate web/src/mocks/data.json when this changes
     r = client.post("/assess", json={"countryCode": "KE", "procGroup": "CW", "methodCode": "RFB"}).json()
-    assert (r["timeline"]["n"], r["timeline"]["median"]) == (212, 111.5)
+    assert (r["timeline"]["n"], r["timeline"]["median"]) == (215, 112.0)
     assert r["meta"]["source"] == "live" and r["precedents"]
     assert all(p["citation"]["quote"] for p in r["precedents"])
 

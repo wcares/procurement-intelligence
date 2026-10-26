@@ -98,7 +98,7 @@ def main() -> None:
     OUT.write_text(json.dumps(data, indent=1, default=str))
     print(f"wrote {OUT.relative_to(ROOT)}: {len(opts["countries"])} countries, {len(opts["methods"])} methods, "
           f"{len(benchmarks)} benchmarks, {len(governance)} countries with CPIA, {len(passages)} passages "
-          f"from {len({p['docId'] for p in passages})} ICRs, {OUT.stat().st_size // 1024} KB")
+          f"from {len({p['docId'] for p in passages})} reports (completion, supervision, restructuring), {OUT.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":
