@@ -1,12 +1,12 @@
 """The home dashboard: headline numbers, worst-to-best rankings, trends, heat map, problem mix and the records behind
-every number (procintel.insights.dashboard)."""
+every number (procintel.insights.dashboard); what changed recently (procintel.insights.recent)."""
 from __future__ import annotations
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from procintel.api.state import state
-from procintel.insights import dashboard
+from procintel.insights import dashboard, recent
 
 router = APIRouter()
 
@@ -44,3 +44,8 @@ def get_records(group: str, key: str, measure: str = "delay", method: str | None
         return state().dashboard.records(group, key, measure, method)
     except (KeyError, ValueError) as e:
         return _refuse(e)
+
+
+@router.get("/dashboard/recent")
+def get_recent(days: int = recent.DAYS) -> dict:
+    return recent.recent(max(1, min(days, 90)))

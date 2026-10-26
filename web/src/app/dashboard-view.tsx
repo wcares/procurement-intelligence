@@ -6,6 +6,7 @@ import type { DashboardResponse, DashRecords, HeatmapResponse, RankingResponse, 
 import { Heatmap } from "@/components/dashboard/heatmap";
 import { ProblemMix } from "@/components/dashboard/problem-mix";
 import { ProblemTrend } from "@/components/dashboard/problem-trend";
+import { RecentChangesCard } from "@/components/dashboard/recent-changes";
 import { RankingTable } from "@/components/dashboard/ranking-table";
 import { RecordsPanel } from "@/components/dashboard/records-panel";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -64,6 +65,7 @@ export function DashboardView() {
   return (
     <div className="space-y-6">
       <SummaryCards s={dash.summary} />
+      <RecentChangesCard />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Riskiest first" note={m?.note}>
           <div className="mb-3 flex flex-wrap gap-2">

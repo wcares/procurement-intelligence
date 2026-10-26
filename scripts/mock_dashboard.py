@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from procintel.insights import dashboard
+from procintel.insights import dashboard, recent
 
 OUT = Path(__file__).resolve().parent.parent / "web" / "src" / "mocks" / "dashboard.json"
 RECORD_ROWS = 3      # drill-downs captured per ranking
@@ -19,7 +19,7 @@ def main() -> None:
     d = dashboard.Dashboard()
     out = {"dashboard": {"summary": d.summary(), "measures": dashboard.measures(), "groups": dashboard.GROUPS,
                          "trends": d.trends(), "problemMix": d.problem_mix(), "fewProjects": dashboard.FEW_PROJECTS},
-           "rankings": {}, "heatmaps": {}, "records": {}}
+           "rankings": {}, "heatmaps": {}, "records": {}, "recent": recent.recent()}
     for m in dashboard.MEASURES:
         if dashboard.MEASURES[m].level == "package":
             out["heatmaps"][m] = d.heatmap(m, 5)

@@ -673,6 +673,14 @@ export interface Account {
 }
 
 /** Home dashboard (GET /dashboard and friends; procintel.insights.dashboard). */
+/** What changed recently (GET /dashboard/recent): source changes the pipeline detected, by kind, newest first. */
+export interface RecentChanges {
+  days: number;
+  since: string;
+  items: { type: string; label: string; count: number; last: string; examples: string[] }[];
+  total: number;
+}
+
 export interface DashMeasure {
   key: string;
   label: string;

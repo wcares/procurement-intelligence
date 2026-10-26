@@ -7,10 +7,13 @@ type Snapshot = {
   rankings: Record<string, unknown>;
   heatmaps: Record<string, unknown>;
   records: Record<string, unknown>;
+  recent: unknown;
 };
 const data = snapshot as unknown as Snapshot;
 
 export const dashboard = () => data.dashboard;
+
+export const recent = () => data.recent;
 
 export function ranking(measure: string, group: string): unknown | null {
   return data.rankings[`${measure}|${group}`] ?? null;

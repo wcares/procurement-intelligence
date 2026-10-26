@@ -1,5 +1,6 @@
 import type {
   DashboardResponse,
+  RecentChanges,
   DashRecords,
   HeatmapResponse,
   RankingResponse,
@@ -74,6 +75,7 @@ async function send<T>(path: string, method: string, body: unknown): Promise<T |
 export const api = {
   /** null when not signed in */
   dashboard: () => call<DashboardResponse>("/dashboard"),
+  recentChanges: () => call<RecentChanges>("/dashboard/recent"),
   ranking: (measure: string, group: string) => call<RankingResponse>(`/dashboard/ranking?measure=${measure}&group=${group}`),
   heatmap: (measure: string) => call<HeatmapResponse>(`/dashboard/heatmap?measure=${measure}`),
   records: (group: string, key: string, measure: string, method?: string) =>
