@@ -29,8 +29,8 @@ GROUPS = {"country": "Country", "sector": "Sector", "method": "Procurement metho
 class Measure:
     key: str
     label: str
-    unit: str            # "days", "share" or "per project"
-    level: str           # "package" or "project": what the n behind a value counts
+    unit: str            # "days", "share", "per project" or "score"
+    level: str           # "package", "project" or "country": what the n behind a value counts
     higher_is_worse: bool = True
     note: str = ""
 
@@ -47,7 +47,14 @@ MEASURES = {m.key: m for m in [
     Measure("problems", "Problem passages per report", "per project", "project",
             note="Problem tags cover part of the passages so far; kinds of problem are less reliable (8 of 13 right "
                  "by hand) than whether a passage describes one (29 of 30)."),
+    Measure("cpia", "CPIA transparency and corruption rating", "score", "country", higher_is_worse=False,
+            note="Latest CPIA rating, 1 (weak) to 6 (strong); CPIA covers IDA countries only. Projects = the country's "
+                 "projects in the data."),
+    Measure("wgi", "WGI control of corruption", "score", "country", higher_is_worse=False,
+            note="Latest WGI estimate, about -2.5 (weak) to +2.5 (strong), for every country; a different scale from "
+                 "CPIA, so ranked on its own. Projects = the country's projects in the data."),
 ]}
+GOVERNANCE = {"cpia": ("cpia", "transparency_corruption"), "wgi": ("wgi", "control_of_corruption")}
 
 
 class Dashboard:
@@ -78,9 +85,14 @@ class Dashboard:
                 SELECT dp.project_id, cp.kind, count(*) AS n
                 FROM chunk_problem cp JOIN chunk c USING (chunk_id) JOIN document_project dp USING (doc_id)
                 WHERE cp.problem AND cp.kind IS NOT NULL AND {icr} GROUP BY 1, 2""").df()
+            gov = {m: dict(con.execute(f"""
+                SELECT country_code, value FROM {table} WHERE indicator = ? AND value IS NOT NULL
+                QUALIFY row_number() OVER (PARTITION BY country_code ORDER BY year DESC) = 1""", [ind]).fetchall())
+                   for m, (table, ind) in GOVERNANCE.items()}
         finally:
             con.close()
         self.countries = countries
+        self.governance = gov   # measure -> {country: latest value}
         pk["sector"] = pk["project_id"].map(fam)
         pr["sector"] = pr["project_id"].map(fam)
         pr = pr.merge(rated.rename(columns={"below": "procurement_rating"}), on="project_id", how="left")
@@ -109,8 +121,7 @@ class Dashboard:
 
     # --- ranking ------------------------------------------------------------------------------------------------------
     def supports(self, measure: str, group: str) -> bool:
-        m = MEASURES[measure]
-        return not (m.level == "project" and group == "method")  # a method is a package attribute
+        return group in _groups(MEASURES[measure])
 
     def _package_values(self, frame: pd.DataFrame, measure: str):
         d = frame["tender_to_award_days"].dropna()
@@ -141,6 +152,11 @@ class Dashboard:
                 value, n = self._package_values(f, measure)
                 if value is not None:
                     rows.append({"key": key, "value": value, "n": n, "projects": int(f["project_id"].nunique())})
+        elif m.level == "country":   # a country attribute: one value per country with projects in the data
+            for key, f in self.projects.groupby("country_code"):
+                if key in self.governance[measure]:
+                    n = int(f["project_id"].nunique())
+                    rows.append({"key": key, "value": float(self.governance[measure][key]), "n": n, "projects": n})
         else:
             for key, f in self.projects.dropna(subset=[col]).groupby(col):
                 value, n = self._project_values(f, measure)
@@ -149,7 +165,7 @@ class Dashboard:
         for r in rows:
             r["label"] = self.label(group, r["key"])
             r["value"] = round(r["value"], 3 if m.unit != "days" else 1)
-            r["few"] = r["projects"] < FEW_PROJECTS
+            r["few"] = m.level != "country" and r["projects"] < FEW_PROJECTS   # a rating does not rest on projects
         rows.sort(key=lambda r: (r["few"], -r["value"] if m.higher_is_worse else r["value"]))
         return {"measure": _measure_json(m), "group": group, "groupLabel": GROUPS[group], "rows": rows}
 
@@ -252,5 +268,11 @@ def _measure_json(m: Measure) -> dict:
 
 
 def measures() -> list[dict]:
-    return [_measure_json(m) | {"groups": [g for g in GROUPS if not (m.level == "project" and g == "method")]}
-            for m in MEASURES.values()]
+    return [_measure_json(m) | {"groups": _groups(m)} for m in MEASURES.values()]
+
+
+def _groups(m: Measure) -> list[str]:
+    """Groupings a measure is counted for: a method is a package attribute, a governance rating a country one."""
+    if m.level == "country":
+        return ["country"]
+    return [g for g in GROUPS if not (m.level == "project" and g == "method")]

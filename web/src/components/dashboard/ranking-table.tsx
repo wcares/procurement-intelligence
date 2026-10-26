@@ -26,7 +26,7 @@ export function RankingTable({ data, onSelect, selected }: { data: RankingRespon
         ),
       }),
       col.accessor("projects", { header: "Projects", cell: (c) => <span className="tabular-nums">{c.getValue()}</span> }),
-      col.accessor("n", { header: data.measure.level === "package" ? "Awards" : "Counted", cell: (c) => <span className="tabular-nums">{c.getValue()}</span> }),
+      col.accessor("n", { header: data.measure.level === "package" ? "Awards" : data.measure.level === "country" ? "Projects" : "Counted", cell: (c) => <span className="tabular-nums">{c.getValue()}</span> }),
     ]),
     [data, max],
   );

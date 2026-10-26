@@ -676,8 +676,8 @@ export interface Account {
 export interface DashMeasure {
   key: string;
   label: string;
-  unit: "days" | "share" | "per project";
-  level: "package" | "project";
+  unit: "days" | "share" | "per project" | "score";
+  level: "package" | "project" | "country";
   higherIsWorse: boolean;
   note: string;
   groups?: string[];

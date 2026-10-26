@@ -26,6 +26,12 @@ def board(tmp_path):
     con.execute("CREATE TABLE procurement_check AS SELECT * FROM (VALUES ('d1', 'Moderately Unsatisfactory'), ('d4', 'Satisfactory')) t(doc_id, lowest)")
     con.execute("CREATE TABLE chunk AS SELECT * FROM (VALUES ('d1:1', 'd1'), ('d1:2', 'd1'), ('d4:1', 'd4')) t(chunk_id, doc_id)")
     con.execute("CREATE TABLE chunk_problem AS SELECT * FROM (VALUES ('d1:1', true, 'funding or payment delays'), ('d1:2', true, 'funding or payment delays'), ('d4:1', false, NULL)) t(chunk_id, problem, kind)")
+    con.execute("""CREATE TABLE cpia AS SELECT * FROM (VALUES ('AA', 2019, 'transparency_corruption', 2.0),
+        ('AA', 2023, 'transparency_corruption', 3.5), ('AA', 2023, 'public_administration', 1.0))
+        t(country_code, year, indicator, value)""")
+    con.execute("""CREATE TABLE wgi AS SELECT * FROM (VALUES ('AA', 2023, 'control_of_corruption', -0.2),
+        ('BB', 2023, 'control_of_corruption', -1.1), ('CC', 2023, 'control_of_corruption', 1.5))
+        t(country_code, year, indicator, value)""")
     con.close()
     return dashboard.Dashboard(db)
 
@@ -71,3 +77,14 @@ def test_award_trend_uses_the_narrowest_scope_with_enough_years(board):
     assert [(x["year"], x["n"]) for x in t["series"]] == [(2019, 2), (2020, 1)]
     assert board.award_trend("CW", "RFB", "AA", min_n=1, min_years=1)["scope"]["country"] == "AA"
     assert board.award_trend("NC", None, None, min_n=1, min_years=1) == {"series": [], "scope": None, "minN": 1}
+
+
+def test_governance_ranks_countries_weakest_first(board):
+    r = board.ranking("cpia", "country")
+    assert [(x["key"], x["value"], x["n"], x["few"]) for x in r["rows"]] == [("AA", 3.5, 3, False)]  # latest, BB has none
+    w = board.ranking("wgi", "country")
+    assert [(x["key"], x["value"], x["few"]) for x in w["rows"]] == [("BB", -1.1, False), ("AA", -0.2, False)]
+    # weakest first; CC has a score but no projects in the data; one project is not "too few" for a rating
+    assert not board.supports("wgi", "sector") and not board.supports("cpia", "method")
+    assert {m["key"]: m["groups"] for m in dashboard.measures()}["cpia"] == ["country"]
+    assert board.records("country", "BB", "wgi")["kind"] == "projects"
