@@ -192,6 +192,12 @@ logged with its error and the other sources go on; a failing source waits its in
 (`procintel.pipeline.connectors`). Status on the Connectors page (`GET /pipeline/connectors`). Rate limit and retries
 stay in the World Bank client (0.2 s between requests; 4 tries with growing waits, wb_client.py).
 
+**Upload built (2026-10-25)** in `procintel.intake`: store (fingerprint, duplicates) → extract by format (pdf, docx, txt,
+md, html; scans to review, no OCR) → classify (the title phrase first, else the decision model at >= 60%, else review;
+the model alone over-calls completion reports) → link (project ids, countries) → a titled completion report about a
+tracked project goes into `documents` and raises `Upload.ingested`, which rule `uploads-add` turns into the usual
+passage work. Other kinds are kept and linked only.
+
 ## 6c. Job priorities and shadow builds
 
 **Priorities** (user, 2026-10-25: "all the jobs will be prioritized"). Every job has a priority; the worker always takes

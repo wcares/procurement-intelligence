@@ -38,6 +38,7 @@ DEFAULT_RULES = [
          ("apply_notices", "rebuild_tables", "rebuild_firms")),
     Rule("documents-ingest", ("Document.added", "Document.changed"),
          ("ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents")),
+    Rule("uploads-add", ("Upload.ingested",), ("rebuild_tables", "rebuild_firms", "chunk_documents")),
     Rule("passages-index", ("Passages.changed",), ("index_passages", "document_checks")),
     Rule("projects-update", ("Project.changed",), ("apply_projects", "rebuild_tables", "sector_links"),
          fields=("status", "sector", "closing_date", "board_approval", "commitment_usd")),
@@ -66,7 +67,7 @@ def plan(events: list[dict], rules: list[Rule], order: list[str]) -> tuple[list[
     return [(a, sorted(keys[a])) for a in order if a in keys], fired
 
 
-DERIVED_EVENTS = ("Package.award_changed", "Data.updated", "Documents.changed", "Passages.changed")
+DERIVED_EVENTS = ("Package.award_changed", "Data.updated", "Documents.changed", "Passages.changed", "Upload.ingested")
 
 
 def event_types(entity_types: dict) -> list[str]:

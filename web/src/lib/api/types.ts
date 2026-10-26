@@ -389,6 +389,29 @@ export interface EventLogResponse {
   more: boolean;
 }
 
+/** An uploaded file and how far it got (GET /intake/uploads). */
+export interface Upload {
+  upload_id: string;
+  filename: string;
+  format: string;
+  size: number;
+  uploaded_at: string;
+  /** received → extracted → classified → linked → added | kept; or needs_review, failed, duplicate */
+  status: string;
+  stages: { stage: string; at: string; detail: string }[];
+  doc_type: string | null;
+  type_confidence: number | null;
+  links: { projects: { id: string; name: string | null; country: string | null; known: boolean }[]; countries: string[] } | null;
+  doc_id: string | null;
+  error: string | null;
+}
+
+export interface UploadsResponse {
+  uploads: Upload[];
+  formats: string[];
+  maxMb: number;
+}
+
 export interface PipelineRule {
   id: string;
   on: string[];

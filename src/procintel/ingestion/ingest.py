@@ -81,9 +81,10 @@ def run(n_icrs: int, fresh: bool = False, keep_existing: bool = False) -> None:
         con = db.connect(DB_PATH, read_only=True)
         # format in UTC: strftime on a zoned time uses the session's zone, and the Z then mislabelled local time as
         # UTC, moving every kept report 4 hours earlier per refresh (found by procintel.pipeline, 2026-10-25)
+        # uploaded reports (procintel.intake) have no txt_url: their stored text is kept, the rest is re-read
         cols = ("doc_id, project_id, doc_type, strftime(timezone('UTC', doc_date), '%Y-%m-%dT%H:%M:%SZ') AS doc_date, "
-                "title, pdf_url, txt_url")
-        documents = [dict(zip(["doc_id", "project_id", "doc_type", "doc_date", "title", "pdf_url", "txt_url"], r))
+                "title, pdf_url, txt_url, CASE WHEN txt_url IS NULL THEN text END AS text")
+        documents = [dict(zip(["doc_id", "project_id", "doc_type", "doc_date", "title", "pdf_url", "txt_url", "text"], r))
                      for r in con.execute(f"SELECT {cols} FROM documents").fetchall()]
         for d in documents:  # same type as newly listed rows
             d["doc_date"] = pd.to_datetime(d["doc_date"], errors="coerce", utc=True)
@@ -115,7 +116,7 @@ def run(n_icrs: int, fresh: bool = False, keep_existing: bool = False) -> None:
             print(f"  {i} projects, {len(notices)} notices")
 
     for d in documents:
-        if any(p in projects for p in d["project_id"].split(",")):
+        if not d.get("text") and any(p in projects for p in d["project_id"].split(",")):
             d["text"] = c.document_text(d["txt_url"])
     documents = [d for d in documents if d.get("text")]
 

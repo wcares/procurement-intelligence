@@ -33,12 +33,21 @@ export default function DataHandling() {
           are not sent to any outside service. The tool reads only public World Bank data from the World Bank&apos;s own
           websites. If an administrator ever connects a hosted model, this page will say which one before it is used.
         </p>
+        <p className="mt-2">
+          Administrators can also upload documents. Each is stored on the server and read there (its text, its kind,
+          the projects it names); a completion report about a tracked project becomes part of the evidence everyone
+          searches. Uploaded files are not sent anywhere.
+        </p>
       </section>
       <section>
         <h2 className="font-semibold">How long it is kept</h2>
         <p>
           30 days, then deleted by a daily job. While a pilot runs, your entries, the responses and your ratings are
           kept until the pilot ends (its measures cover its whole length), and deleted 30 days after.
+        </p>
+        <p className="mt-2">
+          Uploaded documents are not deleted after 30 days: they are kept, like the World Bank reports, until an
+          administrator removes them from the server (there is no remove button yet).
         </p>
       </section>
       <section>

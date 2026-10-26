@@ -20,6 +20,8 @@ import type {
   DryRunResponse,
   ConnectorsResponse,
   EventLogResponse,
+  Upload,
+  UploadsResponse,
   Options,
   PipelineResponse,
   PipelineRule,
@@ -98,6 +100,16 @@ export const api = {
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
   pipeline: () => call<PipelineResponse>("/pipeline"),
   connectors: () => call<ConnectorsResponse>("/pipeline/connectors"),
+  uploads: () => call<UploadsResponse>("/intake/uploads"),
+  /** a refused file (type, size, empty) comes back as { error } */
+  upload: async (file: File): Promise<Upload | { error: string }> => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${API_BASE}/intake/uploads`, { method: "POST", body: form });
+    const out = await res.json().catch(() => ({}));
+    if (res.ok) return out as Upload;
+    return { error: out.error ?? `upload failed (${res.status})` };
+  },
   events: (type?: string, before?: string) => {
     const q = new URLSearchParams({ limit: "20", ...(type ? { type } : {}), ...(before ? { before } : {}) });
     return call<EventLogResponse>(`/pipeline/events?${q}`);

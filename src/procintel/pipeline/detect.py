@@ -15,7 +15,7 @@ from typing import Iterator
 
 from procintel.pipeline import actions, connectors, entities, rules, store
 
-DERIVED_PREFIXES = ("Package.", "Data.", "Documents.", "Passages.")
+DERIVED_PREFIXES = ("Package.", "Data.", "Documents.", "Passages.", "Upload.")
 
 
 def _context(name: str) -> dict:
@@ -55,18 +55,26 @@ def detect_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]
                 cur["counts"][name] = len(events)
         cur["done"].append(name)
         yield cur
-    events = [e for e in store.batch_events(cur["batch"])]
-    job = None
-    if events:
-        steps, fired = rules.plan(events, rules.active(), actions.ORDER)
-        if steps:
-            from procintel.jobs import store as jobs_store
-            job = jobs_store.enqueue("pipeline_batch", f"{len(events)} changes detected", {"batch": cur["batch"]},
-                                     dedupe=False, db_path=ctx.get("jobs_db"))
-        for rule_id, n in fired.items():
-            rule = next(r for r in rules.active() if r.id == rule_id)
-            store.log_firing(cur["batch"], rule_id, n, list(rule.do), job)
+    job = queue_batch(cur["batch"], "changes detected", ctx.get("jobs_db"))
     return {"batch": cur["batch"], "events": cur["counts"], "job": job}
+
+
+def queue_batch(batch: str, why: str, jobs_db=None, priority: str | None = None) -> str | None:
+    """Plan a batch's logged events with the active rules, queue one pipeline_batch job when any action is asked
+    for, and log which rules fired. Returns the job id (None: nothing to do)."""
+    events = store.batch_events(batch)
+    if not events:
+        return None
+    steps, fired = rules.plan(events, rules.active(), actions.ORDER)
+    job = None
+    if steps:
+        from procintel.jobs import store as jobs_store
+        job = jobs_store.enqueue("pipeline_batch", f"{len(events)} {why}", {"batch": batch}, dedupe=False,
+                                 db_path=jobs_db, priority=priority)
+    for rule_id, n in fired.items():
+        rule = next(r for r in rules.active() if r.id == rule_id)
+        store.log_firing(batch, rule_id, n, list(rule.do), job)
+    return job
 
 
 def batch_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:

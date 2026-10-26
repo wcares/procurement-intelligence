@@ -113,7 +113,8 @@ The Settings page grows into an operations area, using the event pipeline design
 | **Upload** | add a file; follow it through extraction, classification and linking | event pipeline (intake) |
 
 **Built (2026-10-25):** Connectors, Event log and Rules as an admin Pipeline area (`/pipeline`, three tabs); Settings links
-to it. Upload follows (intake).
+to it. Upload (2026-10-25): add files, follow each through extraction, classification, linking and, for a completion
+report about a tracked project, into the evidence.
 
 ## 3b. Evaluation page (admins)
 

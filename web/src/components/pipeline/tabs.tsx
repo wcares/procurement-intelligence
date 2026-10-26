@@ -8,6 +8,7 @@ const TABS = [
   { href: "/pipeline", label: "Connectors" },
   { href: "/pipeline/events", label: "Event log" },
   { href: "/pipeline/rules", label: "Rules" },
+  { href: "/pipeline/upload", label: "Upload" },
 ];
 
 export function PipelineTabs() {
