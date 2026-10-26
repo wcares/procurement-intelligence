@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { hasRole, useAuth } from "@/components/auth";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import type { EvalRun, EvaluationResponse, PromptEvalSide, RetrievalScores } from "@/lib/api/types";
 import { localTime, MEASURES, pct, ratio } from "./measures";
@@ -126,5 +127,5 @@ function Card({ title, status, children }: { title: string; status: string; chil
 function Btn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   const { user } = useAuth();
   if (!hasRole(user?.role, "admin")) return null;
-  return <button className="rounded-md border border-line px-2 py-1" onClick={onClick}>{children}</button>;
+  return <Button variant="outline" size="xs" className="border-line" onClick={onClick}>{children}</Button>;
 }

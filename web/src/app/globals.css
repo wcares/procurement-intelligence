@@ -22,6 +22,24 @@
   --series-4: #eda100;
   --series-5: #e87ba4;
   --series-6: #008300;
+  /* shadcn/ui theme names, mapped onto the colours above (components in src/components/ui) */
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: var(--subtle);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--subtle);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--subtle);
+  --accent-foreground: var(--foreground);
+  --destructive: var(--risk-high);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand);
+  --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,6 +64,7 @@
     --series-4: #c98500;
     --series-5: #d55181;
     --series-6: #008300;
+    --primary-foreground: #111110;
   }
 }
 
@@ -64,6 +83,26 @@
   --color-risk-medium-soft: var(--risk-medium-soft);
   --color-risk-low: var(--risk-low);
   --color-risk-low-soft: var(--risk-low-soft);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

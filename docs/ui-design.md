@@ -201,10 +201,14 @@ fallback; the read-only stage timeline is built with ECharts.
 Before installing: list exact names and versions for the user's approval (installing downloads packages from npm).
 
 **Installed (2026-10-25):** recharts 3.10.1, @tanstack/react-table 9.3.1 (v9 API: `useTable`, `tableFeatures`),
-echarts 6.1.0 used directly through a small hook (`web/src/lib/use-echarts.ts`), not echarts-for-react. **shadcn/ui is
-not initialised yet:** its theme reuses the variable names `--muted` and `--accent` with other meanings than this app's
-(text colour and primary colour), so `shadcn init` would recolour every page; adopting it needs those tokens renamed
-first, as a separate change.
+echarts 6.1.0 used directly through a small hook (`web/src/lib/use-echarts.ts`), not echarts-for-react.
+**shadcn/ui (2026-10-26):** the app's own `--muted` / `--accent(-soft)` tokens were renamed `--ink-muted` /
+`--brand(-soft)` (838c42d, a pure rename), and shadcn's theme names (`--primary`, `--muted-foreground`, `--accent`,
+`--border`, `--ring`, ...) are mapped onto this palette in `globals.css`, so a shadcn component takes the app's colours
+in light and dark mode. `components.json` (new-york style, `@/components/ui`), `cn` in `src/lib/utils.ts`, Button added
+with the shadcn CLI 4.21.4 (radix-ui 1.7.0, class-variance-authority 0.7.1, clsx 2.1.1, tailwind-merge 3.7.0); further
+components come with `npx shadcn@4.21.4 add <name>` (check the import of `cn` afterwards: the CLI wrote `from "cn"` and
+installed an unrelated npm package of that name, removed). The CLI did not touch `globals.css`.
 
 ## 5. Backend work the UI needs
 

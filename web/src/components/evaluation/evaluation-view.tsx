@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { EvaluationResponse } from "@/lib/api/types";
 import { hasRole, useAuth } from "@/components/auth";
+import { Button } from "@/components/ui/button";
 import { ComparisonsView } from "./comparisons";
 import { FeedbackReview } from "./feedback-review";
 import { Labelling } from "./labelling";
@@ -37,8 +38,8 @@ export function EvaluationView() {
     <div className="space-y-10">
       <Section title="Quality over time" action={admin &&
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <button className="rounded-md border border-line px-2 py-1" onClick={() => run(false)}>Run search-quality check</button>
-          <button className="rounded-md border border-line px-2 py-1" onClick={() => run(true)}>Run full evaluation</button>
+          <Button variant="outline" size="xs" className="border-line" onClick={() => run(false)}>Run search-quality check</Button>
+          <Button variant="outline" size="xs" className="border-line" onClick={() => run(true)}>Run full evaluation</Button>
           {note && <span className="text-ink-muted">{note}</span>}
         </div>
       }>

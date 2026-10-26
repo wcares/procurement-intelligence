@@ -32,7 +32,7 @@ and so that it scales beyond the prototype's data. docs/event-pipeline-design.md
 | Data sources | World Bank URLs and calls in code (`wb_client`, `contract_awards`, `wgi`) | connectors with configuration (mode, interval, cursor), per the event design |
 | Prompts | DONE (2026-10-25): `procintel.core.prompts`; defaults in `src/procintel/prompts/*.txt` (identical to the former constants, checked), versions in the data folder, edited on the Settings page; a new version is a candidate until activated, and answering prompts are first compared with the active one on 20 sample questions (`procintel.learning.prompt_eval`, background job) | — |
 | Pipeline order | fixed sequence in `refresh.py` | actions and rules registries (event design) |
-| UI components | page code; no component library yet | shadcn/ui, Recharts, ECharts, React Flow, TanStack Table (UI design); visuals driven by API data and registered chart types |
+| UI components | shadcn/ui set up (Button so far), Recharts, ECharts, React Flow, TanStack Table | shadcn/ui, Recharts, ECharts, React Flow, TanStack Table (UI design); visuals driven by API data and registered chart types |
 
 ## Code layout (user, 2026-10-25: "code is organized in better related modules ... in their own dirs")
 
