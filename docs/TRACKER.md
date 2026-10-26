@@ -21,6 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
+- [ ] Dashboard follow-ups (from U2): governance (CPIA / WGI) as a ranking measure, problems by closing year as a chart, a 'what changed recently' block from the change-detection log, dashboard data in the in-app mock (the home page shows an error in mock mode today), and shadcn/ui after renaming the app's --muted / --accent tokens (added 2026-10-25, by me) (UI) — PROGRESS: (1) mock data done in COMMIT_PENDING: scripts/mock_dashboard.py snapshots the real dashboard (summary, trends, problem mix, every supported ranking, both heat maps, drill-downs for the first 3 rows of each ranking, 25 records each) into web/src/mocks/dashboard.json (214 KB), served by /api/mock/dashboard, /ranking, /heatmap, /records; unsupported combinations and uncaptured drill-downs answer 400 with the reason, as the backend does. Checked: each mock endpoint called on the dev server (200 for captured, 400 with the message otherwise), tsc and eslint clean; not seen: the home page in a mock-mode server (the dev server forwards to the backend). Next: governance ranking, problems by closing year chart, what changed recently, shadcn/ui.
 
 ## MVP (in order)
 
@@ -181,7 +182,6 @@ _(empty)_
 
 ### Improvements
 
-- [ ] Dashboard follow-ups (from U2): governance (CPIA / WGI) as a ranking measure, problems by closing year as a chart, a 'what changed recently' block from the change-detection log, dashboard data in the in-app mock (the home page shows an error in mock mode today), and shadcn/ui after renaming the app's --muted / --accent tokens (added 2026-10-25, by me)
 - [ ] Upload follow-ups (from U4): remove an upload (and its document from the evidence); OCR for scanned PDFs; links to packages and firms (bid reference, supplier names); uploads by planners (docs/ui-design.md 3c); ISRs and restructuring papers into the evidence once they are a document type (Module 1 improvement)
 - [ ] Insights follow-ups (from U8): the full list of past recommendations with accept / dismiss counts on the Insights page; alerts for award-time shifts ("award times for RFB in your region rose 20%") from the trend; watch-list scope by region
 _(empty)_
