@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from procintel.api import access
 from procintel.api.schemas import RuleSet
 from procintel.jobs import store as jobs_store
-from procintel.pipeline import actions, connectors, entities, eventlog, rules, store
+from procintel.pipeline import actions, connector_config, connectors, entities, eventlog, rules, store
 
 router = APIRouter()
 
@@ -28,6 +28,18 @@ def get_pipeline() -> dict:
 def get_connectors() -> dict:
     """Each source: mode, interval, cursor, last success, last error and failures in a row (it backs off)."""
     return {"connectors": connectors.status(), "backoffCap": connectors.words(connectors.BACKOFF_CAP)}
+
+
+@router.put("/pipeline/connectors/{name}")
+def put_connector(name: str, change: dict, request: Request) -> dict:
+    """Change a source's mode, interval (everyHours) or on/off; equal to the defaults means reset."""
+    if not access.is_admin_client(request):
+        return access.refuse("changing a connector")
+    try:
+        connector_config.save(name, change)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return get_connectors()
 
 
 @router.get("/pipeline/events")

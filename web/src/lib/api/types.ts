@@ -484,6 +484,17 @@ export interface Connector {
   nextRead: string | null;
   /** the interval has passed: read on the next detection run (which waits for idle time) */
   due: boolean;
+  settings: ConnectorSettings;
+  defaults: ConnectorSettings;
+  customised: boolean;
+  /** push mode: where the source posts, and whether its secret is set in the environment (the secret is never sent) */
+  push: { path: string; secretSet: boolean; secretVar: string };
+}
+
+export interface ConnectorSettings {
+  mode: "poll" | "push";
+  everyHours: number;
+  enabled: boolean;
 }
 
 export interface ConnectorsResponse {

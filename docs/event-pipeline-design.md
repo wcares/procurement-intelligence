@@ -1,8 +1,9 @@
 # Event-driven update pipeline: design
 
 Status: built (2026-10-25/26) in `procintel.pipeline`, `procintel.intake` and the admin Pipeline pages; each section
-says what was built and what is still design only. Not built yet: connectors defined by configuration rather than
-as code, and the push (webhook) and subscribe modes (all sources poll today); OCR for scanned uploads.
+says what was built and what is still design only. Connector settings by configuration and the push
+mode (signed webhook) built 2026-10-26 (`procintel.pipeline.connector_config`, `procintel.pipeline.webhook`). Not built
+yet: the subscribe mode (no source offers subscriptions yet); OCR for scanned uploads.
 Follows docs/architecture-principles.md: every part replaceable by configuration or registration, nothing hardcoded.
 
 ## 1. Why

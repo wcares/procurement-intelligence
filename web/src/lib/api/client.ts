@@ -19,6 +19,7 @@ import type {
   FeedbackResponse,
   DryRunResponse,
   ConnectorsResponse,
+  ConnectorSettings,
   EventLogResponse,
   EvaluationResponse,
   LabellingQueue,
@@ -115,6 +116,13 @@ export const api = {
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
   pipeline: () => call<PipelineResponse>("/pipeline"),
   connectors: () => call<ConnectorsResponse>("/pipeline/connectors"),
+  /** a refused change comes back as { error } */
+  saveConnector: async (name: string, change: Partial<ConnectorSettings>): Promise<ConnectorsResponse | { error: string }> => {
+    const res = await fetch(`${API_BASE}/pipeline/connectors/${encodeURIComponent(name)}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(change) });
+    const out = await res.json().catch(() => ({}));
+    return res.ok ? (out as ConnectorsResponse) : { error: out.error ?? `failed (${res.status})` };
+  },
   uploads: () => call<UploadsResponse>("/intake/uploads"),
   /** a refused file (type, size, empty) comes back as { error } */
   upload: async (file: File): Promise<Upload | { error: string }> => {

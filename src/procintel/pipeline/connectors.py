@@ -1,4 +1,5 @@
-"""Connector status for the Connectors page, and when each source is next read.
+"""Connector status for the Connectors page, and when each source is next read (its interval and on/off come from
+procintel.pipeline.connector_config).
 
 Every tracked entity type is read by one connector (EntityType.source, .mode). A read that fails is logged with its
 error (store.log_detection) and does not stop the other sources; the failing source then backs off: after n failures
@@ -9,16 +10,17 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from procintel.pipeline import entities, store
+from procintel.pipeline import connector_config, entities, store, webhook
 
 BACKOFF_CAP = timedelta(days=1)
 HISTORY = 20   # reads per source looked at for the failure count
 
 
 def wait(et: entities.EntityType, failures: int) -> timedelta:
+    every = connector_config.every(et)      # the configured interval (procintel.pipeline.connector_config)
     if failures <= 1:
-        return et.every
-    return min(et.every * 2 ** (failures - 1), max(et.every, BACKOFF_CAP))
+        return every
+    return min(every * 2 ** (failures - 1), max(every, BACKOFF_CAP))
 
 
 def _reads(name: str, db_path: Path | None) -> list[tuple]:
@@ -42,6 +44,8 @@ def _failures(reads: list[tuple]) -> int:
 def due(et: entities.EntityType, force: bool, db_path: Path | None = None) -> bool:
     if force:
         return True
+    if not connector_config.enabled(et.name):
+        return False
     reads = _reads(et.name, db_path)
     return not reads or entities.now() - reads[0][0] >= wait(et, _failures(reads))
 
@@ -82,14 +86,19 @@ def status(db_path: Path | None = None) -> list[dict]:
         ok = next((r for r in reads if not r[4]), None)
         bad = next((r for r in reads if r[4]), None)
         failures = _failures(reads)
+        cfg = connector_config.settings(et.name)
         out.append({
-            "name": et.name, "source": et.source, "mode": et.mode, "every": words(et.every),
+            "name": et.name, "source": et.source, "mode": cfg["mode"], "every": words(connector_config.every(et)),
+            "settings": cfg, "defaults": connector_config.defaults(et.name),
+            "customised": connector_config.customised(et.name),
+            "push": {"path": f"/connectors/{et.name}/webhook", "secretSet": webhook.secret(et.name) is not None,
+                     "secretVar": f"PROCINTEL_WEBHOOK_SECRET_{et.name.upper()}"},
             "cursor": cursor(et.name, db_path),
             "lastRead": _iso(reads[0][0]) if reads else None,
             "lastSuccess": {"at": _iso(ok[0]), "items": ok[1], "events": ok[2], "note": ok[3]} if ok else None,
             "lastError": {"at": _iso(bad[0]), "message": bad[4]} if bad else None,
             "failures": failures,
             "nextRead": _iso(reads[0][0] + wait(et, failures)) if reads else None,
-            "due": not reads or entities.now() >= reads[0][0] + wait(et, failures),
+            "due": cfg["enabled"] and (not reads or entities.now() >= reads[0][0] + wait(et, failures)),
         })
     return out

@@ -1,3 +1,4 @@
+import pytest
 from datetime import timedelta
 
 import pandas as pd
@@ -193,3 +194,27 @@ def test_a_failing_source_is_logged_backs_off_and_does_not_stop_the_others(tmp_p
     log = eventlog.batches("Notice")
     assert log["batches"][0]["events"][0]["key"] == "n2" and log["batches"][0]["firings"][0]["jobStatus"]["status"] == "pending"
     assert eventlog.batches("Bad")["batches"] == [] and "Notice.added" in log["types"]
+
+
+def test_connector_settings_change_interval_on_off_and_reset(tmp_path, monkeypatch):
+    from procintel.pipeline import connector_config, connectors
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    et = entities.EntityType("Notice", timedelta(hours=1), ["v"], lambda ctx: ({}, False), lambda: {"a": {"v": 1}}, "src")
+    monkeypatch.setattr(entities, "ENTITY_TYPES", {"Notice": et})
+    assert connector_config.settings("Notice") == {"mode": "poll", "everyHours": 1.0, "enabled": True}
+    connector_config.save("Notice", {"everyHours": 6})
+    assert connectors.wait(et, 0) == timedelta(hours=6) and connector_config.customised("Notice")
+    assert connectors.wait(et, 3) == timedelta(days=1)                       # backoff from the new interval, capped
+    connector_config.save("Notice", {"enabled": False})
+    store.log_detection("b0", "Notice", 1, 0)
+    assert not connectors.due(et, force=False) and connectors.due(et, force=True)   # off: only "Read now" reads it
+    assert connectors.status()[0]["due"] is False and connectors.status()[0]["settings"]["enabled"] is False
+    connector_config.save("Notice", {"mode": "push"})
+    assert connector_config.every(et) == connector_config.PUSH_RECONCILE    # pushed: polled only to reconcile
+    connector_config.save("Notice", {"mode": "poll", "everyHours": 1, "enabled": True})
+    assert not connector_config.customised("Notice")                         # saving the defaults is a reset
+    for bad in ({"everyHours": 0.01}, {"mode": "fax"}, {"enabled": "yes"}, {"colour": "red"}):
+        with pytest.raises(ValueError):
+            connector_config.save("Notice", bad)
+    with pytest.raises(ValueError):
+        connector_config.save("Nope", {})

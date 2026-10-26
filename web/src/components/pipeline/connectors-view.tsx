@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { Connector, ConnectorsResponse } from "@/lib/api/types";
+import type { Connector, ConnectorSettings, ConnectorsResponse } from "@/lib/api/types";
 import { relative, when } from "./when";
 
 /** Each source: how it reaches us (mode), what the next read asks for (cursor), the last success and last error, and
@@ -34,7 +34,7 @@ export function ConnectorsView() {
         {note && <span className="text-xs text-muted">{note}</span>}
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        {data.connectors.map((c) => <ConnectorCard key={c.name} c={c} onRead={() => readNow(c.name)} />)}
+        {data.connectors.map((c) => <ConnectorCard key={c.name} c={c} onRead={() => readNow(c.name)} onSaved={setData} />)}
       </div>
       <p className="text-xs text-muted">
         A source whose read fails is shown here and backs off (its interval doubles with each failure in a row, up to
@@ -44,7 +44,7 @@ export function ConnectorsView() {
   );
 }
 
-function ConnectorCard({ c, onRead }: { c: Connector; onRead: () => void }) {
+function ConnectorCard({ c, onRead, onSaved }: { c: Connector; onRead: () => void; onSaved: (d: ConnectorsResponse) => void }) {
   const failing = c.failures > 0;
   return (
     <article className={`rounded-xl border bg-surface p-4 text-sm ${failing ? "border-risk-high" : "border-line"}`}>
@@ -67,7 +67,64 @@ function ConnectorCard({ c, onRead }: { c: Connector; onRead: () => void }) {
           ? `due since ${when(c.nextRead)}: runs when the app is next idle`
           : `${when(c.nextRead)} (${relative(c.nextRead)})`}</dd>
       </dl>
-      <button className="mt-3 rounded-md border border-line px-2 py-1 text-xs" onClick={onRead}>Read now</button>
+      {c.settings.mode === "push" && (
+        <p className="mt-2 text-xs">
+          Push: the source posts to <span className="font-mono">{c.push.path}</span>, signed with{" "}
+          <span className="font-mono">{c.push.secretVar}</span>{" "}
+          {c.push.secretSet ? <span className="text-risk-low">(secret set)</span> : <span className="text-risk-high">(secret not set: pushes are refused)</span>}.
+          Still read once a day to catch lost pushes.
+        </p>
+      )}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button className="rounded-md border border-line px-2 py-1 text-xs" onClick={onRead}>Read now</button>
+        <SettingsEditor c={c} onSaved={onSaved} />
+      </div>
     </article>
+  );
+}
+
+
+/** Mode, interval and on/off for one source, saved to the data folder (procintel.pipeline.connector_config). */
+function SettingsEditor({ c, onSaved }: { c: Connector; onSaved: (d: ConnectorsResponse) => void }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<ConnectorSettings>(c.settings);
+  const [error, setError] = useState<string | null>(null);
+  async function save(change: Partial<ConnectorSettings>) {
+    const r = await api.saveConnector(c.name, change).catch((e) => ({ error: (e as Error).message }));
+    if ("error" in r) return setError(r.error);
+    setError(null);
+    setOpen(false);
+    onSaved(r);
+  }
+  if (!open) {
+    return (
+      <button className="text-xs underline" onClick={() => (setDraft(c.settings), setOpen(true))}>
+        settings{c.customised ? " (changed)" : ""}{c.settings.enabled ? "" : " · off"}
+      </button>
+    );
+  }
+  return (
+    <div className="flex w-full flex-wrap items-center gap-2 rounded-md bg-subtle p-2 text-xs">
+      <label className="flex items-center gap-1">Mode
+        <select className="rounded border border-line bg-surface px-1 py-0.5" value={draft.mode}
+          onChange={(e) => setDraft({ ...draft, mode: e.target.value as ConnectorSettings["mode"] })}>
+          <option value="poll">poll</option>
+          <option value="push">push (webhook)</option>
+        </select>
+      </label>
+      {draft.mode === "poll" && (
+        <label className="flex items-center gap-1">every
+          <input type="number" min={0.25} step={0.25} className="w-20 rounded border border-line bg-surface px-1 py-0.5"
+            value={draft.everyHours} onChange={(e) => setDraft({ ...draft, everyHours: Number(e.target.value) })} /> hours
+        </label>
+      )}
+      <label className="flex items-center gap-1">
+        <input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} /> on
+      </label>
+      <button className="rounded-md border border-line px-2 py-0.5" onClick={() => save(draft)}>Save</button>
+      {c.customised && <button className="underline" onClick={() => save(c.defaults)}>reset to defaults</button>}
+      <button className="text-muted underline" onClick={() => setOpen(false)}>cancel</button>
+      {error && <span className="text-risk-high">{error}</span>}
+    </div>
   );
 }

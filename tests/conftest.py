@@ -14,3 +14,10 @@ def isolated_accounts(tmp_path, monkeypatch):
     from procintel.core import paths
     monkeypatch.setattr(paths, "AUTH_DB", tmp_path / "auth.duckdb")
     monkeypatch.setenv("PROCINTEL_AUTH", "off")
+
+
+@pytest.fixture(autouse=True)
+def isolated_connector_settings(tmp_path, monkeypatch):
+    """Connector settings (procintel.pipeline.connector_config) never touch data/connectors.json."""
+    from procintel.core import paths
+    monkeypatch.setattr(paths, "CONNECTORS_FILE", tmp_path / "connectors.json")
