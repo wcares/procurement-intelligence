@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import type { DashboardResponse, DashRecords, HeatmapResponse, RankingResponse, RankingRow } from "@/lib/api/types";
 import { Heatmap } from "@/components/dashboard/heatmap";
 import { ProblemMix } from "@/components/dashboard/problem-mix";
+import { ProblemTrend } from "@/components/dashboard/problem-trend";
 import { RankingTable } from "@/components/dashboard/ranking-table";
 import { RecordsPanel } from "@/components/dashboard/records-panel";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -94,7 +95,10 @@ export function DashboardView() {
         <p className="text-xs text-muted">Cells with fewer than {heat?.minN ?? 5} awards are left out. Click a cell for its packages.</p>
       </Card>
       <Card title="What the completion reports say went wrong">
-        <ProblemMix mix={dash.problemMix} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ProblemMix mix={dash.problemMix} />
+          <ProblemTrend rows={dash.trends.problems} few={dash.fewProjects} />
+        </div>
       </Card>
     </div>
   );
