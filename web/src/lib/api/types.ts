@@ -391,6 +391,69 @@ export interface RecommendationsResponse {
   meta: ResponseMeta;
 }
 
+/** A forecast from where a package is now (procintel.monitoring.forecast). */
+export interface LiveForecast {
+  asOf: string;
+  stages: { stage: "bidding" | "contract"; start: string | null; end?: string; status: "done" | "in progress" | "forecast";
+    elapsedDays?: number; durationDays?: number; basis?: string | null }[];
+  award?: { medianDays: number; p90Days: number; date: string; p90Date: string; within30: number; within90: number; basis: string } | null;
+  contractEnd?: string;
+  warnings: { kind: "slow" | "reissued" | "after_closing" | "isr_downgrade"; text: string }[];
+  caveats: string[];
+}
+
+export type PackageStatus = "active" | "finished" | "replaced" | "stale";
+
+export interface MonitoredPackage {
+  packageId: string;
+  projectId: string;
+  description: string;
+  procGroup: string;
+  methodCode: string | null;
+  status: PackageStatus;
+  phase: "bidding" | "contract" | null;
+  reason: string;
+  ageDays: number | null;
+  tenderStart: string | null;
+  awardDate: string | null;
+  lastNotice: string | null;
+  contractEnd: string | null;
+  forecast: LiveForecast | null;
+  warnings: string[];
+}
+
+export interface IsrRatings { date: string; doc_id: string; ratings: Record<string, [string, string]>; downgrades: string[] }
+
+export interface MonitoredProject {
+  projectId: string;
+  name: string;
+  countryCode: string;
+  projectStatus: string;
+  closingDate: string | null;
+  packages: Record<PackageStatus, number>;
+  bidding: number;
+  packagesWithWarnings?: number;
+  isr?: IsrRatings | null;
+  packageList?: MonitoredPackage[];
+}
+
+export interface PackageDetail extends MonitoredPackage {
+  projectName: string;
+  closingDate: string | null;
+  notices: { noticeId: string; type: string; date: string; version: number | null; awardDate: string | null }[];
+  isr: IsrRatings | null;
+}
+
+export interface StatusRules {
+  stale_quantile: number;
+  stale_max_days: number | null;
+  contract_end_margin: number;
+  estimate_contract_end: boolean;
+  project_overrides: string[];
+}
+
+export interface StatusCounts { status: Record<PackageStatus, number>; phase: Record<string, number> }
+
 /** The labelling queue (GET /evaluation/labelling). */
 export interface LabellingQueue {
   judge: {

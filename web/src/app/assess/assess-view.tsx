@@ -8,6 +8,7 @@ import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { StageTimeline } from "@/components/assess/stage-timeline";
 import { SimilarPackages } from "@/components/assess/similar-packages";
 import { InsightsPanel } from "@/components/insights/insights-panel";
+import { StartedFields, StartedForecast, type Started } from "@/components/monitoring/started-forecast";
 
 const CPIA_LABELS: Record<string, string> = {
   transparency_corruption: "Transparency & corruption",
@@ -36,6 +37,8 @@ export function AssessView() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [assessed, setAssessed] = useState<AssessRequest | null>(null);
+  const [started, setStarted] = useState<Started>({});
+  const [startedAssessed, setStartedAssessed] = useState<Started | null>(null);
 
   useEffect(() => {
     api.options().then(setOpts).catch((e: Error) => setError(e.message));
@@ -64,6 +67,7 @@ export function AssessView() {
     try {
       setResult(await api.assess(form));
       setAssessed(form);
+      setStartedAssessed(started.tenderStart || started.awardDate ? { ...started } : null);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -133,6 +137,7 @@ export function AssessView() {
           />
           <span className="text-xs text-muted">Lets us check this prediction against the actual award time later.</span>
         </Label>
+        <StartedFields value={started} onChange={setStarted} />
         <button
           type="submit"
           disabled={!opts || !form.methodCode || loading}
@@ -151,6 +156,9 @@ export function AssessView() {
             Describe a procurement package to see how comparable packages went: timeline, risks, and quoted lessons from past
             evaluations.
           </div>
+        )}
+        {result && assessed && startedAssessed && (
+          <StartedForecast procGroup={assessed.procGroup} methodCode={assessed.methodCode} started={startedAssessed} />
         )}
         {result && <Results r={result} />}
       </section>

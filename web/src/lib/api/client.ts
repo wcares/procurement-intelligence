@@ -24,6 +24,11 @@ import type {
   EvaluationResponse,
   LabellingQueue,
   AlertsResponse,
+  LiveForecast,
+  MonitoredProject,
+  PackageDetail,
+  StatusCounts,
+  StatusRules,
   AwardTrend,
   RecommendationsResponse,
   WatchList,
@@ -87,6 +92,19 @@ export const api = {
   watch: () => call<{ watch: WatchList }>("/insights/watch"),
   saveWatch: (watch: WatchList) => call<{ watch: WatchList }>("/insights/watch", { method: "PUT", body: JSON.stringify({ watch }) }),
   alerts: () => call<AlertsResponse>("/insights/alerts"),
+  monitoredProjects: (scope: "ongoing" | "watched") => call<{ projects: MonitoredProject[] }>(`/monitoring/projects?scope=${scope}`),
+  monitoredProject: (id: string) => call<MonitoredProject>(`/monitoring/projects/${encodeURIComponent(id)}`),
+  monitoredPackage: (id: string) => call<PackageDetail>(`/monitoring/package?id=${encodeURIComponent(id)}`),
+  describeForecast: (facts: { procGroup: string; methodCode?: string; tenderStart?: string; awardDate?: string;
+    contractDurationDays?: number; reissued?: boolean; closingDate?: string }) =>
+    call<LiveForecast>("/monitoring/forecast", { method: "POST", body: JSON.stringify(facts) }),
+  statusRules: () => call<{ rules: StatusRules; defaults: StatusRules; customised: boolean; counts: StatusCounts }>("/monitoring/status-rules"),
+  statusDryRun: (change: Partial<StatusRules>) =>
+    call<{ now: StatusCounts; candidate: StatusCounts; moves: { from: string; to: string; packages: number }[] }>(
+      "/monitoring/status-rules/dry-run", { method: "POST", body: JSON.stringify(change) }),
+  saveStatusRules: (change: Partial<StatusRules>) =>
+    call<{ rules: StatusRules; defaults: StatusRules; customised: boolean; counts: StatusCounts }>(
+      "/monitoring/status-rules", { method: "PUT", body: JSON.stringify(change) }),
   trend: (procGroup: string, methodCode?: string, countryCode?: string) => {
     const q = new URLSearchParams({ procGroup, ...(methodCode ? { methodCode } : {}), ...(countryCode ? { countryCode } : {}) });
     return call<AwardTrend>(`/insights/trend?${q}`);

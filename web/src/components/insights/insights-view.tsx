@@ -1,13 +1,16 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { AlertsResponse } from "@/lib/api/types";
 import { AlertsList } from "./alerts-list";
 import { WatchListEditor } from "./watch-list";
 import { WatchTrends } from "./watch-trends";
+import { OngoingWork } from "@/components/monitoring/ongoing-work";
 
 export function InsightsView() {
+  const openProject = useSearchParams().get("project");   // from a package page's project link
   const [data, setData] = useState<AlertsResponse | null>(null);
   const [saved, setSaved] = useState(0);
   const load = useCallback(() => api.alerts().then(setData).catch(() => setData(null)), []);
@@ -29,6 +32,11 @@ export function InsightsView() {
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Your watch-list</h2>
         <WatchListEditor onSaved={() => (load(), setSaved((n) => n + 1))} />
+      </section>
+      <section className="md:col-span-2">
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Ongoing work</h2>
+        <p className="mb-3 text-xs text-muted">Every package has a status (active, finished, replaced or stale) from what has been published so far; active ones are forecast from where they are now. Open a project for its packages, a package for its live timeline.</p>
+        <OngoingWork openProject={openProject} />
       </section>
       <section className="md:col-span-2">
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Trends</h2>
