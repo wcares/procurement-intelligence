@@ -39,7 +39,7 @@ def test_a_completion_report_is_extracted_classified_linked_added_and_queued(tmp
     con.close()
     job = jobs_store.next_pending()
     assert job["kind"] == "pipeline_batch" and job["priority"] == 0         # high priority
-    assert pipeline_store.overview()["firings"][0]["rule"] == "uploads-add"
+    assert {f["rule"] for f in pipeline_store.overview()["firings"]} == {"uploads-add", "watch-alerts"}
     again = store.save("copy.txt", ICR.encode(), "txt", "u1")               # same content: a duplicate, not reprocessed
     assert again["status"] == "duplicate" and up["upload_id"] in again["stages"][0]["detail"]
     assert process.run(again["upload_id"])["status"] == "duplicate"

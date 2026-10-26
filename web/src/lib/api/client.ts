@@ -22,6 +22,10 @@ import type {
   EventLogResponse,
   EvaluationResponse,
   LabellingQueue,
+  AlertsResponse,
+  AwardTrend,
+  RecommendationsResponse,
+  WatchList,
   Upload,
   UploadsResponse,
   Options,
@@ -79,6 +83,15 @@ export const api = {
   updateUser: (username: string, change: { role?: string; active?: boolean; password?: string }) =>
     send<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, "PATCH", change),
   options: () => call<Options>("/options"),
+  watch: () => call<{ watch: WatchList }>("/insights/watch"),
+  saveWatch: (watch: WatchList) => call<{ watch: WatchList }>("/insights/watch", { method: "PUT", body: JSON.stringify({ watch }) }),
+  alerts: () => call<AlertsResponse>("/insights/alerts"),
+  trend: (procGroup: string, methodCode?: string, countryCode?: string) => {
+    const q = new URLSearchParams({ procGroup, ...(methodCode ? { methodCode } : {}), ...(countryCode ? { countryCode } : {}) });
+    return call<AwardTrend>(`/insights/trend?${q}`);
+  },
+  recommendations: (req: AssessRequest) => call<RecommendationsResponse>("/insights/recommendations", { method: "POST", body: JSON.stringify(req) }),
+  markAlertsRead: (ids?: string[]) => call<AlertsResponse>("/insights/alerts/read", { method: "POST", body: JSON.stringify({ ids: ids ?? null }) }),
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),
   feedback: (req: FeedbackRequest) => call<FeedbackResponse>("/feedback", { method: "POST", body: JSON.stringify(req) }),

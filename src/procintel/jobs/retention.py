@@ -52,6 +52,10 @@ def pipeline_history(cutoff: datetime, dry: bool) -> int:
                (("event_log", "detected_at"), ("firing", "fired_at"), ("detection", "ran_at"), ("action_run", "ran_at")))
 
 
+def alerts(cutoff: datetime, dry: bool) -> int:
+    return _rows(paths.PIPELINE_DB, "alert", "created_at < ?", [cutoff], dry)
+
+
 def finished_jobs(cutoff: datetime, dry: bool) -> int:
     return _rows(paths.JOBS_DB, "jobs", "status IN ('done', 'failed') AND coalesce(finished_at, created_at) < ?",
                  [cutoff], dry)
@@ -118,6 +122,7 @@ def old_shadows(cutoff: datetime, dry: bool) -> int:
 
 TARGETS = [
     Target("pipeline_history", "Change-detection history (events, rule firings, runs)", pipeline_history),
+    Target("alerts", "Planners' alerts", alerts),
     Target("finished_jobs", "Finished background jobs", finished_jobs),
     Target("responses", "Response log and feedback (kept while a pilot runs)", responses),
     Target("http_cache", "Cached World Bank API responses", http_cache),

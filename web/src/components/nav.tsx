@@ -8,6 +8,7 @@ const NAV = [
   { href: "/", label: "Overview", admin: false },
   { href: "/assess", label: "Assess a package", admin: false },
   { href: "/ask", label: "Ask the evidence", admin: false },
+  { href: "/insights", label: "Insights", admin: false },
   { href: "/pipeline", label: "Pipeline", admin: true },
   { href: "/evaluation", label: "Evaluation", admin: true },
   { href: "/config", label: "Settings", admin: true },

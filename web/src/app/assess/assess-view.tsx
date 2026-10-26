@@ -7,6 +7,7 @@ import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evid
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { StageTimeline } from "@/components/assess/stage-timeline";
 import { SimilarPackages } from "@/components/assess/similar-packages";
+import { InsightsPanel } from "@/components/insights/insights-panel";
 
 const CPIA_LABELS: Record<string, string> = {
   transparency_corruption: "Transparency & corruption",
@@ -34,6 +35,7 @@ export function AssessView() {
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [assessed, setAssessed] = useState<AssessRequest | null>(null);
 
   useEffect(() => {
     api.options().then(setOpts).catch((e: Error) => setError(e.message));
@@ -61,6 +63,7 @@ export function AssessView() {
     setError(null);
     try {
       setResult(await api.assess(form));
+      setAssessed(form);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -70,7 +73,8 @@ export function AssessView() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
-      <form onSubmit={submit} className="space-y-4 self-start rounded-xl border border-line bg-surface p-5 lg:sticky lg:top-6">
+      <div className="space-y-4 self-start lg:sticky lg:top-6">
+      <form onSubmit={submit} className="space-y-4 rounded-xl border border-line bg-surface p-5">
         <h2 className="font-semibold">Describe the package</h2>
         <Label text="Country">
           <select className={field} value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} disabled={!opts}>
@@ -137,6 +141,8 @@ export function AssessView() {
           {loading ? "Assessing…" : "Assess package"}
         </button>
       </form>
+      <InsightsPanel procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
+      </div>
 
       <section className="min-w-0 space-y-6">
         {error && <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{error}</p>}

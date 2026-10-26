@@ -155,13 +155,7 @@ class Dashboard:
     # --- trends -------------------------------------------------------------------------------------------------------
     def trends(self) -> dict:
         """Award time by tender year (incomplete years marked), problems by project closing year."""
-        out = []
-        for year, f in self.packages.dropna(subset=["tender_year"]).groupby("tender_year"):
-            d = f["tender_to_award_days"].dropna()
-            if d.size:
-                out.append({"year": int(year), "median_days": round(float(d.median()), 1),
-                            "long_share": round(float((d > LONG_DAYS).mean()), 3), "n": int(d.size),
-                            "incomplete": int(year) > self.complete_until})
+        out = self._award_by_year(self.packages)
         probs = []
         tagged = self.projects.dropna(subset=["tagged", "closing_year"])
         for year, f in tagged.groupby("closing_year"):
@@ -172,6 +166,40 @@ class Dashboard:
                         f"{FOLLOW_UP_MONTHS} months), so their award times look shorter than they will be."}
 
     # --- heat map -----------------------------------------------------------------------------------------------------
+    def _award_by_year(self, frame: pd.DataFrame, min_n: int = 1) -> list[dict]:
+        out = []
+        for year, f in frame.dropna(subset=["tender_year"]).groupby("tender_year"):
+            d = f["tender_to_award_days"].dropna()
+            if d.size >= min_n:
+                out.append({"year": int(year), "median_days": round(float(d.median()), 1),
+                            "long_share": round(float((d > LONG_DAYS).mean()), 3), "n": int(d.size),
+                            "incomplete": int(year) > self.complete_until})
+        return out
+
+    def award_trend(self, proc_group: str, method: str | None = None, country: str | None = None,
+                    min_n: int = 5, min_years: int = 3) -> dict:
+        """Award time by tender year for the package being planned: the narrowest of country + group + method,
+        group + method, group that has at least min_years years with min_n packages each."""
+        pk = self.packages
+        scopes = [("country", "method"), ("method",), ()]
+        for keys in scopes:
+            f = pk[pk["proc_group"] == proc_group]
+            if "method" in keys:
+                if not method:
+                    continue
+                f = f[f["method_code"] == method]
+            if "country" in keys:
+                if not country:
+                    continue
+                f = f[f["country_code"] == country]
+            series = self._award_by_year(f, min_n)
+            if len(series) >= min_years:
+                label = ", ".join([self.countries.get(country, (country,))[0]] if "country" in keys else [])
+                return {"series": series, "scope": {"procGroup": proc_group, "method": method if "method" in keys else None,
+                                                    "country": country if "country" in keys else None, "label": label},
+                        "minN": min_n}
+        return {"series": [], "scope": None, "minN": min_n}
+
     def heatmap(self, measure: str = "delay", min_n: int = 5) -> dict:
         """Country x procurement method for a package measure; cells behind fewer than min_n awards are left out."""
         if MEASURES[measure].level != "package":

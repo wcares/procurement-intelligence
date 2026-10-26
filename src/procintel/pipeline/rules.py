@@ -47,6 +47,7 @@ DEFAULT_RULES = [
     Rule("indicators-governance", ("Indicator.added", "Indicator.changed", "Indicator.removed"),
          ("apply_indicators",)),
     Rule("awards-check-model", ("Package.award_changed",), ("drift_check",)),
+    Rule("watch-alerts", ("Notice.added", "Notice.changed", "Document.added", "Upload.ingested"), ("watch_alerts",)),
     Rule("data-reload", ("Data.updated",), ("reload_backend",)),
 ]
 

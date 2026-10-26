@@ -336,6 +336,51 @@ export interface ModelRetrain {
   source?: string;
 }
 
+/** A planner's watch-list: within a kind any value matches, across kinds all must; projects match on their own. */
+export type WatchKind = "country" | "sector" | "proc_group" | "method" | "project";
+export type WatchList = Record<WatchKind, string[]>;
+
+export interface Alert {
+  id: string;
+  kind: "new_notices" | "reissued" | "awarded" | "report";
+  title: string;
+  detail: string;
+  refs: { type: "notice" | "document"; key: string; label: string; days?: number }[];
+  at: string;
+  read: boolean;
+}
+
+export interface AlertsResponse {
+  alerts: Alert[];
+  unread: number;
+}
+
+/** Award time by tender year for a package's scope (GET /insights/trend). */
+export interface AwardTrend {
+  series: { year: number; median_days: number; long_share: number; n: number; incomplete: boolean }[];
+  scope: { procGroup: string; method: string | null; country: string | null; label: string } | null;
+  minN: number;
+}
+
+/** Recommendations for a planned package (POST /insights/recommendations): statistics or cited precedents only. */
+export interface Recommendation {
+  kind: "method" | "mitigation";
+  id: string;
+  title: string;
+  text?: string;
+  note?: string;
+  question?: string;
+  sentences?: { text: string; citations: number[] }[];
+  citations: Citation[];
+  basis: "statistic" | "precedents";
+  risk?: string;
+}
+
+export interface RecommendationsResponse {
+  recommendations: Recommendation[];
+  meta: ResponseMeta;
+}
+
 /** The labelling queue (GET /evaluation/labelling). */
 export interface LabellingQueue {
   judge: {

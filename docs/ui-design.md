@@ -98,6 +98,10 @@ On the page where the planner asks or assesses, a compact side panel with three 
 - Recommendations are generated only from retrieved precedents and statistics, with citations, the same way answers
   are; with no supporting evidence, none is shown.
 
+**Built (2026-10-26):** watch-lists and alerts (`procintel.insights.alerts`, pipeline rule `watch-alerts`),
+recommendations (`procintel.insights.recommendations`: faster methods from the statistics, mitigations from cited
+answers), the award-time trend for a package's scope, the Insights page and the compact panel on Assess and Ask.
+
 ## 3. Pipeline and settings pages
 
 The Settings page grows into an operations area, using the event pipeline design:

@@ -63,3 +63,11 @@ def test_stage_durations_by_group_and_risks_placed():
     placed = stages.place_risks([{"id": "rebid"}, {"id": "amendment"}, {"id": "governance"}, {"id": "new-kind"}])
     assert [r["stage"] for r in placed] == ["bidding", "contract", "all", "all"]
     assert stages.stage_of_problem("weak specifications or design") == "plan" and stages.stage_of_problem(None) is None
+
+
+def test_award_trend_uses_the_narrowest_scope_with_enough_years(board):
+    t = board.award_trend("CW", "RFB", "BB", min_n=1, min_years=2)
+    assert t["scope"]["method"] == "RFB" and t["scope"]["country"] is None   # BB alone has one year: falls back
+    assert [(x["year"], x["n"]) for x in t["series"]] == [(2019, 2), (2020, 1)]
+    assert board.award_trend("CW", "RFB", "AA", min_n=1, min_years=1)["scope"]["country"] == "AA"
+    assert board.award_trend("NC", None, None, min_n=1, min_years=1) == {"series": [], "scope": None, "minN": 1}

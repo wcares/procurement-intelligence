@@ -1,7 +1,7 @@
 """Endpoint groups. A new group is a module with a `router`, listed in ROUTERS with the role it needs (None: open,
 or the module guards its routes itself); roles are checked in the backend for every call (procintel.api.security)."""
-from procintel.api.routes import (ask, assess, auth, dashboard, evaluation, feedback, health, intake, jobs, pipeline,
-                                  prompts, settings, shadows)
+from procintel.api.routes import (ask, assess, auth, dashboard, evaluation, feedback, health, insights, intake, jobs,
+                                  pipeline, prompts, settings, shadows)
 
 ROUTERS = [
     (auth.router, None),         # sign-in is open; account management checks the admin role per route
@@ -10,6 +10,7 @@ ROUTERS = [
     (assess.router, "planner"),
     (ask.router, "planner"),
     (feedback.router, "planner"),  # its review listing needs admin (per route)
+    (insights.router, "planner"),  # each planner's own watch-list and alerts
     (settings.router, "admin"),
     (prompts.router, "admin"),
     (jobs.router, None),         # admin per route; reload also from the local refresh script

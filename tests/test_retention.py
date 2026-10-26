@@ -37,7 +37,7 @@ def test_dry_run_counts_then_apply_removes_only_what_is_old(tmp_path, monkeypatc
         t = time.time() - age * 86400
         os.utime(f, (t, t))
     dry = retention.apply(dry=True)["removed"]
-    assert dry == {"pipeline_history": 2, "finished_jobs": 1, "responses": 2, "http_cache": 1, "refresh_logs": 0,
+    assert dry == {"pipeline_history": 2, "alerts": 0, "finished_jobs": 1, "responses": 2, "http_cache": 1, "refresh_logs": 0,
                    "old_shadows": 0}
     assert (paths.HTTP_CACHE / "old.json").exists()                       # the dry run removed nothing
     assert retention.apply()["removed"] == dry

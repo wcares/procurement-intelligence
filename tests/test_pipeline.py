@@ -27,13 +27,15 @@ def test_rules_plan_coalesces_and_follows_the_registry_order():
     events = [{"type": "Notice.added", "key": "n1"}, {"type": "Notice.changed", "key": "n2", "changed": ["award_date"]},
               {"type": "Project.changed", "key": "p1", "changed": ["name"]}]          # name is not a watched rule field
     plan, fired = rules.plan(events, rules.DEFAULT_RULES, actions.ORDER)
-    assert plan == [("apply_notices", ["n1", "n2"]), ("rebuild_tables", ["n1", "n2"]), ("rebuild_firms", ["n1", "n2"])]
-    assert fired == {"notices-update-packages": 2}
+    assert plan == [("apply_notices", ["n1", "n2"]), ("rebuild_tables", ["n1", "n2"]), ("rebuild_firms", ["n1", "n2"]),
+                    ("watch_alerts", ["n1", "n2"])]
+    assert fired == {"notices-update-packages": 2, "watch-alerts": 2}
 
 
 def test_a_new_report_is_ingested_chunked_then_indexed_and_checked():
     plan, _ = rules.plan([{"type": "Document.added", "key": "d9"}], rules.DEFAULT_RULES, actions.ORDER)
-    assert [a for a, _ in plan] == ["ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents"]
+    assert [a for a, _ in plan] == ["ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents",
+                                    "watch_alerts"]
     derived = [{"type": "Passages.changed", "key": "all"}, {"type": "Data.updated", "key": "all"}]
     plan, _ = rules.plan(derived, rules.DEFAULT_RULES, actions.ORDER)
     assert [a for a, _ in plan] == ["index_passages", "document_checks", "reload_backend"]
@@ -56,6 +58,7 @@ def test_detection_replay_records_events_queues_one_batch_and_the_batch_follows_
         "rebuild_tables": recorder("rebuild_tables", [{"type": "Package.award_changed", "key": "all"}]),
         "rebuild_firms": recorder("rebuild_firms", []),
         "drift_check": recorder("drift_check", []),
+        "watch_alerts": recorder("watch_alerts", []),
         "reload_backend": recorder("reload_backend", [])})
     monkeypatch.setattr(actions, "ORDER", list(actions.ACTIONS))
 
@@ -68,12 +71,13 @@ def test_detection_replay_records_events_queues_one_batch_and_the_batch_follows_
     assert out["events"] == {"Notice": 2} and out["job"]
     logged = store.batch_events(out["batch"])
     assert sorted((e["type"], e["key"]) for e in logged) == [("Notice.added", "n3"), ("Notice.changed", "n2")]
-    assert store.overview()["firings"][0]["rule"] == "notices-update-packages"
+    assert {f["rule"] for f in store.overview()["firings"]} == {"notices-update-packages", "watch-alerts"}
 
     job = jobs_store.next_pending()
     assert job["kind"] == "pipeline_batch"
     result = _run(detect.batch_steps(job["params"], None, {}))
-    assert [r[0] for r in ran] == ["apply_notices", "rebuild_tables", "rebuild_firms", "drift_check", "reload_backend"]
+    assert [r[0] for r in ran] == ["apply_notices", "rebuild_tables", "rebuild_firms", "drift_check", "watch_alerts",
+                                   "reload_backend"]
     assert ran[0][1] == ["n2", "n3"] and ran[0][2] == ["n2", "n3"]              # the action got exactly its rows
     assert result["derived"] == ["Data.updated", "Package.award_changed"]
     assert {e["type"] for e in store.batch_events(out["batch"])} >= {"Data.updated", "Package.award_changed"}

@@ -204,6 +204,23 @@ def drift_check(keys, events, ctx):
     return []
 
 
+def watch_alerts(keys, events, ctx):
+    """Alerts for planners whose watch-list covers what changed (procintel.insights.alerts); reports are read back
+    from the documents table, so uploaded ones (keys upload-<id>) count too."""
+    from procintel.insights import alerts
+    doc_keys = [k for k in keys if k.startswith("upload-") or events.get(k, {}).get("type", "").startswith("Document.")]
+    docs = {}
+    if doc_keys:
+        con = db.connect(read_only=True)
+        try:
+            docs = {d: {"project_id": p, "title": t} for d, p, t in con.execute(
+                "SELECT doc_id, project_id, title FROM documents WHERE doc_id IN (SELECT unnest(?))", [doc_keys]).fetchall()}
+        finally:
+            con.close()
+    alerts.from_events(events, docs)
+    return []
+
+
 def reload_backend(keys, events, ctx):
     reload = ctx.get("reload")
     if reload:
@@ -232,6 +249,7 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
            ("Data.updated",)),
     Action("sector_links", "Rebuild contract-to-report links by sector and time", sector_links, ("Data.updated",)),
     Action("drift_check", "Queue a prediction drift check", drift_check, min_hours=6),
+    Action("watch_alerts", "Alert planners whose watch-list covers the changes", watch_alerts),
     Action("reload_backend", "Reload the backend's data", reload_backend),
 ]}
 ORDER = list(ACTIONS)

@@ -6,6 +6,7 @@ import type { AskResponse, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { AnswerMap } from "@/components/ask/answer-map";
+import { InsightsPanel } from "@/components/insights/insights-panel";
 
 type Turn = { id: number; question: string; response?: AskResponse; error?: string };
 
@@ -53,6 +54,9 @@ export function AskView() {
 
   return (
     <div className="mx-auto max-w-3xl">
+      <div className="mb-6">
+        <InsightsPanel procGroup={procGroup || undefined} countryCode={countryCode || undefined} />
+      </div>
       <div className="space-y-8">
         {turns.length === 0 && (
           <div className="rounded-xl border border-dashed border-line p-6">
