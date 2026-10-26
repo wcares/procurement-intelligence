@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { CompareResponse, ConfigProfile, ConfigSetting, RetrievalMetrics } from "@/lib/api/types";
-import { FeedbackReview } from "./feedback-review";
+import { FeedbackReview } from "@/components/evaluation/feedback-review";
 import { Jobs } from "./jobs-panel";
 import Link from "next/link";
 import { Prompts } from "./prompts-panel";
