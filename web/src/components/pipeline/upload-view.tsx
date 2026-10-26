@@ -65,7 +65,7 @@ export function UploadView() {
         <p className="mt-1 text-xs text-ink-muted">
           {data ? `${data.formats.join(", ")} · up to ${data.maxMb} MB each` : ""}. Completion reports that name a tracked
           project are added to the evidence{data && !data.all ? " once an admin confirms them" : ""}; other documents
-          are kept, classified and linked. Scans need OCR, which is not available yet.
+          are kept, classified and linked. Scanned PDF pages are read by OCR.
         </p>
         <input ref={input} type="file" multiple className="hidden" onChange={(e) => send(e.target.files)}
           accept={data?.formats.map((f) => `.${f}`).join(",")} />

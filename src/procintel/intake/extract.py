@@ -1,18 +1,29 @@
 """Text by format: one string per page (PDF) or one for the whole file. Adding a format = one reader in READERS.
 
-A PDF without a text layer (a scan) gives no text; reading scans needs OCR, which is not installed, so such a file is
-reported for review rather than guessed at."""
+PDF pages without a text layer (scans) are read by OCR (procintel.intake.ocr) when an engine is available;
+pages_ocr() also says how many pages that was. Without OCR such a file is reported for review rather than guessed at."""
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Callable
 
 MAX_BYTES = 50 * 1024 * 1024
+SCANNED_CHARS = 40    # a PDF page with less text than this is treated as a scan
 
 
 def _pdf(path: Path) -> list[str]:
+    return _pdf_ocr(path)[0]
+
+
+def _pdf_ocr(path: Path) -> tuple[list[str], int]:
     from pypdf import PdfReader
-    return [p.extract_text() or "" for p in PdfReader(str(path)).pages]
+    from procintel.intake import ocr
+    pages = [p.extract_text() or "" for p in PdfReader(str(path)).pages]
+    scans = [i for i, t in enumerate(pages) if len(t.strip()) < SCANNED_CHARS]
+    read = ocr.read_pdf_pages(path, scans)
+    for i, t in read.items():
+        pages[i] = t
+    return pages, len(read)
 
 
 def _docx(path: Path) -> list[str]:
@@ -47,3 +58,8 @@ def format_of(filename: str) -> str | None:
 
 def pages(path: Path, fmt: str) -> list[str]:
     return READERS[fmt](path)
+
+
+def pages_ocr(path: Path, fmt: str) -> tuple[list[str], int]:
+    """(pages, how many of them were read by OCR)."""
+    return _pdf_ocr(path) if fmt == "pdf" else (pages(path, fmt), 0)

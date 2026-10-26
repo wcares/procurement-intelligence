@@ -215,3 +215,20 @@ def test_packages_by_bid_reference_and_firms_by_name(tmp_path, monkeypatch):
     loose = link.packages_and_firms(text, [])                                        # no project named: all, stricter
     assert {p["id"] for p in loose[0]} == {"P123456/KE-KERRA-112233-CW-RFB", "P999999/XX-OTHER-445566-GO-RFB"}
     assert {f["firmId"] for f in loose[1]} == {1, 3}
+
+
+def test_scanned_pdf_pages_are_read_by_ocr_and_the_engine_is_a_setting(tmp_path, monkeypatch):
+    from PIL import Image
+    from procintel.intake import ocr
+    scan = tmp_path / "scan.pdf"
+    Image.new("RGB", (200, 280), "white").save(scan, save_all=True, append_images=[Image.new("RGB", (200, 280), "white")])
+    calls = []
+    monkeypatch.setitem(ocr.ENGINES, "fake", lambda img: calls.append(img.size) or "text read from the scan")
+    monkeypatch.setenv("PROCINTEL_OCR", "fake")
+    pages, n = extract.pages_ocr(scan, "pdf")
+    assert n == 2 and pages == ["text read from the scan"] * 2 and len(calls) == 2
+    monkeypatch.setenv("PROCINTEL_OCR", "off")
+    assert extract.pages_ocr(scan, "pdf")[1] == 0 and ocr.engine() is None
+    monkeypatch.setattr(ocr, "MAX_PAGES", 1)
+    monkeypatch.setenv("PROCINTEL_OCR", "fake")
+    assert extract.pages_ocr(scan, "pdf")[1] == 1                       # at most MAX_PAGES a file

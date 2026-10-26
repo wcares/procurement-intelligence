@@ -16,6 +16,10 @@ bm25s>=0.2               # imported directly (stopwords); also pulled in by the 
 PyStemmer>=2.2
 pypdf>=6.0               # uploads: PDF text (procintel.intake)
 python-docx>=1.1         # uploads: Word text
+pypdfium2>=5.14          # uploads: rendering scanned PDF pages for OCR
+rapidocr>=3.10           # uploads: OCR on any platform (PROCINTEL_OCR=rapidocr)
+onnxruntime>=1.31        # runs rapidocr's models
+ocrmac>=1.0.1; sys_platform == "darwin"   # uploads: OCR with Apple Vision (PROCINTEL_OCR=vision, macOS)
 python-multipart>=0.0.9  # uploads: FastAPI form files
 pytest
 moto>=5.2                # tests: an in-memory S3 for procintel.core.blob (boto3 itself comes with litellm)

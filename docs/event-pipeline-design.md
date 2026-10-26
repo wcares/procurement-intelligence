@@ -3,7 +3,7 @@
 Status: built (2026-10-25/26) in `procintel.pipeline`, `procintel.intake` and the admin Pipeline pages; each section
 says what was built and what is still design only. Connector settings by configuration and the push
 mode (signed webhook) built 2026-10-26 (`procintel.pipeline.connector_config`, `procintel.pipeline.webhook`). Not built
-yet: the subscribe mode (no source offers subscriptions yet); OCR for scanned uploads.
+yet: the subscribe mode (no source offers subscriptions yet). OCR for scanned uploads: built 2026-10-26 (below).
 Follows docs/architecture-principles.md: every part replaceable by configuration or registration, nothing hardcoded.
 
 ## 1. Why
@@ -197,7 +197,7 @@ logged with its error and the other sources go on; a failing source waits its in
 stay in the World Bank client (0.2 s between requests; 4 tries with growing waits, wb_client.py).
 
 **Upload built (2026-10-25)** in `procintel.intake`: store (fingerprint, duplicates) → extract by format (pdf, docx, txt,
-md, html; scans to review, no OCR) → classify (the title phrase first, else the decision model at >= 60%, else review;
+md, html; scanned PDF pages read by OCR, `procintel.intake.ocr`, since 2026-10-26) → classify (the title phrase first, else the decision model at >= 60%, else review;
 the model alone over-calls completion reports) → link (project ids, countries) → a titled completion report about a
 tracked project goes into `documents` and raises `Upload.ingested`, which rule `uploads-add` turns into the usual
 passage work. Other kinds are kept and linked only.

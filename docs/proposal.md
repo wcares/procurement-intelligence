@@ -302,7 +302,7 @@ plan records, before and after.
   the over-180 risk.
 - **Retrieval** is a fixed pipeline with one rephrasing step rather than a multi-step agent; similar past technical
   specifications are matched by description, not by specification documents.
-- **Not built:** OCR for scanned uploads, the subscribe connector mode, a Reviewer role, image page indexing.
+- **Not built:** the subscribe connector mode, image page indexing (OCR of scanned uploads and the Reviewer role were added after this was written, on 2026-10-26).
 - **Planning cycle time** cannot be measured from public data; it needs the planners' own records in the pilot.
 
 ---

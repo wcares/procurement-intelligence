@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 
 from procintel.core import blob, db
-from procintel.intake import classify, extract, link, store
+from procintel.intake import classify, extract, link, ocr, store
 from procintel.pipeline import detect
 from procintel.pipeline import store as pipeline_store
 
@@ -19,12 +19,13 @@ ICR_TYPE = "Implementation Completion and Results Report"   # as the World Bank 
 MIN_CHARS = 500     # less text than this: a scan without a text layer, or an empty file
 
 
-def _pages(up: dict) -> list[str]:
+def _pages(up: dict) -> tuple[list[str], int]:
+    """(pages, how many were read by OCR)."""
     # the path column holds a blob key; uploads from before object storage hold an absolute file path
     if up["path"].startswith("/"):
-        return extract.pages(Path(up["path"]), up["format"])
+        return extract.pages_ocr(Path(up["path"]), up["format"])
     with blob.local_copy(up["path"], suffix=f".{up['format']}") as path:
-        return extract.pages(path, up["format"])
+        return extract.pages_ocr(path, up["format"])
 
 
 def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None, trusted: bool = True) -> dict:
@@ -34,17 +35,20 @@ def run(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = None
     if up is None or up["status"] != "received":
         return up
     try:
-        pages = _pages(up)
+        pages, scanned = _pages(up)
     except Exception as e:
         store.advance(upload_id, "extract", f"could not read the file: {e}", "failed", db_path, error=str(e)[:500])
         return store.get(upload_id, db_path)
     text = "\n\n".join(pages).strip()
     if len(text) < MIN_CHARS:
-        store.advance(upload_id, "extract", f"{len(text)} characters of text: a scan needs OCR, which is not "
-                      "available; review by hand", "needs_review", db_path)
+        why = ("even after OCR" if scanned else "a scan needs OCR, which is not available here" if not ocr.engine()
+               else "too little text")
+        store.advance(upload_id, "extract", f"{len(text)} characters of text ({why}); review by hand", "needs_review",
+                      db_path)
         return store.get(upload_id, db_path)
-    store.advance(upload_id, "extract", f"{len(pages)} page{'s' if len(pages) != 1 else ''}, {len(text):,} characters",
-                  "extracted", db_path)
+    store.advance(upload_id, "extract", f"{len(pages)} page{'s' if len(pages) != 1 else ''}, {len(text):,} characters"
+                  + (f"; {scanned} scanned page{'s' if scanned != 1 else ''} read by OCR ({ocr.engine()})" if scanned
+                     else ""), "extracted", db_path)
 
     kind = classify.classify(text)
     sure = kind["method"] != "review"
@@ -92,7 +96,7 @@ def approve(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = 
     known = [p["id"] for p in (up["links"] or {}).get("projects", []) if p["known"]]
     if not known:
         raise ValueError("it names no tracked project, so it cannot be linked to the evidence")
-    text = "\n\n".join(_pages(up)).strip()
+    text = "\n\n".join(_pages(up)[0]).strip()
     store.advance(upload_id, "approved", "added by an admin", None, db_path)
     return _add(up, text, known, db_path, jobs_db)
 
