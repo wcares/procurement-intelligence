@@ -454,6 +454,30 @@ export interface StatusRules {
 
 export interface StatusCounts { status: Record<PackageStatus, number>; phase: Record<string, number> }
 
+/** Goal seeking (POST /assess/goal): set-ups ranked by how often comparable packages met the target. */
+export interface GoalOption {
+  method: string;
+  methodLabel: string;
+  lots: number;
+  lotValueUsd: number | null;
+  n: number;
+  scope: string;
+  share: number | null;
+  medianDays?: number;
+  p90Days?: number;
+  note?: string;
+  flag?: string;
+  modelMedianDays?: number;
+  modelOver180?: number;
+}
+
+export interface GoalResult {
+  target: { days: number };
+  options: GoalOption[];
+  caveats: string[];
+  note: string | null;
+}
+
 /** The labelling queue (GET /evaluation/labelling). */
 export interface LabellingQueue {
   judge: {

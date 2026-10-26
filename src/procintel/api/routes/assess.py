@@ -6,11 +6,11 @@ import time
 from fastapi import APIRouter, Request
 
 from procintel.api import security
-from procintel.api.schemas import AssessRequest, AssessResponse, Options
+from procintel.api.schemas import AssessRequest, AssessResponse, GoalRequest, Options
 from procintel.api.state import state
 from procintel.auth import service
 from procintel.learning import feedback
-from procintel.prediction import stages
+from procintel.prediction import goal, predict, stages
 from procintel.prediction.assess import assess as run_assess
 
 router = APIRouter()
@@ -38,3 +38,15 @@ def post_assess(req: AssessRequest, request: Request) -> dict:
     feedback.log_response("assess", body, out, user_id=service.pseudonym(security.user_of(request)),
                           duration_ms=round((time.monotonic() - started) * 1000))
     return out
+
+
+@router.post("/assess/goal")
+def post_goal(req: GoalRequest) -> dict:
+    """Set-ups that met a target award time most often in the past (procintel.prediction.goal)."""
+    s = state()
+    body = req.model_dump()
+    if s.goal_history is None:
+        s.goal_history = predict.load_frame(predict.DB_PATH)
+    labels = {m["code"]: m["label"] for m in s.options["methods"]}
+    return goal.options(s.goal_history, body, body["targetDays"], s.region.get(body["countryCode"]),
+                        s.governance.get(body["countryCode"], []), s.timeline_model, labels, body["maxLots"])

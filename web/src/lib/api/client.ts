@@ -25,6 +25,7 @@ import type {
   LabellingQueue,
   AlertsResponse,
   LiveForecast,
+  GoalResult,
   MonitoredProject,
   PackageDetail,
   StatusCounts,
@@ -92,6 +93,8 @@ export const api = {
   watch: () => call<{ watch: WatchList }>("/insights/watch"),
   saveWatch: (watch: WatchList) => call<{ watch: WatchList }>("/insights/watch", { method: "PUT", body: JSON.stringify({ watch }) }),
   alerts: () => call<AlertsResponse>("/insights/alerts"),
+  goal: (req: AssessRequest & { targetDays: number; maxLots?: number }) =>
+    call<GoalResult>("/assess/goal", { method: "POST", body: JSON.stringify(req) }),
   monitoredProjects: (scope: "ongoing" | "watched") => call<{ projects: MonitoredProject[] }>(`/monitoring/projects?scope=${scope}`),
   monitoredProject: (id: string) => call<MonitoredProject>(`/monitoring/projects/${encodeURIComponent(id)}`),
   monitoredPackage: (id: string) => call<PackageDetail>(`/monitoring/package?id=${encodeURIComponent(id)}`),

@@ -58,6 +58,11 @@ class AssessRequest(BaseModel):
     tenderReference: str | None = Field(default=None, max_length=120)
 
 
+class GoalRequest(AssessRequest):
+    targetDays: int = Field(ge=7, le=2000)   # awarded within this many days of the tender notice
+    maxLots: int = Field(default=4, ge=1, le=10)
+
+
 class TimelineBenchmark(BaseModel):
     metric: Literal["tender_to_award_days"]
     scope: str

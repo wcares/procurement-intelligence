@@ -37,6 +37,7 @@ class State:
         self.retriever.demoted = feedback_review.load_demoted()  # flagged citations moved to the end of search results
         idf(self.retriever)  # term weights for picking answer sentences
         self.timeline_model = predict.load()  # None until `python -m procintel.prediction.predict` has been run
+        self.goal_history = None  # the model's training history, loaded on the first goal-seeking request
         self.region = {c["code"]: c["region"] for c in self.options["countries"]}
         self.country_name = {c["code"]: c["name"] for c in self.options["countries"]}
 

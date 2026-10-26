@@ -8,6 +8,7 @@ import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { StageTimeline } from "@/components/assess/stage-timeline";
 import { SimilarPackages } from "@/components/assess/similar-packages";
 import { InsightsPanel } from "@/components/insights/insights-panel";
+import { GoalPanel } from "@/components/assess/goal-panel";
 import { StartedFields, StartedForecast, type Started } from "@/components/monitoring/started-forecast";
 
 const CPIA_LABELS: Record<string, string> = {
@@ -119,6 +120,16 @@ export function AssessView() {
             ))}
           </select>
         </Label>
+        <Label text="Estimated value, US$ (optional)">
+          <input
+            type="number"
+            min={0}
+            className={field}
+            placeholder="e.g. 2000000"
+            value={form.estimatedValueUsd ?? ""}
+            onChange={(e) => setForm({ ...form, estimatedValueUsd: e.target.value ? Number(e.target.value) : undefined })}
+          />
+        </Label>
         <Label text="Short description (optional)">
           <textarea
             className={`${field} min-h-20`}
@@ -160,6 +171,7 @@ export function AssessView() {
         {result && assessed && startedAssessed && (
           <StartedForecast procGroup={assessed.procGroup} methodCode={assessed.methodCode} started={startedAssessed} />
         )}
+        {result && assessed && <GoalPanel request={assessed} />}
         {result && <Results r={result} />}
       </section>
     </div>

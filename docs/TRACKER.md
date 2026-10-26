@@ -21,6 +21,7 @@ Order of work: In progress → Queues (file order) → MVP list → Improvements
 
 ## In progress
 
+- [ ] U10 Goal seeking (user, 2026-10-26): on Assess, set a desired outcome (e.g. awarded within 90 days, re-tender risk under 10%) and get the set-ups that make it likely: the choosable inputs (procurement method, splitting into lots / contract size, prequalification) tried through the timeline model and statistics with the fixed ones (country, sector, what is bought) and the context (governance) held, options ranked by the chance of meeting the goal, each with its evidence (comparable packages, n); only set-ups the Procurement Regulations allow for the contract value (others flagged as needing a waiver); worded as 'packages like this were faster', not as a cause; too few comparable packages shown as not enough evidence
 
 ## MVP (in order)
 
@@ -177,7 +178,6 @@ _(empty)_
 
 ### Queue
 
-- [ ] U10 Goal seeking (user, 2026-10-26): on Assess, set a desired outcome (e.g. awarded within 90 days, re-tender risk under 10%) and get the set-ups that make it likely: the choosable inputs (procurement method, splitting into lots / contract size, prequalification) tried through the timeline model and statistics with the fixed ones (country, sector, what is bought) and the context (governance) held, options ranked by the chance of meeting the goal, each with its evidence (comparable packages, n); only set-ups the Procurement Regulations allow for the contract value (others flagged as needing a waiver); worded as 'packages like this were faster', not as a cause; too few comparable packages shown as not enough evidence
 
 ### Improvements
 
