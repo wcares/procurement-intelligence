@@ -79,3 +79,24 @@ def test_sign_in_off_means_everyone_is_admin(monkeypatch):
     from procintel.api.app import app
     monkeypatch.setenv("PROCINTEL_AUTH", "off")
     assert client(app).get("/auth/me").json()["role"] == "admin"
+
+
+def test_reviewer_labels_and_reviews_but_has_no_pipeline_control(local):
+    service.create_user("rae", "reviewer-pass-1", "reviewer")
+    rae = client(local)
+    assert rae.post("/auth/login", json={"username": "rae", "password": "reviewer-pass-1"}).json()["role"] == "reviewer"
+    for path in ["/evaluation/labelling", "/feedback/review"]:
+        assert rae.get(path).status_code != 403, path                                       # reviewer work
+    assert rae.get("/dashboard").status_code != 403                                         # and the planner app
+    assert rae.post("/evaluation/run", json={"answers": False}).status_code == 403          # starting runs: admin
+    for method, path in [("get", "/config"), ("get", "/jobs"), ("get", "/pipeline"), ("get", "/prompts"),
+                         ("get", "/shadows"), ("get", "/auth/users")]:
+        assert getattr(rae, method)(path).status_code == 403, path
+    ana = client(local)
+    ana.post("/auth/login", json={"username": "ana", "password": "planner-pass-1"})
+    assert ana.get("/evaluation/labelling").status_code == 403                              # planner: not a reviewer
+    root = client(local)
+    root.post("/auth/login", json={"username": "root", "password": "admin-pass-12"})
+    assert root.patch("/auth/users/root", json={"role": "reviewer"}).status_code == 400     # not your own admin role
+    r = root.patch("/auth/users/ana", json={"role": "reviewer"})
+    assert r.status_code == 200, r.json()

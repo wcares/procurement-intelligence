@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { hasRole, useAuth } from "@/components/auth";
 import { api } from "@/lib/api/client";
 import type { EvalRun, EvaluationResponse, PromptEvalSide, RetrievalScores } from "@/lib/api/types";
 import { localTime, MEASURES, pct, ratio } from "./measures";
@@ -8,9 +9,11 @@ import { localTime, MEASURES, pct, ratio } from "./measures";
 type Comparisons = EvaluationResponse["comparisons"];
 
 /** Live against an alternative, measure by measure: shadow index builds (build, evaluate, promote, discard), candidate
- * prompt versions (activate) and runs with another model (for reading only). */
+ * prompt versions (activate) and runs with another model (for reading only). Reviewers see them without the actions. */
 export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChanged: () => void }) {
   const [note, setNote] = useState<string | null>(null);
+  const { user } = useAuth();
+  const admin = hasRole(user?.role, "admin");
   async function act(f: () => Promise<unknown>, done: string) {
     try {
       const r = (await f()) as { note?: string | null } | undefined;
@@ -42,7 +45,7 @@ export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChan
           </div>
         </Card>
       ))}
-      {idle.length > 0 && (
+      {admin && idle.length > 0 && (
         <p className="text-xs text-muted">
           Shadow builds available:{" "}
           {idle.map((k) => (
@@ -119,6 +122,9 @@ function Card({ title, status, children }: { title: string; status: string; chil
   );
 }
 
+/** An action button: admins only (reviewers read the comparisons). */
 function Btn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (!hasRole(user?.role, "admin")) return null;
   return <button className="rounded-md border border-line px-2 py-1" onClick={onClick}>{children}</button>;
 }

@@ -1,4 +1,4 @@
-import { AdminOnly } from "@/components/auth";
+import { RoleOnly } from "@/components/auth";
 import { EvaluationView } from "@/components/evaluation/evaluation-view";
 
 export default function EvaluationPage() {
@@ -9,9 +9,9 @@ export default function EvaluationPage() {
         How good search, answers and predictions are, how that changed after each refresh, retrain or promotion, and
         alternatives measured against what is live.
       </p>
-      <AdminOnly>
+      <RoleOnly role="reviewer">
         <EvaluationView />
-      </AdminOnly>
+      </RoleOnly>
     </div>
   );
 }

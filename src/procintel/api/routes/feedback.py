@@ -24,7 +24,7 @@ def post_feedback(req: FeedbackRequest, request: Request) -> dict:
     return {"ok": True, "feedbackId": fid}
 
 
-@router.get("/feedback/review", dependencies=[Depends(security.require("admin"))])
+@router.get("/feedback/review", dependencies=[Depends(security.require("reviewer"))])
 def get_feedback_review() -> dict:
     """What feedback asks a person to look at, as of the last feedback_review job."""
     return {"items": feedback_review.items(), "demoted": sorted(feedback_review.load_demoted()),

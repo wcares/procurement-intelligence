@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { EvaluationResponse } from "@/lib/api/types";
+import { hasRole, useAuth } from "@/components/auth";
 import { ComparisonsView } from "./comparisons";
+import { FeedbackReview } from "./feedback-review";
 import { Labelling } from "./labelling";
 import { ModelsView } from "./models-view";
 import { QualityChart } from "./quality-chart";
@@ -13,6 +15,8 @@ export function EvaluationView() {
   const [data, setData] = useState<EvaluationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const { user } = useAuth();
+  const admin = hasRole(user?.role, "admin");   // reviewers label and read; runs, promotions and prompts are admin
   const load = useCallback(() => api.evaluation().then(setData).catch((e) => setError((e as Error).message)), []);
   useEffect(() => {
     load();
@@ -31,7 +35,7 @@ export function EvaluationView() {
   if (!data) return <p className="text-sm text-muted">Loading…</p>;
   return (
     <div className="space-y-10">
-      <Section title="Quality over time" action={
+      <Section title="Quality over time" action={admin &&
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <button className="rounded-md border border-line px-2 py-1" onClick={() => run(false)}>Run search-quality check</button>
           <button className="rounded-md border border-line px-2 py-1" onClick={() => run(true)}>Run full evaluation</button>
@@ -52,6 +56,7 @@ export function EvaluationView() {
       <Section title="Comparisons"><ComparisonsView data={data.comparisons} onChanged={load} /></Section>
       <Section title="Prediction model"><ModelsView data={data.models} /></Section>
       <Section title="Labelling queue"><Labelling /></Section>
+      <FeedbackReview />
     </div>
   );
 }

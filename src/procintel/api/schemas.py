@@ -245,10 +245,10 @@ class Login(BaseModel):
 class NewUser(BaseModel):
     username: str = Field(min_length=1, max_length=60)
     password: str = Field(min_length=1, max_length=200)
-    role: Literal["planner", "admin"] = "planner"
+    role: Literal["planner", "reviewer", "admin"] = "planner"
 
 
 class UserUpdate(BaseModel):
-    role: Literal["planner", "admin"] | None = None
+    role: Literal["planner", "reviewer", "admin"] | None = None
     active: bool | None = None
     password: str | None = Field(default=None, max_length=200)

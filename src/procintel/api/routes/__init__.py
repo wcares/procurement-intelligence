@@ -10,7 +10,7 @@ ROUTERS = [
     (dashboard.router, "planner"),
     (assess.router, "planner"),
     (ask.router, "planner"),
-    (feedback.router, "planner"),  # its review listing needs admin (per route)
+    (feedback.router, "planner"),  # its review listing needs a reviewer (per route)
     (insights.router, "planner"),  # each planner's own watch-list and alerts
     (monitoring.router, "planner"),  # ongoing work; its status-rule routes need admin (per route)
     (settings.router, "admin"),
@@ -19,5 +19,5 @@ ROUTERS = [
     (pipeline.router, "admin"),
     (intake.router, "admin"),     # uploads (planners later: docs/ui-design.md 3c)
     (shadows.router, "admin"),
-    (evaluation.router, "admin"),
+    (evaluation.router, "reviewer"),  # labelling and reading; starting a run needs admin (per route)
 ]

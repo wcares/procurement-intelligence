@@ -56,7 +56,7 @@ def create_user(req: NewUser) -> dict:
 
 @router.patch("/auth/users/{username}", dependencies=admin)
 def update_user(username: str, req: UserUpdate, request: Request) -> dict:
-    if username == security.user_of(request) and (req.active is False or req.role == "planner"):
+    if username == security.user_of(request) and (req.active is False or (req.role is not None and req.role != "admin")):
         return JSONResponse({"error": "you cannot remove your own admin access"}, status_code=400)
     try:
         service.update_user(username, req.role, req.active, req.password)

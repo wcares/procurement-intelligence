@@ -42,6 +42,7 @@ export function Users() {
                   <select className={box} value={u.role} disabled={u.username === user.username}
                     onChange={async (e) => apply(await api.updateUser(u.username, { role: e.target.value }), `${u.username} is now ${e.target.value}.`)}>
                     <option value="planner">planner</option>
+                    <option value="reviewer">reviewer</option>
                     <option value="admin">admin</option>
                   </select>
                 </td>
@@ -69,6 +70,7 @@ export function Users() {
           <input className={box} type="password" autoComplete="new-password" placeholder="password (10+ characters)" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <select className={box} value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="planner">planner</option>
+            <option value="reviewer">reviewer</option>
             <option value="admin">admin</option>
           </select>
           <button className={box} type="submit">Add user</button>

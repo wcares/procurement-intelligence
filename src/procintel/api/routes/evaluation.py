@@ -1,12 +1,12 @@
 """The Evaluation page (procintel.learning.overview): quality over time, comparisons, prediction models; queueing an
-evaluation run; the labelling queue (procintel.learning.labelling). Promoting or discarding a shadow and activating a prompt use their own routes (shadows, prompts)."""
+evaluation run (admins); the labelling queue (procintel.learning.labelling), open to reviewers. Promoting or discarding a shadow and activating a prompt use their own routes (shadows, prompts)."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from procintel.api import access
+from procintel.api import access, security
 from procintel.auth import service
 from procintel.jobs import store as jobs_store
 from procintel.learning import labelling, overview
@@ -23,7 +23,7 @@ def get_evaluation() -> dict:
     return overview.page()
 
 
-@router.post("/evaluation/run")
+@router.post("/evaluation/run", dependencies=[Depends(security.require("admin"))])
 def post_run(req: EvaluationRun, request: Request) -> dict:
     if not access.is_admin_client(request):
         return access.refuse("starting an evaluation")

@@ -653,17 +653,20 @@ export interface DryRunResponse {
   current: DryRunSide;
 }
 
+/** Roles, lowest first: each can do everything the ones before it can (procintel.auth.ROLES). */
+export type Role = "planner" | "reviewer" | "admin";
+
 /** The signed-in user (GET /auth/me). mode "off": sign-in disabled, everyone is an admin. */
 export interface AuthUser {
   username: string;
-  role: "planner" | "admin";
+  role: Role;
   mode: "local" | "off";
 }
 
 /** An account (GET /auth/users, admins). */
 export interface Account {
   username: string;
-  role: "planner" | "admin";
+  role: Role;
   active: boolean;
   createdAt: string | null;
   lastLogin: string | null;

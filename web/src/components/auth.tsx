@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { api, SIGNED_OUT } from "@/lib/api/client";
-import type { AuthUser } from "@/lib/api/types";
+import type { AuthUser, Role } from "@/lib/api/types";
 
 const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promise<void> }>({ user: null, refresh: async () => {} });
 
@@ -61,9 +61,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Content only an admin may see (the backend refuses the calls anyway). */
-export function AdminOnly({ children }: { children: React.ReactNode }) {
+const RANK: Record<Role, number> = { planner: 0, reviewer: 1, admin: 2 };
+
+/** Whether `role` may use what needs `needed` (planner < reviewer < admin), as the backend decides. */
+export function hasRole(role: Role | undefined, needed: Role): boolean {
+  return role !== undefined && RANK[role] >= RANK[needed];
+}
+
+/** Content only a role (or one above it) may see (the backend refuses the calls anyway). */
+export function RoleOnly({ role, children }: { role: Role; children: React.ReactNode }) {
   const { user } = useAuth();
-  if (user?.role === "admin") return <>{children}</>;
-  return <p className="text-sm text-muted">This page needs the admin role.</p>;
+  if (hasRole(user?.role, role)) return <>{children}</>;
+  return <p className="text-sm text-muted">This page needs the {role} role.</p>;
+}
+
+/** Content only an admin may see. */
+export function AdminOnly({ children }: { children: React.ReactNode }) {
+  return <RoleOnly role="admin">{children}</RoleOnly>;
 }

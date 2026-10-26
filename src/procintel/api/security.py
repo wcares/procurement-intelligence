@@ -8,7 +8,7 @@ import os
 
 from fastapi import HTTPException, Request, Response
 
-from procintel.auth import service
+from procintel.auth import has_role, service
 
 COOKIE = "procintel_session"
 
@@ -22,13 +22,14 @@ def current_user(request: Request) -> dict | None:
 
 
 def require(role: str):
-    """A FastAPI dependency: 401 without a session, 403 when an admin endpoint is called by a planner."""
+    """A FastAPI dependency: 401 without a session, 403 when the caller's role ranks below `role`
+    (planner < reviewer < admin, procintel.auth.ROLES)."""
     def dependency(request: Request) -> dict:
         user = current_user(request)
         if user is None:
             raise HTTPException(401, "sign in first")
-        if role == "admin" and user["role"] != "admin":
-            raise HTTPException(403, "this needs the admin role")
+        if not has_role(user["role"], role):
+            raise HTTPException(403, f"this needs the {role} role")
         request.state.user = user
         return user
     dependency.__name__ = f"require_{role}"
