@@ -218,3 +218,17 @@ def test_connector_settings_change_interval_on_off_and_reset(tmp_path, monkeypat
             connector_config.save("Notice", bad)
     with pytest.raises(ValueError):
         connector_config.save("Nope", {})
+
+
+def test_missing_dates_in_source_rows_are_logged_as_null_and_old_nat_text_reads_as_missing(tmp_path, monkeypatch):
+    import json as _json
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    row = {"notice_id": "n1", "award_date": pd.NaT, "price_amount": float("nan"), "notice_date": pd.Timestamp("2026-10-01")}
+    ev = store.diff("Notice", ["award_date"], {"n1": row}, {}, complete=False)
+    store.record("Notice", "b1", ev, ["n1"])
+    con = store.connect()
+    logged = _json.loads(con.execute("SELECT new FROM event_log").fetchone()[0])
+    con.close()
+    assert logged["award_date"] is None and logged["price_amount"] is None and logged["notice_date"].startswith("2026-10-01")
+    rows, _ = actions._rows({"n2": {"new": {"notice_id": "n2", "award_date": "NaT", "price_amount": "NaN"}}})
+    assert rows[0]["award_date"] is None and rows[0]["price_amount"] is None

@@ -119,6 +119,14 @@ def diff(entity_type: str, watched: list[str], rows: dict[str, dict], known: dic
     return out
 
 
+def _clean(row):
+    """A source row for the event log: missing dates and numbers (pandas NaT, float NaN) as JSON null; str() of NaT
+    would write the text "NaT", which the actions then cannot write back as a date."""
+    if not isinstance(row, dict):
+        return row
+    return {k: (None if v is pd.NaT or (isinstance(v, float) and math.isnan(v)) else v) for k, v in row.items()}
+
+
 def record(entity_type: str, batch_id: str, events: list[dict], seen: list[str], db_path: Path | None = None) -> None:
     """Write the events, then bring the state up to date (new and changed fingerprints, removals, last_seen)."""
     now = _now()
@@ -127,7 +135,8 @@ def record(entity_type: str, batch_id: str, events: list[dict], seen: list[str],
         if events:  # executemany refuses an empty list
             con.executemany("INSERT INTO event_log VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
                 (uuid.uuid4().hex[:12], batch_id, e["type"], e["key"], json.dumps(e["changed"]),
-                 json.dumps(e["old"], default=str), json.dumps(e["new"], default=str), now) for e in events])
+                 json.dumps(_clean(e["old"]), default=str), json.dumps(_clean(e["new"]), default=str), now)
+                for e in events])
         for e in events:
             if e["type"].endswith(".removed"):
                 con.execute("DELETE FROM entity_state WHERE entity_type = ? AND key = ?", [entity_type, e["key"]])

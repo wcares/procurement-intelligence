@@ -40,8 +40,10 @@ def _upsert(table: str, key_sql: str, rows: list[dict], removed: list[str]) -> i
 
 
 def _rows(events: dict[str, dict]) -> tuple[list[dict], list[str]]:
-    """(source rows of added/changed items with their key, keys of removed items)."""
-    rows = [e["new"] | {"__key": k} for k, e in events.items() if e["new"] is not None]
+    """(source rows of added/changed items with their key, keys of removed items). Batches logged before missing values
+    were stored as null hold the text "NaT" / "NaN" for them: read as missing."""
+    rows = [{f: (None if v in ("NaT", "NaN") else v) for f, v in e["new"].items()} | {"__key": k}
+            for k, e in events.items() if e["new"] is not None]
     return rows, [k for k, e in events.items() if e["new"] is None]
 
 
