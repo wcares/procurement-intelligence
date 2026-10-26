@@ -212,10 +212,14 @@ def logged_prediction(p: dict | None, bundle: dict | None, t: dict | None) -> di
     """What the assessment predicted, kept in the response log so the pilot can compare it with the actual award time
     once the tender is awarded (procintel.learning.kpi): the model's median when it is used, else the historical one."""
     if p and bundle and bundle["use"].get("days_p50"):
-        return {"basis": "model", "days_p50": round(float(p["p50"])), "days_p90": round(float(p["p90"])),
+        # the slow case from the model only where it beat the baseline on it; otherwise the historical 90th percentile
+        p90 = p["p90"] if bundle["use"].get("days_p90") or not t else t["p90"]
+        return {"basis": "model", "days_p50": round(float(p["p50"])), "days_p90": round(float(p90)),
+                "p90_basis": "model" if bundle["use"].get("days_p90") or not t else "historical",
                 "p_long": round(float(p["p_long"]), 3) if bundle["use"].get("over_180") else None}
     if t:
-        return {"basis": "historical median", "days_p50": round(t["median"]), "days_p90": round(t["p90"]), "p_long": None}
+        return {"basis": "historical median", "days_p50": round(t["median"]), "days_p90": round(t["p90"]),
+                "p90_basis": "historical", "p_long": None}
     return None
 
 

@@ -93,3 +93,15 @@ def test_value_is_optional_and_converted_from_the_estimate(bundle):
     with_value = predict.predict_one(bundle, {**common, "value_usd": 2_500_000})
     assert all(np.isfinite(v) for v in list(without.values()) + list(with_value.values()))
     assert predict.add_features(pd.DataFrame([{**common, "value_usd": 1000}]))["log_value_usd"].iloc[0] == 3.0
+
+
+def test_logged_prediction_takes_the_slow_case_from_whichever_beat_the_other():
+    t = {"median": 100, "p90": 300}
+    p = {"p50": 90.4, "p90": 200.0, "p_long": 0.25}
+    weak = {"use": {"days_p50": True, "days_p90": False, "over_180": True}}
+    strong = {"use": {"days_p50": True, "days_p90": True, "over_180": False}}
+    assert assess.logged_prediction(p, weak, t) == {"basis": "model", "days_p50": 90, "days_p90": 300,
+                                                    "p90_basis": "historical", "p_long": 0.25}
+    assert assess.logged_prediction(p, strong, t)["days_p90"] == 200 and assess.logged_prediction(p, strong, t)["p_long"] is None
+    assert assess.logged_prediction(None, None, t) == {"basis": "historical median", "days_p50": 100, "days_p90": 300,
+                                                       "p90_basis": "historical", "p_long": None}

@@ -131,6 +131,7 @@ class Prediction(BaseModel):
     basis: Literal["model", "historical median"]
     days_p50: int
     days_p90: int | None = None
+    p90_basis: Literal["model", "historical"] | None = None   # the model's slow case only where it beat the baseline
     p_long: float | None = None
 
 

@@ -192,6 +192,16 @@ export interface SimilarPackage {
   rebid: boolean;
 }
 
+/** What the assessment predicts for the package: the model's median where it beat the baseline, else the historical one;
+ * the slow case from the model only where it beat the baseline there too (p90_basis). */
+export interface Prediction {
+  basis: "model" | "historical median";
+  days_p50: number;
+  days_p90: number | null;
+  p90_basis?: "model" | "historical" | null;
+  p_long: number | null;
+}
+
 export interface AssessResponse {
   timeline: TimelineBenchmark | null;
   risks: RiskFlag[];
@@ -204,7 +214,7 @@ export interface AssessResponse {
   /** tender stages with typical durations, for the stage timeline */
   stages?: Stage[];
   /** the award time this assessment predicts, kept in the log for later comparison */
-  prediction?: { basis: "model" | "historical median"; days_p50: number; days_p90: number | null; p_long: number | null } | null;
+  prediction?: Prediction | null;
   meta: ResponseMeta;
 }
 

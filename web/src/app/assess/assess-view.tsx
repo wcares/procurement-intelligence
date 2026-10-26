@@ -170,7 +170,7 @@ function Results({ r }: { r: AssessResponse }) {
       <Caveats meta={r.meta} />
       {r.stages && r.stages.length > 0 && (
         <Card title="Tender stages and where the risks are">
-          <StageTimeline stages={r.stages} risks={r.risks} precedents={r.precedents} onSelect={show} />
+          <StageTimeline stages={r.stages} risks={r.risks} precedents={r.precedents} prediction={r.prediction} onSelect={show} />
         </Card>
       )}
       <div className="grid gap-6 md:grid-cols-2">
