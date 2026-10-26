@@ -336,6 +336,21 @@ export interface ModelRetrain {
   source?: string;
 }
 
+/** The labelling queue (GET /evaluation/labelling). */
+export interface LabellingQueue {
+  judge: {
+    items: { qid: string; question: string; chunkId: string; passage: string | null; judge: boolean; judgeModel: string | null }[];
+    agreement: { agree: number; labelled: number };
+  };
+  sentences: {
+    items: { key: string; qid: string; sentence: string; passages: Record<string, string>; answerModel: boolean; independent: boolean }[];
+    sentences: number;
+    disagreements: number;
+    decided: { answerModel: number; independent: number; labelled: number };
+  };
+  questions: { kind: "refused_question" | "not_useful"; question: string; responses: number; comments: string[]; inSet: boolean }[];
+}
+
 /** The Evaluation page (GET /evaluation). */
 export interface EvaluationResponse {
   quality: EvalRun[];

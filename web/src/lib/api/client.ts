@@ -21,6 +21,7 @@ import type {
   ConnectorsResponse,
   EventLogResponse,
   EvaluationResponse,
+  LabellingQueue,
   Upload,
   UploadsResponse,
   Options,
@@ -140,6 +141,13 @@ export const api = {
     call<{ prompts: PromptInfo[] }>(`/prompts/${encodeURIComponent(name)}/activate`, { method: "POST", body: JSON.stringify({ version }) }),
   shadows: () => call<ShadowsResponse>("/shadows"),
   evaluation: () => call<EvaluationResponse>("/evaluation"),
+  labelling: () => call<LabellingQueue>("/evaluation/labelling"),
+  labelJudgment: (qid: string, chunkId: string, relevant: boolean) =>
+    call<LabellingQueue>("/evaluation/labels/judge", { method: "POST", body: JSON.stringify({ qid, chunkId, relevant }) }),
+  labelSentence: (key: string, supported: boolean) =>
+    call<LabellingQueue>("/evaluation/labels/sentence", { method: "POST", body: JSON.stringify({ key, supported }) }),
+  addEvalQuestion: (question: string, answerable: boolean) =>
+    send<LabellingQueue & { added: { id: string } }>("/evaluation/questions", "POST", { question, answerable }),
   runEvaluation: (answers: boolean) =>
     call<{ queued: string | null; note: string | null }>("/evaluation/run", { method: "POST", body: JSON.stringify({ answers }) }),
   /** build / evaluate / promote are queued as jobs; discard drops the shadow tables at once */

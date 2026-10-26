@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { EvaluationResponse } from "@/lib/api/types";
 import { ComparisonsView } from "./comparisons";
+import { Labelling } from "./labelling";
 import { ModelsView } from "./models-view";
 import { QualityChart } from "./quality-chart";
 import { RunsTable } from "./runs-table";
@@ -50,6 +51,7 @@ export function EvaluationView() {
       </Section>
       <Section title="Comparisons"><ComparisonsView data={data.comparisons} onChanged={load} /></Section>
       <Section title="Prediction model"><ModelsView data={data.models} /></Section>
+      <Section title="Labelling queue"><Labelling /></Section>
     </div>
   );
 }

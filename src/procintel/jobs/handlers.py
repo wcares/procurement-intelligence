@@ -18,8 +18,9 @@ which is passed back in to resume after a pause or restart; its return value is 
     detect_changes   read each due source, record what changed, queue a pipeline_batch for it (procintel.pipeline)
     pipeline_batch   run the actions the rules ask for, one per step, then reload
     retention        delete what is past its retention (procintel.jobs.retention); background, queued daily
-    evaluate         the evaluation set (procintel.learning.evaluate): search quality, and with answers=True the answers
-                  too (about 10 minutes); appends to eval/history.jsonl; background, one step
+    evaluate         the evaluation set (procintel.learning.evaluate): judge passages of new questions, then search
+                  quality, and with answers=True the answers too (about 10 minutes); appends to eval/history.jsonl;
+                  background
 """
 from __future__ import annotations
 
@@ -190,7 +191,12 @@ def retention(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
 @handler("evaluate", priority="background")
 def evaluate_run(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     from procintel.answering.retrieve import Retriever
+    from procintel.core import llm
     from procintel.learning import evaluate
-    headline = evaluate.report(Retriever(), answers=bool(params.get("answers", True)))
+    r = Retriever()
+    if llm.available():   # questions added since the last run get their passages judged first
+        evaluate.judge(r)
+        yield {"step": "judged"}
+    headline = evaluate.report(r, answers=bool(params.get("answers", True)))
     yield {"step": "evaluated"}
     return {k: headline.get(k) for k in ("time", "hybrid_p5", "hybrid_r10", "gate_prec", "answered", "refused_traps")}
