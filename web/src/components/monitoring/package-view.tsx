@@ -17,19 +17,19 @@ export function PackageView() {
   useEffect(() => {
     if (id) api.monitoredPackage(id).then(setP).catch((e) => setError((e as Error).message));
   }, [id]);
-  if (!id) return <p className="text-sm text-muted">No package chosen.</p>;
+  if (!id) return <p className="text-sm text-ink-muted">No package chosen.</p>;
   if (error) return <p className="text-sm text-risk-high">{error}</p>;
-  if (!p) return <p className="text-sm text-muted">Loading…</p>;
+  if (!p) return <p className="text-sm text-ink-muted">Loading…</p>;
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs text-muted"><Link href={`/insights?project=${encodeURIComponent(p.projectId)}`} className="underline">{p.projectName}</Link> · {p.projectId}</p>
+        <p className="text-xs text-ink-muted"><Link href={`/insights?project=${encodeURIComponent(p.projectId)}`} className="underline">{p.projectName}</Link> · {p.projectId}</p>
         <h1 className="mt-1 text-xl font-semibold tracking-tight">{p.description}</h1>
         <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <StatusBadge status={p.status} phase={p.phase} />
-          <span className="text-muted">{p.procGroup}{p.methodCode ? ` · ${p.methodCode}` : ""} · {p.packageId}</span>
+          <span className="text-ink-muted">{p.procGroup}{p.methodCode ? ` · ${p.methodCode}` : ""} · {p.packageId}</span>
         </p>
-        <p className="mt-1 text-xs text-muted">Why: {p.reason}.{p.closingDate ? ` Project closes ${p.closingDate}.` : ""}</p>
+        <p className="mt-1 text-xs text-ink-muted">Why: {p.reason}.{p.closingDate ? ` Project closes ${p.closingDate}.` : ""}</p>
       </div>
       {p.forecast ? (
         <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
@@ -38,7 +38,7 @@ export function PackageView() {
           <ForecastSummary f={p.forecast} />
         </section>
       ) : (
-        <p className="text-sm text-muted">{p.status === "stale" ? "No forecast for a stale package: its outcome is unknown." : "Not active: nothing to forecast."}</p>
+        <p className="text-sm text-ink-muted">{p.status === "stale" ? "No forecast for a stale package: its outcome is unknown." : "Not active: nothing to forecast."}</p>
       )}
       {p.isr && (
         <section className="text-sm">
@@ -55,7 +55,7 @@ export function PackageView() {
             <li key={n.noticeId} className="flex flex-wrap gap-x-3 px-3 py-2">
               <span className="w-24 tabular-nums">{n.date}</span>
               <span className="flex-1">{n.type}{n.version ? ` (version ${n.version})` : ""}</span>
-              {n.awardDate && <span className="text-muted">award {n.awardDate}</span>}
+              {n.awardDate && <span className="text-ink-muted">award {n.awardDate}</span>}
               <a className="underline" target="_blank" rel="noreferrer" href={`https://projects.worldbank.org/en/projects-operations/procurement-detail/${n.noticeId}`}>notice</a>
             </li>
           ))}

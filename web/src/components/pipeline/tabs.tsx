@@ -20,7 +20,7 @@ export function PipelineTabs() {
     <nav className="flex gap-1 border-b border-line text-sm">
       {TABS.map((t) => (
         <Link key={t.href} href={t.href}
-          className={`-mb-px border-b-2 px-3 py-2 ${path === t.href ? "border-accent font-medium" : "border-transparent text-muted hover:text-foreground"}`}>
+          className={`-mb-px border-b-2 px-3 py-2 ${path === t.href ? "border-brand font-medium" : "border-transparent text-ink-muted hover:text-foreground"}`}>
           {t.label}
         </Link>
       ))}

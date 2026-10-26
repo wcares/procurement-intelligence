@@ -72,7 +72,7 @@ export function hasRole(role: Role | undefined, needed: Role): boolean {
 export function RoleOnly({ role, children }: { role: Role; children: React.ReactNode }) {
   const { user } = useAuth();
   if (hasRole(user?.role, role)) return <>{children}</>;
-  return <p className="text-sm text-muted">This page needs the {role} role.</p>;
+  return <p className="text-sm text-ink-muted">This page needs the {role} role.</p>;
 }
 
 /** Content only an admin may see. */

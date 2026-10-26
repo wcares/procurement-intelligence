@@ -35,7 +35,7 @@ export function RankingTable({ data, onSelect, selected }: { data: RankingRespon
   return (
     <div className="max-h-[28rem] overflow-auto">
       <table className="w-full text-left text-sm">
-        <thead className="sticky top-0 bg-surface text-xs text-muted">
+        <thead className="sticky top-0 bg-surface text-xs text-ink-muted">
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
@@ -50,7 +50,7 @@ export function RankingTable({ data, onSelect, selected }: { data: RankingRespon
         <tbody>
           {table.getRowModel().rows.map((r) => (
             <tr key={r.id} onClick={() => onSelect(r.original)}
-              className={`cursor-pointer border-t border-line hover:bg-subtle ${r.original.few ? "text-muted" : ""} ${selected === r.original.key ? "bg-accent-soft" : ""}`}
+              className={`cursor-pointer border-t border-line hover:bg-subtle ${r.original.few ? "text-ink-muted" : ""} ${selected === r.original.key ? "bg-brand-soft" : ""}`}
               title={r.original.few ? "Too few projects to compare" : "Show the records behind this row"}>
               {r.getAllCells().map((c) => (
                 <td key={c.id} className="py-1 pr-3"><table.FlexRender cell={c} /></td>

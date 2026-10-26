@@ -22,8 +22,8 @@ export function WatchTrends({ version }: { version: number }) {
       setTrends(out.filter((t) => t.trend.series.length));
     }).catch(() => setTrends([]));
   }, [version]);
-  if (trends === null) return <p className="text-xs text-muted">Loading…</p>;
-  if (!trends.length) return <p className="text-xs text-muted">Add a procurement group to your watch-list to see its award-time trend.</p>;
+  if (trends === null) return <p className="text-xs text-ink-muted">Loading…</p>;
+  if (!trends.length) return <p className="text-xs text-ink-muted">Add a procurement group to your watch-list to see its award-time trend.</p>;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {trends.map((t) => (

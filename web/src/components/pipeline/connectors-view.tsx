@@ -26,17 +26,17 @@ export function ConnectorsView() {
   }
 
   if (error) return <p className="text-sm text-risk-high">{error}</p>;
-  if (!data) return <p className="text-sm text-muted">Loading…</p>;
+  if (!data) return <p className="text-sm text-ink-muted">Loading…</p>;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <button className="rounded-md border border-line px-3 py-1.5 text-sm" onClick={() => readNow()}>Read every source now</button>
-        {note && <span className="text-xs text-muted">{note}</span>}
+        {note && <span className="text-xs text-ink-muted">{note}</span>}
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {data.connectors.map((c) => <ConnectorCard key={c.name} c={c} onRead={() => readNow(c.name)} onSaved={setData} />)}
       </div>
-      <p className="text-xs text-muted">
+      <p className="text-xs text-ink-muted">
         A source whose read fails is shown here and backs off (its interval doubles with each failure in a row, up to
         {" "}{data.backoffCap}); it does not stop the others. Credentials stay in the environment and are never shown.
       </p>
@@ -55,15 +55,15 @@ function ConnectorCard({ c, onRead, onSaved }: { c: Connector; onRead: () => voi
           {failing ? `failing (${c.failures} in a row)` : c.lastRead ? "ok" : "not read yet"}
         </span>
       </header>
-      <p className="mb-2 text-xs text-muted">{c.source}</p>
+      <p className="mb-2 text-xs text-ink-muted">{c.source}</p>
       <dl className="grid grid-cols-[7rem_1fr] gap-x-2 gap-y-1 text-xs">
-        <dt className="text-muted">Interval</dt><dd>every {c.every}</dd>
-        <dt className="text-muted">Cursor</dt><dd>{c.cursor}</dd>
-        <dt className="text-muted">Last success</dt>
-        <dd>{c.lastSuccess ? <>{when(c.lastSuccess.at)}: {c.lastSuccess.items} items, {c.lastSuccess.events} changes{c.lastSuccess.note && <span className="text-muted"> · {c.lastSuccess.note}</span>}</> : "none yet"}</dd>
-        <dt className="text-muted">Last error</dt>
+        <dt className="text-ink-muted">Interval</dt><dd>every {c.every}</dd>
+        <dt className="text-ink-muted">Cursor</dt><dd>{c.cursor}</dd>
+        <dt className="text-ink-muted">Last success</dt>
+        <dd>{c.lastSuccess ? <>{when(c.lastSuccess.at)}: {c.lastSuccess.items} items, {c.lastSuccess.events} changes{c.lastSuccess.note && <span className="text-ink-muted"> · {c.lastSuccess.note}</span>}</> : "none yet"}</dd>
+        <dt className="text-ink-muted">Last error</dt>
         <dd className={c.lastError ? "text-risk-high" : ""}>{c.lastError ? <>{when(c.lastError.at)}: {c.lastError.message}</> : "none"}</dd>
-        <dt className="text-muted">Next read</dt><dd>{!c.nextRead ? "on the next detection run" : c.due
+        <dt className="text-ink-muted">Next read</dt><dd>{!c.nextRead ? "on the next detection run" : c.due
           ? `due since ${when(c.nextRead)}: runs when the app is next idle`
           : `${when(c.nextRead)} (${relative(c.nextRead)})`}</dd>
       </dl>
@@ -123,7 +123,7 @@ function SettingsEditor({ c, onSaved }: { c: Connector; onSaved: (d: ConnectorsR
       </label>
       <button className="rounded-md border border-line px-2 py-0.5" onClick={() => save(draft)}>Save</button>
       {c.customised && <button className="underline" onClick={() => save(c.defaults)}>reset to defaults</button>}
-      <button className="text-muted underline" onClick={() => setOpen(false)}>cancel</button>
+      <button className="text-ink-muted underline" onClick={() => setOpen(false)}>cancel</button>
       {error && <span className="text-risk-high">{error}</span>}
     </div>
   );

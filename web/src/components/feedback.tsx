@@ -22,10 +22,10 @@ export function FeedbackBar({ responseId, subject }: { responseId: string; subje
     }
   }
 
-  if (status === "sent") return <p className="text-xs text-muted">Thanks, your feedback was recorded.</p>;
+  if (status === "sent") return <p className="text-xs text-ink-muted">Thanks, your feedback was recorded.</p>;
   const btn = "rounded-md border border-line px-3 py-1 text-xs hover:bg-subtle disabled:opacity-50";
   return (
-    <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+    <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
       <span>Was this {subject} useful?</span>
       <button className={btn} disabled={status === "sending"} onClick={() => send("useful")}>
         Yes
@@ -64,7 +64,7 @@ export function FlagCitation({ responseId, citationId }: { responseId: string; c
   if (status === "sent") return <span>flagged, thanks</span>;
   return (
     <button
-      className="text-muted underline-offset-2 hover:text-risk-high hover:underline disabled:opacity-50"
+      className="text-ink-muted underline-offset-2 hover:text-risk-high hover:underline disabled:opacity-50"
       disabled={status === "sending"}
       title="This passage does not support what it is cited for"
       onClick={async () => {

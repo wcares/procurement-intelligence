@@ -27,12 +27,12 @@ export function Nav() {
     <>
       <nav className="flex gap-1 text-sm">
         {NAV.filter((n) => hasRole(user.role, n.role)).map((n) => (
-          <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-muted hover:bg-subtle hover:text-foreground">
+          <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-ink-muted hover:bg-subtle hover:text-foreground">
             {n.label}
           </Link>
         ))}
       </nav>
-      <div className="ml-auto flex items-center gap-3 text-xs text-muted">
+      <div className="ml-auto flex items-center gap-3 text-xs text-ink-muted">
         <span>
           {user.username} · {user.role}
         </span>

@@ -28,17 +28,17 @@ export function InsightsPanel({ procGroup, methodCode, countryCode, assessed }: 
     <aside className="space-y-4 rounded-xl border border-line bg-surface p-4 text-sm">
       <div>
         <div className="mb-1 flex items-baseline justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Alerts</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Alerts</h3>
           <Link href="/insights" className="text-xs underline">all{alerts ? ` (${alerts.unread} new)` : ""}</Link>
         </div>
         {alerts && alerts.alerts.length === 0 ? (
-          <p className="text-xs text-muted">None. <Link href="/insights" className="underline">Set a watch-list</Link> to get alerts on what you follow.</p>
-        ) : unread.length ? <AlertsList alerts={unread} compact /> : <p className="text-xs text-muted">No new alerts.</p>}
+          <p className="text-xs text-ink-muted">None. <Link href="/insights" className="underline">Set a watch-list</Link> to get alerts on what you follow.</p>
+        ) : unread.length ? <AlertsList alerts={unread} compact /> : <p className="text-xs text-ink-muted">No new alerts.</p>}
       </div>
       {procGroup && trend && (
         <div>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Award time by tender year</h3>
-          <p className="text-xs text-muted">
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Award time by tender year</h3>
+          <p className="text-xs text-ink-muted">
             {trend.scope ? `Median days, ${[trend.scope.method, trend.scope.procGroup].filter(Boolean).join(" ")}${trend.scope.country ? ` in ${trend.scope.label}` : ", all countries"}` : ""}
           </p>
           <TrendChart trend={trend} />
@@ -46,7 +46,7 @@ export function InsightsPanel({ procGroup, methodCode, countryCode, assessed }: 
       )}
       {assessed !== undefined && (
         <div>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Recommendations</h3>
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Recommendations</h3>
           <Recommendations key={JSON.stringify(assessed)} request={assessed} />
         </div>
       )}

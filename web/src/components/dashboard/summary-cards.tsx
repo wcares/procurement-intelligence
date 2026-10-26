@@ -13,9 +13,9 @@ export function SummaryCards({ s }: { s: DashboardResponse["summary"] }) {
     <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
       {cards.map((c) => (
         <div key={c.label} className="rounded-xl border border-line bg-surface p-4">
-          <p className="text-xs text-muted">{c.label}</p>
+          <p className="text-xs text-ink-muted">{c.label}</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{c.value}</p>
-          <p className="text-xs text-muted">{c.sub}</p>
+          <p className="text-xs text-ink-muted">{c.sub}</p>
         </div>
       ))}
     </div>

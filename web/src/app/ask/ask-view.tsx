@@ -60,10 +60,10 @@ export function AskView() {
       <div className="space-y-8">
         {turns.length === 0 && (
           <div className="rounded-xl border border-dashed border-line p-6">
-            <p className="mb-3 text-sm text-muted">Answers are built only from quoted evaluation passages. Try:</p>
+            <p className="mb-3 text-sm text-ink-muted">Answers are built only from quoted evaluation passages. Try:</p>
             <div className="flex flex-col gap-2">
               {EXAMPLES.map((e) => (
-                <button key={e} onClick={() => send(e)} className="rounded-md bg-subtle px-3 py-2 text-left text-sm hover:bg-accent-soft">
+                <button key={e} onClick={() => send(e)} className="rounded-md bg-subtle px-3 py-2 text-left text-sm hover:bg-brand-soft">
                   {e}
                 </button>
               ))}
@@ -72,8 +72,8 @@ export function AskView() {
         )}
         {turns.map((t) => (
           <div key={t.id} className="space-y-3">
-            <div className="ml-auto w-fit max-w-[85%] rounded-xl bg-accent px-4 py-2 text-sm text-white dark:text-black">{t.question}</div>
-            {!t.response && !t.error && <p className="text-sm text-muted">Searching the evaluations…</p>}
+            <div className="ml-auto w-fit max-w-[85%] rounded-xl bg-brand px-4 py-2 text-sm text-white dark:text-black">{t.question}</div>
+            {!t.response && !t.error && <p className="text-sm text-ink-muted">Searching the evaluations…</p>}
             {t.error && <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{t.error}</p>}
             {t.response && <Answer turnId={t.id} r={t.response} question={t.question} />}
           </div>
@@ -108,12 +108,12 @@ export function AskView() {
         </div>
         <div className="flex gap-2">
           <input
-            className="min-w-0 flex-1 rounded-md border border-line bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+            className="min-w-0 flex-1 rounded-md border border-line bg-background px-3 py-2 text-sm outline-none focus:border-brand"
             placeholder="Ask about past procurement experience…"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
-          <button type="submit" disabled={busy || !question.trim()} className="rounded-md bg-accent px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
+          <button type="submit" disabled={busy || !question.trim()} className="rounded-md bg-brand px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
             Ask
           </button>
         </div>
@@ -127,8 +127,8 @@ function Answer({ turnId, r, question }: { turnId: number; r: AskResponse; quest
   const toSource = (i: number) => {
     const el = document.getElementById(`t${turnId}-c${i}`);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    el?.classList.add("ring-2", "ring-accent", "rounded-xl");
-    setTimeout(() => el?.classList.remove("ring-2", "ring-accent"), 1500);
+    el?.classList.add("ring-2", "ring-brand", "rounded-xl");
+    setTimeout(() => el?.classList.remove("ring-2", "ring-brand"), 1500);
   };
   if (r.unsupported) {
     return (
@@ -144,14 +144,14 @@ function Answer({ turnId, r, question }: { turnId: number; r: AskResponse; quest
   }
   return (
     <div className="space-y-3">
-      <button className="text-xs text-muted underline" onClick={() => setAsMap(!asMap)}>{asMap ? "Show as text" : "Show as map"}</button>
+      <button className="text-xs text-ink-muted underline" onClick={() => setAsMap(!asMap)}>{asMap ? "Show as text" : "Show as map"}</button>
       {asMap && <AnswerMap r={r} question={question} onSource={toSource} />}
       <div className="rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-relaxed">
         {r.answer.map((s, i) => (
           <span key={i}>
             {s.text}{" "}
             {s.citations.map((c) => (
-              <a key={c} href={`#t${turnId}-c${c}`} className="font-mono text-xs font-semibold text-accent hover:underline">
+              <a key={c} href={`#t${turnId}-c${c}`} className="font-mono text-xs font-semibold text-brand hover:underline">
                 [{c + 1}]
               </a>
             ))}{" "}

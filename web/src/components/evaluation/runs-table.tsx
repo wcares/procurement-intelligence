@@ -6,7 +6,7 @@ export function RunsTable({ runs }: { runs: EvalRun[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-xs">
-        <thead className="text-muted">
+        <thead className="text-ink-muted">
           <tr>
             <th className="py-1 pr-2">Run</th>
             {MEASURES.map((m) => <th key={m.key} className="pr-2">{m.label}</th>)}
@@ -20,7 +20,7 @@ export function RunsTable({ runs }: { runs: EvalRun[] }) {
               <td className="py-1 pr-2 whitespace-nowrap">{localTime(r.time)}</td>
               {MEASURES.map((m) => <td key={m.key} className="pr-2 tabular-nums">{pct(m.value(r))}</td>)}
               <td className="pr-2 tabular-nums">{r.median_seconds ?? "–"}</td>
-              <td className="text-muted">
+              <td className="text-ink-muted">
                 {(r.changesBefore ?? []).map((c) => `${c.what} (${c.detail})`).join("; ") || (r.note ?? "")}
               </td>
             </tr>

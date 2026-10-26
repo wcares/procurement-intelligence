@@ -26,10 +26,10 @@ export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChan
   const idle = data.shadowKinds.filter((k) => !data.shadows.some((s) => s.name === k.name && s.status !== "discarded"));
   return (
     <div className="space-y-4">
-      {note && <p className="text-xs text-muted">{note}</p>}
+      {note && <p className="text-xs text-ink-muted">{note}</p>}
       {data.shadows.filter((s) => s.status !== "discarded").map((s) => (
         <Card key={s.name} title={`Shadow index: ${s.label}`} status={s.status}>
-          {s.note && <p className="mb-2 text-xs text-muted">{s.note}</p>}
+          {s.note && <p className="mb-2 text-xs text-ink-muted">{s.note}</p>}
           {s.metrics ? (
             <Side rows={[
               ["Search precision (top 5)", s.metrics.live.hybrid_p5, s.metrics.shadow.hybrid_p5],
@@ -37,7 +37,7 @@ export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChan
               ["Keyword precision (top 5)", s.metrics.live.bm25_p5, s.metrics.shadow.bm25_p5],
               ["Keyword recall (top 10)", s.metrics.live.bm25_r10, s.metrics.shadow.bm25_r10],
             ]} left="live" right="shadow" footer={`${(s.metrics.live as RetrievalScores).questions} questions · passages ${s.metrics.passages.live} → ${s.metrics.passages.shadow}`} />
-          ) : <p className="text-xs text-muted">Not evaluated yet.</p>}
+          ) : <p className="text-xs text-ink-muted">Not evaluated yet.</p>}
           <div className="mt-2 flex gap-2 text-xs">
             {s.status === "built" && <Btn onClick={() => act(() => api.shadowAction(s.name, "evaluate"), "Evaluation queued.")}>Evaluate</Btn>}
             {s.status === "evaluated" && <Btn onClick={() => act(() => api.shadowAction(s.name, "promote"), "Promotion queued.")}>Promote</Btn>}
@@ -46,7 +46,7 @@ export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChan
         </Card>
       ))}
       {admin && idle.length > 0 && (
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-muted">
           Shadow builds available:{" "}
           {idle.map((k) => (
             <button key={k.name} className="mr-2 underline" onClick={() => act(() => api.shadowAction(k.name, "build"), "Build queued (background).")}>
@@ -67,10 +67,10 @@ export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChan
         <Card key={m.name} title={`Another model: ${m.name}`} status={`run ${localTime(m.run.time)}`}>
           <Side rows={MEASURES.map((x) => [x.label, m.live ? x.value(m.live) : null, x.value(m.run)] as Row)}
             left={m.live ? `live (${localTime(m.live.time)})` : "live"} right={m.name} footer={medians(m.live, m.run)} />
-          <p className="mt-1 text-xs text-muted">Switching models is a setting (Settings page), not a promotion.</p>
+          <p className="mt-1 text-xs text-ink-muted">Switching models is a setting (Settings page), not a promotion.</p>
         </Card>
       ))}
-      {data.shadows.length + data.prompts.length + data.models.length === 0 && <p className="text-sm text-muted">Nothing to compare yet.</p>}
+      {data.shadows.length + data.prompts.length + data.models.length === 0 && <p className="text-sm text-ink-muted">Nothing to compare yet.</p>}
     </div>
   );
 }
@@ -92,7 +92,7 @@ function medians(a: EvalRun | null, b: EvalRun): string {
 function Side({ rows, left, right, footer }: { rows: Row[]; left: string; right: string; footer?: string }) {
   return (
     <table className="w-full text-left text-xs">
-      <thead className="text-muted"><tr><th className="py-1">Measure</th><th>{left}</th><th>{right}</th><th>Change</th></tr></thead>
+      <thead className="text-ink-muted"><tr><th className="py-1">Measure</th><th>{left}</th><th>{right}</th><th>Change</th></tr></thead>
       <tbody>
         {rows.map(([label, a, b]) => {
           const d = a != null && b != null ? b - a : null;
@@ -108,7 +108,7 @@ function Side({ rows, left, right, footer }: { rows: Row[]; left: string; right:
           );
         })}
       </tbody>
-      {footer && <tfoot><tr><td colSpan={4} className="pt-1 text-muted">{footer}</td></tr></tfoot>}
+      {footer && <tfoot><tr><td colSpan={4} className="pt-1 text-ink-muted">{footer}</td></tr></tfoot>}
     </table>
   );
 }
@@ -116,7 +116,7 @@ function Side({ rows, left, right, footer }: { rows: Row[]; left: string; right:
 function Card({ title, status, children }: { title: string; status: string; children: React.ReactNode }) {
   return (
     <article className="rounded-xl border border-line bg-surface p-4 text-sm">
-      <header className="mb-2 flex items-baseline gap-2"><h3 className="font-semibold">{title}</h3><span className="text-xs text-muted">{status}</span></header>
+      <header className="mb-2 flex items-baseline gap-2"><h3 className="font-semibold">{title}</h3><span className="text-xs text-ink-muted">{status}</span></header>
       {children}
     </article>
   );

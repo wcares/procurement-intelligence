@@ -19,7 +19,7 @@ function Card({ title, children, note }: { title: string; children: React.ReactN
     <section className="rounded-xl border border-line bg-surface p-4">
       <h2 className="mb-3 font-semibold">{title}</h2>
       {children}
-      {note && <p className="mt-2 text-xs text-muted">{note}</p>}
+      {note && <p className="mt-2 text-xs text-ink-muted">{note}</p>}
     </section>
   );
 }
@@ -61,7 +61,7 @@ export function DashboardView() {
   };
 
   if (error) return <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{error}</p>;
-  if (!dash) return <p className="text-sm text-muted">Loading…</p>;
+  if (!dash) return <p className="text-sm text-ink-muted">Loading…</p>;
   return (
     <div className="space-y-6">
       <SummaryCards s={dash.summary} />
@@ -78,7 +78,7 @@ export function DashboardView() {
           </div>
           {ranking && <RankingTable data={ranking} selected={pick?.key ?? null}
             onSelect={(r: RankingRow) => select({ title: `${r.label}: ${ranking.measure.label.toLowerCase()}`, key: r.key, group: ranking.group, measure: ranking.measure.key })} />}
-          <p className="mt-2 text-xs text-muted">Greyed rows rest on fewer than {dash.fewProjects} projects. Click a row for its records.</p>
+          <p className="mt-2 text-xs text-ink-muted">Greyed rows rest on fewer than {dash.fewProjects} projects. Click a row for its records.</p>
         </Card>
         <div className="space-y-6">
           {pick && <RecordsPanel title={pick.title} data={records} onClose={() => setPick(null)} />}
@@ -94,7 +94,7 @@ export function DashboardView() {
           </select>
         </div>
         {heat && <Heatmap data={heat} onSelect={(country, method, label) => select({ title: `${label} · ${method}: awarded packages`, key: country, group: "country", measure: heatMeasure, method })} />}
-        <p className="text-xs text-muted">Cells with fewer than {heat?.minN ?? 5} awards are left out. Click a cell for its packages.</p>
+        <p className="text-xs text-ink-muted">Cells with fewer than {heat?.minN ?? 5} awards are left out. Click a cell for its packages.</p>
       </Card>
       <Card title="What the completion reports say went wrong">
         <div className="grid gap-6 lg:grid-cols-2">

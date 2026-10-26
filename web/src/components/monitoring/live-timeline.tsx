@@ -36,7 +36,7 @@ export function LiveTimeline({ f, closingDate }: { f: LiveForecast; closingDate?
     }
     if (!bars.length) return null;
     const accent = cssVar("--series-1", "#2a78d6");
-    const muted = cssVar("--muted", "#888");
+    const muted = cssVar("--ink-muted", "#888");
     const line = cssVar("--line", "#ddd");
     const style = { done: { color: accent, opacity: 1 }, now: { color: accent, opacity: 1 },
       forecast: { color: accent, opacity: 0.4 }, slow: { color: accent, opacity: 0.15 } };
@@ -72,6 +72,6 @@ export function LiveTimeline({ f, closingDate }: { f: LiveForecast; closingDate?
     } as EChartsOption;
   }, [f, closingDate]);
   const ref = useECharts(option);
-  if (!option) return <p className="text-xs text-muted">No dates to draw: the tender date is not known.</p>;
+  if (!option) return <p className="text-xs text-ink-muted">No dates to draw: the tender date is not known.</p>;
   return <div ref={ref} className="h-40 w-full" role="img" aria-label="Package timeline: done, so far, and forecast" />;
 }

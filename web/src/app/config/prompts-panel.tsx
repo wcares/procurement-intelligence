@@ -51,9 +51,9 @@ export function Prompts() {
   if (!list) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Prompts</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Prompts</h2>
       <div className="space-y-2 rounded-xl border border-line bg-surface p-4">
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-muted">
           What each model is told. An edit is saved as a new version; prompts used in answering are first compared with
           the active version on sample questions.
         </p>
@@ -62,7 +62,7 @@ export function Prompts() {
             <li key={p.name} className="py-2">
               <button className="flex w-full flex-wrap items-baseline gap-x-2 text-left" onClick={() => edit(p)}>
                 <span className="font-medium">{p.label}</span>
-                <span className="text-xs text-muted">version {p.active === 0 ? "default" : p.active} · {p.usedBy}</span>
+                <span className="text-xs text-ink-muted">version {p.active === 0 ? "default" : p.active} · {p.usedBy}</span>
               </button>
               {open === p.name && (
                 <div className="mt-2 space-y-2">
@@ -73,17 +73,17 @@ export function Prompts() {
                       Save as new version
                     </button>
                   </div>
-                  {msg && <p className="text-xs text-muted">{msg}</p>}
+                  {msg && <p className="text-xs text-ink-muted">{msg}</p>}
                   <ul className="space-y-1 text-xs">
                     {p.versions.map((v) => (
                       <li key={v.version} className="flex flex-wrap items-baseline gap-x-2">
                         <span className="font-medium">{v.version === 0 ? "default" : `v${v.version}`}</span>
-                        {v.active ? <span className="text-muted">active</span> : (
+                        {v.active ? <span className="text-ink-muted">active</span> : (
                           <button className="underline" onClick={() => activate(p, v)}>activate</button>
                         )}
-                        {v.note && <span className="text-muted">{v.note}</span>}
+                        {v.note && <span className="text-ink-muted">{v.note}</span>}
                         {v.evaluation && (
-                          <span className="w-full text-muted">
+                          <span className="w-full text-ink-muted">
                             vs v{v.evaluation.versions.active}: {side(v.evaluation.candidate)} (active: {side(v.evaluation.active)})
                           </span>
                         )}

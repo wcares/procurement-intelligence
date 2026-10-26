@@ -5,7 +5,7 @@ import { api } from "@/lib/api/client";
 import type { EventBatch } from "@/lib/api/types";
 import { when } from "./when";
 
-const STATUS_CLASS: Record<string, string> = { done: "text-risk-low", failed: "text-risk-high", running: "text-accent" };
+const STATUS_CLASS: Record<string, string> = { done: "text-risk-low", failed: "text-risk-high", running: "text-brand" };
 
 /** Detection batches newest first: what changed, the rules that fired, the job they queued and what it ran. Filter by
  * data type or event type; older batches load on request. */
@@ -35,7 +35,7 @@ export function EventLogView() {
   return (
     <div className="space-y-4">
       <label className="flex items-center gap-2 text-sm">
-        <span className="text-muted">Show</span>
+        <span className="text-ink-muted">Show</span>
         <select className="rounded-md border border-line bg-surface px-2 py-1" value={type} onChange={(e) => choose(e.target.value)}>
           <option value="">all events</option>
           {entityTypes.map((t) => (
@@ -46,8 +46,8 @@ export function EventLogView() {
           ))}
         </select>
       </label>
-      {batches === null ? <p className="text-sm text-muted">Loading…</p> : batches.length === 0 ? (
-        <p className="text-sm text-muted">No events{type ? ` of type ${type}` : ""} yet.</p>
+      {batches === null ? <p className="text-sm text-ink-muted">Loading…</p> : batches.length === 0 ? (
+        <p className="text-sm text-ink-muted">No events{type ? ` of type ${type}` : ""} yet.</p>
       ) : (
         <ol className="space-y-3">{batches.map((b) => <Batch key={b.batch} b={b} />)}</ol>
       )}
@@ -64,8 +64,8 @@ function Batch({ b }: { b: EventBatch }) {
     <li className="rounded-xl border border-line bg-surface p-4 text-sm">
       <header className="mb-2 flex flex-wrap items-baseline gap-x-3">
         <span className="font-semibold">{when(b.at)}</span>
-        <span className="font-mono text-xs text-muted">{b.batch}</span>
-        <span className="text-xs text-muted">{Object.entries(b.counts).map(([t, n]) => `${n} ${t}`).join(" · ")}</span>
+        <span className="font-mono text-xs text-ink-muted">{b.batch}</span>
+        <span className="text-xs text-ink-muted">{Object.entries(b.counts).map(([t, n]) => `${n} ${t}`).join(" · ")}</span>
       </header>
       {b.firings.length > 0 ? (
         <ul className="mb-2 space-y-1 text-xs">
@@ -74,24 +74,24 @@ function Batch({ b }: { b: EventBatch }) {
               Rule <span className="font-medium">{f.rule}</span> ({f.events} event{f.events === 1 ? "" : "s"}) → {f.actions.join(", ")}
               {f.job && (
                 <span> · job <span className="font-mono">{f.job}</span>{" "}
-                  {f.jobStatus ? <span className={STATUS_CLASS[f.jobStatus.status] ?? "text-muted"}>{f.jobStatus.status}</span> : <span className="text-muted">(no longer kept)</span>}
-                  {f.jobStatus?.error && <span className="text-muted">: {f.jobStatus.error}</span>}
+                  {f.jobStatus ? <span className={STATUS_CLASS[f.jobStatus.status] ?? "text-ink-muted"}>{f.jobStatus.status}</span> : <span className="text-ink-muted">(no longer kept)</span>}
+                  {f.jobStatus?.error && <span className="text-ink-muted">: {f.jobStatus.error}</span>}
                 </span>
               )}
             </li>
           ))}
         </ul>
-      ) : <p className="mb-2 text-xs text-muted">No rule fired (a reconciliation after a full refresh, or only derived events).</p>}
+      ) : <p className="mb-2 text-xs text-ink-muted">No rule fired (a reconciliation after a full refresh, or only derived events).</p>}
       {b.actionsRun.length > 0 && (
-        <p className="mb-2 text-xs"><span className="text-muted">Ran:</span> {b.actionsRun.map((a) => `${a.action}${a.outcome === "ran" ? "" : ` (${a.outcome})`}`).join(" → ")}</p>
+        <p className="mb-2 text-xs"><span className="text-ink-muted">Ran:</span> {b.actionsRun.map((a) => `${a.action}${a.outcome === "ran" ? "" : ` (${a.outcome})`}`).join(" → ")}</p>
       )}
       <details>
-        <summary className="cursor-pointer text-xs text-muted">Events ({b.events.length < total ? `${b.events.length} of ${total}` : b.events.length})</summary>
+        <summary className="cursor-pointer text-xs text-ink-muted">Events ({b.events.length < total ? `${b.events.length} of ${total}` : b.events.length})</summary>
         <ul className="mt-1 max-h-64 overflow-auto text-xs">
           {b.events.map((e, i) => (
             <li key={`${e.type}:${e.key}:${i}`}>
               <span className="font-mono">{e.type}</span> {e.key !== "all" && e.key}
-              {e.changed.length > 0 && <span className="text-muted"> ({e.changed.join(", ")})</span>}
+              {e.changed.length > 0 && <span className="text-ink-muted"> ({e.changed.join(", ")})</span>}
             </li>
           ))}
         </ul>

@@ -64,9 +64,9 @@ export function Jobs() {
   if (!data) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Background jobs</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Background jobs</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-muted">
           Jobs run only after {data.runAfterIdleSeconds} s without requests and pause when someone uses the app. Idle now:{" "}
           {data.idleSeconds} s{data.running ? ` · running: ${label(data.running)}` : ""}
           {!data.workerOn && " · worker is off (PROCINTEL_JOBS=0)"}
@@ -80,18 +80,18 @@ export function Jobs() {
             </button>
           ))}
         </div>
-        {note && <p className="text-xs text-muted">{note}</p>}
+        {note && <p className="text-xs text-ink-muted">{note}</p>}
         {data.jobs.length === 0 ? (
-          <p className="text-sm text-muted">No jobs yet.</p>
+          <p className="text-sm text-ink-muted">No jobs yet.</p>
         ) : (
           <ul className="divide-y divide-line text-sm">
             {data.jobs.slice(0, 10).map((j) => (
               <li key={j.id} className="flex flex-wrap items-baseline gap-x-2 py-1.5">
                 <span className="font-medium">{label(j.kind)}</span>
-                <span className={`text-xs ${j.status === "failed" ? "text-risk-high" : "text-muted"}`}>{j.status}</span>
-                {j.priority !== "normal" && <span className="rounded border border-line px-1 text-xs text-muted">{j.priority}</span>}
-                <span className="text-xs text-muted">{new Date(j.finished_at ?? j.created_at).toLocaleString()}</span>
-                <span className="w-full text-xs text-muted">{jobSummary(j)}</span>
+                <span className={`text-xs ${j.status === "failed" ? "text-risk-high" : "text-ink-muted"}`}>{j.status}</span>
+                {j.priority !== "normal" && <span className="rounded border border-line px-1 text-xs text-ink-muted">{j.priority}</span>}
+                <span className="text-xs text-ink-muted">{new Date(j.finished_at ?? j.created_at).toLocaleString()}</span>
+                <span className="w-full text-xs text-ink-muted">{jobSummary(j)}</span>
               </li>
             ))}
           </ul>

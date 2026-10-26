@@ -32,24 +32,24 @@ export function EvaluationView() {
   }
 
   if (error) return <p className="text-sm text-risk-high">{error}</p>;
-  if (!data) return <p className="text-sm text-muted">Loading…</p>;
+  if (!data) return <p className="text-sm text-ink-muted">Loading…</p>;
   return (
     <div className="space-y-10">
       <Section title="Quality over time" action={admin &&
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <button className="rounded-md border border-line px-2 py-1" onClick={() => run(false)}>Run search-quality check</button>
           <button className="rounded-md border border-line px-2 py-1" onClick={() => run(true)}>Run full evaluation</button>
-          {note && <span className="text-muted">{note}</span>}
+          {note && <span className="text-ink-muted">{note}</span>}
         </div>
       }>
-        <p className="mb-2 text-xs text-muted">
+        <p className="mb-2 text-xs text-ink-muted">
           Each run scores the evaluation questions (eval/questions.jsonl): search against judged passages, answers for
           support by their cited passages, and trap questions that must be refused. Dashed lines: a change made between
           runs (hover a run to see which).
         </p>
         <QualityChart runs={data.quality} />
         <details className="mt-3">
-          <summary className="cursor-pointer text-xs text-muted">Every run as a table ({data.quality.length})</summary>
+          <summary className="cursor-pointer text-xs text-ink-muted">Every run as a table ({data.quality.length})</summary>
           <div className="mt-2"><RunsTable runs={data.quality} /></div>
         </details>
       </Section>
@@ -65,7 +65,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   return (
     <section>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{title}</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">{title}</h2>
         {action}
       </div>
       {children}

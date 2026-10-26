@@ -18,7 +18,7 @@ export function StartedFields({ value, onChange }: { value: Started; onChange: (
   const field = "w-full rounded-md border border-line bg-surface px-2 py-1.5 text-sm";
   return (
     <details className="text-sm" open={!!value.tenderStart}>
-      <summary className="cursor-pointer text-xs font-medium text-muted">Already started? Forecast from where it is now</summary>
+      <summary className="cursor-pointer text-xs font-medium text-ink-muted">Already started? Forecast from where it is now</summary>
       <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
         <label>Tender published<input type="date" className={field} value={value.tenderStart ?? ""}
           onChange={(e) => onChange({ ...value, tenderStart: e.target.value || undefined })} /></label>
@@ -41,9 +41,9 @@ export function StartedForecast({ procGroup, methodCode, started }: { procGroup:
     api.describeForecast({ procGroup, methodCode, ...started }).then(setF).catch((e) => setError((e as Error).message));
   }, [procGroup, methodCode, started]);
   if (error) return <p className="text-sm text-risk-high">{error}</p>;
-  if (!f) return <p className="text-sm text-muted">Forecasting from where it is…</p>;
+  if (!f) return <p className="text-sm text-ink-muted">Forecasting from where it is…</p>;
   return (
-    <div className="space-y-3 rounded-xl border border-accent bg-surface p-4">
+    <div className="space-y-3 rounded-xl border border-brand bg-surface p-4">
       <h3 className="text-sm font-semibold">From where it is now ({f.asOf})</h3>
       <LiveTimeline f={f} closingDate={started.closingDate} />
       <ForecastSummary f={f} />

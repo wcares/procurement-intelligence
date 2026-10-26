@@ -5,7 +5,7 @@ import type { EChartsOption } from "echarts";
 import type { Precedent, Prediction, RiskFlag, Stage } from "@/lib/api/types";
 import { cssVar, useECharts } from "@/lib/use-echarts";
 
-const LEVEL_VAR = { high: "--risk-high", medium: "--risk-medium", low: "--muted" } as const;
+const LEVEL_VAR = { high: "--risk-high", medium: "--risk-medium", low: "--ink-muted" } as const;
 
 /** The tender's stages laid end to end at their typical length (and the slow case), with each risk marked on the stage
  * where it bites: colour = level, circle = historical statistic, diamond = model estimate. A marker click selects the
@@ -21,8 +21,8 @@ export function StageTimeline({ stages, risks, precedents, prediction, onSelect 
 
   const option = useMemo<EChartsOption | null>(() => {
     if (!timed.length) return null;
-    const shades = [cssVar("--accent", "#1f5fbf"), cssVar("--risk-medium", "#a15c07"), cssVar("--risk-low", "#1e7a46")];
-    const muted = cssVar("--muted", "#888");
+    const shades = [cssVar("--brand", "#1f5fbf"), cssVar("--risk-medium", "#a15c07"), cssVar("--risk-low", "#1e7a46")];
+    const muted = cssVar("--ink-muted", "#888");
     const starts: Record<string, [number, number]> = {};
     let at = 0;
     for (const s of timed) {
@@ -88,8 +88,8 @@ export function StageTimeline({ stages, risks, precedents, prediction, onSelect 
 
   return (
     <div>
-      {option ? <div ref={ref} className="h-64 w-full" /> : <p className="text-sm text-muted">No dated stages for comparable packages.</p>}
-      <p className="mt-1 text-xs text-muted">
+      {option ? <div ref={ref} className="h-64 w-full" /> : <p className="text-sm text-ink-muted">No dated stages for comparable packages.</p>}
+      <p className="mt-1 text-xs text-ink-muted">
         Stages end to end at their typical length for comparable packages; the faded row is the slow case (1 in 10 take longer).
         Markers are the risk flags on the stage where they bite (circle: historical statistic, diamond: model estimate); click one for its evidence. Squares are past lessons on that stage; click one for the passage.
         {prediction && ` "This package": ${prediction.days_p50} days from tender to award (${prediction.basis === "model" ? "model estimate" : "historical median"}), faded to ${prediction.days_p90 ?? "–"} days in the slow case${prediction.p90_basis === "historical" && prediction.basis === "model" ? " (historical: the model did not beat it there)" : ""}, then the typical signing and contract stages.`}

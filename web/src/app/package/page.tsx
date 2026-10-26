@@ -4,7 +4,7 @@ import { PackageView } from "@/components/monitoring/package-view";
 export default function PackagePage() {
   return (
     <div className="mx-auto max-w-4xl">
-      <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+      <Suspense fallback={<p className="text-sm text-ink-muted">Loading…</p>}>
         <PackageView />
       </Suspense>
     </div>

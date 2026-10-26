@@ -31,12 +31,12 @@ export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
     }
   }
 
-  if (!opts) return <p className="text-sm text-muted">Loading…</p>;
+  if (!opts) return <p className="text-sm text-ink-muted">Loading…</p>;
   const methods = [...new Map(opts.methods.map((m) => [m.code, m])).values()];
   const dupe = (label: string) => methods.filter((m) => m.label === label).length > 1;   // e.g. Direct Selection (DIR, DS)
   return (
     <div className="space-y-3 text-sm">
-      <p className="text-xs text-muted">
+      <p className="text-xs text-ink-muted">
         Pick what you follow. Within a row any choice matches; across rows all must (Kenya + Civil Works = Kenyan civil
         works). A project you add is followed on its own.
       </p>
@@ -45,10 +45,10 @@ export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
       <Chips label="Methods" values={methods.map((m) => [m.code, dupe(m.label) ? `${m.label} (${m.code})` : m.label])} chosen={watch.method} onToggle={(v) => toggle("method", v)} />
       <Chips label="Sectors" values={opts.sectors.map((s) => [s, s])} chosen={watch.sector} onToggle={(v) => toggle("sector", v)} />
       <div>
-        <p className="mb-1 text-xs font-medium text-muted">Projects</p>
+        <p className="mb-1 text-xs font-medium text-ink-muted">Projects</p>
         <div className="flex flex-wrap items-center gap-2">
           {watch.project.map((p) => (
-            <button key={p} className="rounded-full bg-accent-soft px-2 py-0.5 text-xs" onClick={() => toggle("project", p)}>{p} ×</button>
+            <button key={p} className="rounded-full bg-brand-soft px-2 py-0.5 text-xs" onClick={() => toggle("project", p)}>{p} ×</button>
           ))}
           <input className="w-32 rounded-md border border-line bg-surface px-2 py-1 text-xs" placeholder="P123456" value={project}
             onChange={(e) => setProject(e.target.value.toUpperCase())}
@@ -56,8 +56,8 @@ export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button className="rounded-md bg-accent px-3 py-1.5 text-sm text-white dark:text-black" onClick={save}>Save watch-list</button>
-        {note && <span className="text-xs text-muted">{note}</span>}
+        <button className="rounded-md bg-brand px-3 py-1.5 text-sm text-white dark:text-black" onClick={save}>Save watch-list</button>
+        {note && <span className="text-xs text-ink-muted">{note}</span>}
       </div>
     </div>
   );
@@ -66,11 +66,11 @@ export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
 function Chips({ label, values, chosen, onToggle }: { label: string; values: [string, string][]; chosen: string[]; onToggle: (v: string) => void }) {
   return (
     <div>
-      <p className="mb-1 text-xs font-medium text-muted">{label}</p>
+      <p className="mb-1 text-xs font-medium text-ink-muted">{label}</p>
       <div className="flex max-h-28 flex-wrap gap-1 overflow-auto">
         {values.map(([v, text]) => (
           <button key={v} aria-pressed={chosen.includes(v)} onClick={() => onToggle(v)}
-            className={`rounded-full border px-2 py-0.5 text-xs ${chosen.includes(v) ? "border-accent bg-accent-soft" : "border-line"}`}>
+            className={`rounded-full border px-2 py-0.5 text-xs ${chosen.includes(v) ? "border-brand bg-brand-soft" : "border-line"}`}>
             {text}
           </button>
         ))}

@@ -18,7 +18,7 @@ export function RecentChangesCard() {
     <section className="rounded-xl border border-line bg-surface p-4">
       <h2 className="mb-3 font-semibold">What changed in the last {data.days} days</h2>
       {data.items.length === 0 ? (
-        <p className="text-sm text-muted">No new or changed source records since {day(data.since)}.</p>
+        <p className="text-sm text-ink-muted">No new or changed source records since {day(data.since)}.</p>
       ) : (
         <ul className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           {data.items.map((i) => (
@@ -26,13 +26,13 @@ export function RecentChangesCard() {
               <span className="w-14 shrink-0 text-right font-semibold tabular-nums">{i.count.toLocaleString()}</span>
               <span>
                 {i.label}
-                <span className="text-xs text-muted"> · latest {day(i.last)}</span>
+                <span className="text-xs text-ink-muted"> · latest {day(i.last)}</span>
               </span>
             </li>
           ))}
         </ul>
       )}
-      <p className="mt-3 text-xs text-muted">
+      <p className="mt-3 text-xs text-ink-muted">
         Detected by the data pipeline when it compared each source with what was stored; the tables, passages and
         statistics on this page already include them.
       </p>

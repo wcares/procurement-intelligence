@@ -45,7 +45,7 @@ export function AnswerMap({ r, question, onSource }: { r: AskResponse; question:
 
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
-      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
         <span>Findings and the sources behind them.</span>
         {countries.length > 1 && (
           <select className="rounded-md border border-line bg-surface px-2 py-1" value={country} onChange={(e) => setCountry(e.target.value)} aria-label="Filter sources by country">

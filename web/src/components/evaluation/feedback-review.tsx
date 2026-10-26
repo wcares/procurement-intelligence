@@ -18,28 +18,28 @@ export function FeedbackReview() {
   if (!data) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Feedback to review</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Feedback to review</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-muted">
           Built by the feedback review job. Refused and not-useful questions are candidates for the evaluation set; a
           passage flagged as a wrong citation on {data.demoteAfter} or more separate answers is moved to the end of search
           results ({data.demoted.length} now).
         </p>
         {data.items.length === 0 ? (
-          <p className="text-sm text-muted">Nothing to review yet.</p>
+          <p className="text-sm text-ink-muted">Nothing to review yet.</p>
         ) : (
           <ul className="divide-y divide-line text-sm">
             {data.items.slice(0, 15).map((it) => (
               <li key={`${it.kind}:${it.key}`} className="py-1.5">
                 <span className="font-medium">{REVIEW_LABELS[it.kind] ?? it.kind}</span>
-                <span className="text-xs text-muted">
+                <span className="text-xs text-ink-muted">
                   {" "}
                   · {it.responses} response{it.responses === 1 ? "" : "s"}
                   {it.kind === "flagged_citation" && <> · passage <span className="font-mono">{it.key}</span></>}
                   {data.demoted.includes(it.key) && " · demoted"}
                 </span>
-                <p className="text-xs text-muted">{it.questions.join(" | ")}</p>
-                {it.comments.length > 0 && <p className="text-xs italic text-muted">“{it.comments.join("” “")}”</p>}
+                <p className="text-xs text-ink-muted">{it.questions.join(" | ")}</p>
+                {it.comments.length > 0 && <p className="text-xs italic text-ink-muted">“{it.comments.join("” “")}”</p>}
               </li>
             ))}
           </ul>

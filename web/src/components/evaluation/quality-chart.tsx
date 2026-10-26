@@ -11,7 +11,7 @@ import { isoOf, localTime, MEASURES, pct } from "./measures";
 export function QualityChart({ runs }: { runs: EvalRun[] }) {
   const option = useMemo<EChartsOption | null>(() => {
     if (runs.length < 2) return null;
-    const muted = cssVar("--muted", "#888");
+    const muted = cssVar("--ink-muted", "#888");
     const line = cssVar("--line", "#ddd");
     const changes = runs.flatMap((r) => r.changesBefore ?? []);
     return {
@@ -45,6 +45,6 @@ export function QualityChart({ runs }: { runs: EvalRun[] }) {
     } as EChartsOption;
   }, [runs]);
   const ref = useECharts(option);
-  if (!option) return <p className="text-sm text-muted">At least two evaluation runs are needed for a trend.</p>;
+  if (!option) return <p className="text-sm text-ink-muted">At least two evaluation runs are needed for a trend.</p>;
   return <div ref={ref} className="h-80 w-full" role="img" aria-label="Evaluation measures per run over time" />;
 }

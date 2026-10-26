@@ -12,7 +12,7 @@ export function Heatmap({ data, onSelect }: { data: HeatmapResponse; onSelect: (
     const countries = [...new Set(data.cells.map((c) => c.countryLabel))].sort();
     const methods = [...new Set(data.cells.map((c) => c.method))].sort();
     const values = data.cells.map((c) => c.value);
-    const text = cssVar("--muted", "#888");
+    const text = cssVar("--ink-muted", "#888");
     return {
       tooltip: { formatter: (p) => { const d = (p as unknown as { data: { name: string; value: number[]; n: number; m: string } }).data; return `${d.name} · ${d.m}<br/>${fmt(data.measure, d.value[2])} (${d.n} awards)`; } },
       grid: { left: 150, right: 16, top: 8, bottom: 100 },

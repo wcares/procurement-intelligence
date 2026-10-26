@@ -29,7 +29,7 @@ const WGI_LABELS: Record<string, string> = {
   voice_accountability: "Voice & accountability",
 };
 
-const field = "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent";
+const field = "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand";
 
 export function AssessView() {
   const [opts, setOpts] = useState<Options | null>(null);
@@ -128,7 +128,7 @@ export function AssessView() {
             value={form.projectId ?? ""}
             onChange={(e) => setForm({ ...form, projectId: e.target.value.trim().toUpperCase() || undefined })}
           />
-          <span className="text-xs text-muted">A tracked project&apos;s age and size sharpen the prediction.</span>
+          <span className="text-xs text-ink-muted">A tracked project&apos;s age and size sharpen the prediction.</span>
         </Label>
         <Label text="Estimated value, US$ (optional)">
           <input
@@ -156,13 +156,13 @@ export function AssessView() {
             value={form.tenderReference ?? ""}
             onChange={(e) => setForm({ ...form, tenderReference: e.target.value })}
           />
-          <span className="text-xs text-muted">Lets us check this prediction against the actual award time later.</span>
+          <span className="text-xs text-ink-muted">Lets us check this prediction against the actual award time later.</span>
         </Label>
         <StartedFields value={started} onChange={setStarted} />
         <button
           type="submit"
           disabled={!opts || !form.methodCode || loading}
-          className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:text-black"
+          className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:text-black"
         >
           {loading ? "Assessing…" : "Assess package"}
         </button>
@@ -173,7 +173,7 @@ export function AssessView() {
       <section className="min-w-0 space-y-6">
         {error && <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{error}</p>}
         {!result && !error && (
-          <div className="rounded-xl border border-dashed border-line p-10 text-center text-muted">
+          <div className="rounded-xl border border-dashed border-line p-10 text-center text-ink-muted">
             Describe a procurement package to see how comparable packages went: timeline, risks, and quoted lessons from past
             evaluations.
           </div>
@@ -192,8 +192,8 @@ function Results({ r }: { r: AssessResponse }) {
   const show = (elementId: string) => {
     const el = document.getElementById(elementId);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    el?.classList.add("ring-2", "ring-accent");
-    setTimeout(() => el?.classList.remove("ring-2", "ring-accent"), 1500);
+    el?.classList.add("ring-2", "ring-brand");
+    setTimeout(() => el?.classList.remove("ring-2", "ring-brand"), 1500);
   };
   return (
     <>
@@ -205,11 +205,11 @@ function Results({ r }: { r: AssessResponse }) {
       )}
       <div className="grid gap-6 md:grid-cols-2">
         <Card title="Expected timeline">
-          {r.timeline ? <TimelineBar t={r.timeline} /> : <p className="text-sm text-muted">Not enough comparable packages.</p>}
+          {r.timeline ? <TimelineBar t={r.timeline} /> : <p className="text-sm text-ink-muted">Not enough comparable packages.</p>}
         </Card>
         <Card title="Risk flags">
           {r.risks.length === 0 ? (
-            <p className="text-sm text-muted">No flags from the available statistics.</p>
+            <p className="text-sm text-ink-muted">No flags from the available statistics.</p>
           ) : (
             <ul className="space-y-3">
               {r.risks.map((f) => (
@@ -218,8 +218,8 @@ function Results({ r }: { r: AssessResponse }) {
                     <RiskBadge level={f.level} />
                     <span className="text-sm font-medium">{f.label}</span>
                   </div>
-                  <p className="mt-1 text-sm text-muted">{f.detail}</p>
-                  <p className="mt-0.5 text-xs text-muted">Basis: {f.basis === "statistic" ? "historical statistic" : "model estimate"}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{f.detail}</p>
+                  <p className="mt-0.5 text-xs text-ink-muted">Basis: {f.basis === "statistic" ? "historical statistic" : "model estimate"}</p>
                   {f.evidence && f.evidence.length > 0 && <FlagEvidence items={f.evidence} />}
                 </li>
               ))}
@@ -232,9 +232,9 @@ function Results({ r }: { r: AssessResponse }) {
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {r.governance.map((g) => (
               <div key={g.indicator}>
-                <dt className="text-xs text-muted">{CPIA_LABELS[g.indicator] ?? g.indicator}</dt>
+                <dt className="text-xs text-ink-muted">{CPIA_LABELS[g.indicator] ?? g.indicator}</dt>
                 <dd className="text-sm font-medium tabular-nums">
-                  {g.value.toFixed(1)} <span className="text-xs font-normal text-muted">({g.year})</span>
+                  {g.value.toFixed(1)} <span className="text-xs font-normal text-ink-muted">({g.year})</span>
                 </dd>
               </div>
             ))}
@@ -246,10 +246,10 @@ function Results({ r }: { r: AssessResponse }) {
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {r.wgi!.map((g) => (
               <div key={g.indicator}>
-                <dt className="text-xs text-muted">{WGI_LABELS[g.indicator] ?? g.indicator}</dt>
+                <dt className="text-xs text-ink-muted">{WGI_LABELS[g.indicator] ?? g.indicator}</dt>
                 <dd className="text-sm font-medium tabular-nums">
                   {g.value > 0 ? "+" : ""}
-                  {g.value.toFixed(2)} <span className="text-xs font-normal text-muted">({g.year})</span>
+                  {g.value.toFixed(2)} <span className="text-xs font-normal text-ink-muted">({g.year})</span>
                 </dd>
               </div>
             ))}
@@ -260,12 +260,12 @@ function Results({ r }: { r: AssessResponse }) {
       <div>
         <h3 className="mb-3 font-semibold">Lessons from comparable projects</h3>
         {r.precedents.length === 0 ? (
-          <p className="text-sm text-muted">No relevant passages found.</p>
+          <p className="text-sm text-ink-muted">No relevant passages found.</p>
         ) : (
           <div className="space-y-3">
             {r.precedents.map((p, i) => (
               <div key={p.citation.id}>
-                <p className="mb-1 text-xs text-muted">Matched on: {p.matchedOn.join(" · ")}</p>
+                <p className="mb-1 text-xs text-ink-muted">Matched on: {p.matchedOn.join(" · ")}</p>
                 <CitationCard c={p.citation} index={i} action={<FlagCitation responseId={r.meta.responseId} citationId={p.citation.id} />} />
               </div>
             ))}
@@ -280,7 +280,7 @@ function Results({ r }: { r: AssessResponse }) {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-line bg-surface p-5">
-      <h3 className="mb-4 text-sm font-semibold text-muted">{title}</h3>
+      <h3 className="mb-4 text-sm font-semibold text-ink-muted">{title}</h3>
       {children}
     </div>
   );
@@ -289,7 +289,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Label({ text, children }: { text: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium text-muted">{text}</span>
+      <span className="text-xs font-medium text-ink-muted">{text}</span>
       {children}
     </label>
   );
@@ -298,7 +298,7 @@ function Label({ text, children }: { text: string; children: React.ReactNode }) 
 function FlagEvidence({ items }: { items: FlagEvidenceItem[] }) {
   return (
     <details className="mt-1">
-      <summary className="cursor-pointer text-xs text-muted">Evidence ({items.length})</summary>
+      <summary className="cursor-pointer text-xs text-ink-muted">Evidence ({items.length})</summary>
       <ul className="mt-1 space-y-1 border-l pl-3">
         {items.map((e) => (
           <li key={e.ref} className="text-xs">
@@ -309,7 +309,7 @@ function FlagEvidence({ items }: { items: FlagEvidenceItem[] }) {
             ) : (
               <span>{e.label}</span>
             )}
-            <span className="text-muted"> · {e.detail}</span>
+            <span className="text-ink-muted"> · {e.detail}</span>
           </li>
         ))}
       </ul>

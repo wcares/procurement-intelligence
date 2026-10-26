@@ -9,7 +9,7 @@ import { cssVar, useECharts } from "@/lib/use-echarts";
 export function TrendChart({ trend, height = "h-36" }: { trend: AwardTrend; height?: string }) {
   const option = useMemo<EChartsOption | null>(() => {
     if (!trend.series.length) return null;
-    const muted = cssVar("--muted", "#888");
+    const muted = cssVar("--ink-muted", "#888");
     const line = cssVar("--line", "#ddd");
     const color = cssVar("--series-1", "#2a78d6");
     return {
@@ -30,6 +30,6 @@ export function TrendChart({ trend, height = "h-36" }: { trend: AwardTrend; heig
     } as EChartsOption;
   }, [trend]);
   const ref = useECharts(option);
-  if (!option) return <p className="text-xs text-muted">Too few awarded packages for a trend.</p>;
+  if (!option) return <p className="text-xs text-ink-muted">Too few awarded packages for a trend.</p>;
   return <div ref={ref} className={`${height} w-full`} role="img" aria-label="Median days from tender to award by tender year" />;
 }

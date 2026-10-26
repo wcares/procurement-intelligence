@@ -29,11 +29,11 @@ export function Users() {
   if (user?.mode !== "local" || !list) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Users</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Users</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4 text-xs">
-        <p className="text-muted">Planners use Assess and Ask; admins also see Settings. A change signs the person out.</p>
+        <p className="text-ink-muted">Planners use Assess and Ask; admins also see Settings. A change signs the person out.</p>
         <table className="w-full text-left">
-          <thead className="text-muted"><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>
+          <thead className="text-ink-muted"><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>
           <tbody>
             {list.map((u) => (
               <tr key={u.username} className="border-t border-line">
@@ -75,7 +75,7 @@ export function Users() {
           </select>
           <button className={box} type="submit">Add user</button>
         </form>
-        {msg && <p className="text-muted">{msg}</p>}
+        {msg && <p className="text-ink-muted">{msg}</p>}
       </div>
     </section>
   );

@@ -69,15 +69,15 @@ export function ConfigView() {
     }
   }
 
-  if (!settings) return <p className="mx-auto max-w-3xl text-sm text-muted">{status ?? "Loading settings…"}</p>;
+  if (!settings) return <p className="mx-auto max-w-3xl text-sm text-ink-muted">{status ?? "Loading settings…"}</p>;
 
-  const input = "w-full rounded-md border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-accent";
+  const input = "w-full rounded-md border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-brand";
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <Users />
       <Jobs />
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Data pipeline</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Data pipeline</h2>
         <p className="rounded-xl border border-line bg-surface p-4 text-sm">
           Sources, change events and rules have their own pages: <Link className="underline" href="/pipeline">connectors</Link>,{" "}
           <Link className="underline" href="/pipeline/events">event log</Link>, <Link className="underline" href="/pipeline/rules">rules</Link>.
@@ -92,7 +92,7 @@ export function ConfigView() {
       />
       {groups.map(([group, items]) => (
         <section key={group}>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{group}</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">{group}</h2>
           <div className="divide-y divide-line rounded-xl border border-line bg-surface">
             {items.map((s) => {
               const value = draft[s.key] ?? String(s.value);
@@ -103,9 +103,9 @@ export function ConfigView() {
                     <label htmlFor={`cfg-${s.key}`} className="text-sm font-medium">
                       {s.label}
                     </label>
-                    {!s.editable && <span className="ml-2 rounded bg-subtle px-1.5 py-0.5 text-xs text-muted">read-only</span>}
-                    <p className="mt-1 text-xs text-muted">{s.note}</p>
-                    <p className="mt-1 text-xs text-muted">
+                    {!s.editable && <span className="ml-2 rounded bg-subtle px-1.5 py-0.5 text-xs text-ink-muted">read-only</span>}
+                    <p className="mt-1 text-xs text-ink-muted">{s.note}</p>
+                    <p className="mt-1 text-xs text-ink-muted">
                       At startup: <span className="font-mono">{show(s.default)}</span>
                       {s.min !== null && s.max !== null && <> · range {s.min}–{s.max}</>}
                     </p>
@@ -130,7 +130,7 @@ export function ConfigView() {
       ))}
       <div className="sticky bottom-4 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface p-3 shadow-sm">
         <button
-          className="rounded-md bg-accent px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:text-black"
+          className="rounded-md bg-brand px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:text-black"
           disabled={busy || changed.length === 0}
           onClick={() => apply(false)}
         >
@@ -152,11 +152,11 @@ export function ConfigView() {
           Check search quality
         </button>
         {changed.length > 0 && (
-          <button className="text-sm text-muted hover:underline" disabled={busy} onClick={() => (setDraft({}), setErrors({}))}>
+          <button className="text-sm text-ink-muted hover:underline" disabled={busy} onClick={() => (setDraft({}), setErrors({}))}>
             Discard
           </button>
         )}
-        {status && <span className="text-sm text-muted">{status}</span>}
+        {status && <span className="text-sm text-ink-muted">{status}</span>}
         {comparison && <Comparison c={comparison} />}
       </div>
     </div>
@@ -174,7 +174,7 @@ function Comparison({ c }: { c: CompareResponse }) {
   return (
     <div className="w-full text-sm">
       <table className="w-full tabular-nums">
-        <thead className="text-left text-xs text-muted">
+        <thead className="text-left text-xs text-ink-muted">
           <tr>
             <th className="font-normal">Search quality ({c.before.questions} evaluation questions)</th>
             <th className="font-normal">now</th>
@@ -196,7 +196,7 @@ function Comparison({ c }: { c: CompareResponse }) {
           })}
         </tbody>
       </table>
-      <p className="mt-1 text-xs text-muted">Search only, against the judged relevance labels. Answers are not re-run (the full evaluation takes about 90 minutes).</p>
+      <p className="mt-1 text-xs text-ink-muted">Search only, against the judged relevance labels. Answers are not re-run (the full evaluation takes about 90 minutes).</p>
     </div>
   );
 }
@@ -228,17 +228,17 @@ function Profiles({
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Profiles</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Profiles</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
-        <p className="text-xs text-muted">A profile stores every editable setting as it is now, so a tested setup can be restored in one step.</p>
+        <p className="text-xs text-ink-muted">A profile stores every editable setting as it is now, so a tested setup can be restored in one step.</p>
         {profiles.length === 0 ? (
-          <p className="text-sm text-muted">No saved profiles.</p>
+          <p className="text-sm text-ink-muted">No saved profiles.</p>
         ) : (
           <ul className="divide-y divide-line">
             {profiles.map((p) => (
               <li key={p.name} className="flex flex-wrap items-center gap-2 py-2 text-sm">
                 <span className="font-medium">{p.name}</span>
-                <span className="text-xs text-muted">
+                <span className="text-xs text-ink-muted">
                   {Object.keys(p.differs).length === 0 ? "same as startup" : `${Object.keys(p.differs).length} changed: ${Object.keys(p.differs).join(", ")}`}
                 </span>
                 <span className="ml-auto flex gap-2">
@@ -250,7 +250,7 @@ function Profiles({
                     Apply
                   </button>
                   <button
-                    className="text-xs text-muted hover:underline disabled:opacity-50"
+                    className="text-xs text-ink-muted hover:underline disabled:opacity-50"
                     disabled={disabled}
                     onClick={() => run(async () => setProfiles((await api.deleteProfile(p.name)).profiles))}
                   >
@@ -269,7 +269,7 @@ function Profiles({
           }}
         >
           <input
-            className="w-full rounded-md border border-line bg-background px-2 py-1.5 text-sm outline-none focus:border-accent"
+            className="w-full rounded-md border border-line bg-background px-2 py-1.5 text-sm outline-none focus:border-brand"
             placeholder="Profile name, e.g. fast answers"
             maxLength={60}
             value={name}

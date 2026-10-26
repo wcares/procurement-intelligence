@@ -46,7 +46,7 @@ export function RulesEditor({ data, onSaved }: { data: PipelineResponse; onSaved
 
   return (
     <div className="space-y-2 text-xs">
-      <p className="text-muted">
+      <p className="text-ink-muted">
         {data.customised ? "Edited rules in use." : "Default rules in use."} Run a dry run to see what the rules would
         have done on the last week&apos;s changes before saving.
       </p>
@@ -62,7 +62,7 @@ export function RulesEditor({ data, onSaved }: { data: PipelineResponse; onSaved
               <button className="ml-auto underline" onClick={() => (setRules(rules.filter((_, j) => j !== i)), setDry(null))}>remove</button>
             </div>
             <div>
-              <span className="text-muted">when </span>
+              <span className="text-ink-muted">when </span>
               {data.eventTypes.map((e) => (
                 <label key={e} className="mr-2 inline-flex items-center gap-0.5 font-mono">
                   <input type="checkbox" checked={r.on.includes(e)} onChange={() => update(i, { on: toggle(r.on, e) })} />
@@ -71,12 +71,12 @@ export function RulesEditor({ data, onSaved }: { data: PipelineResponse; onSaved
               ))}
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-muted">only if these fields changed (optional):</span>
+              <span className="text-ink-muted">only if these fields changed (optional):</span>
               <input className={`${box} flex-1`} value={r.fields.join(", ")} placeholder="e.g. status, closing_date"
                 onChange={(e) => update(i, { fields: e.target.value.split(",").map((f) => f.trim()).filter(Boolean) })} />
             </div>
             <div>
-              <span className="text-muted">do </span>
+              <span className="text-ink-muted">do </span>
               {data.actions.map((a) => (
                 <label key={a.name} className="mr-2 inline-flex items-center gap-0.5" title={a.label}>
                   <input type="checkbox" checked={r.do.includes(a.name)} onChange={() => update(i, { do: toggle(r.do, a.name) })} />
@@ -94,14 +94,14 @@ export function RulesEditor({ data, onSaved }: { data: PipelineResponse; onSaved
         <button className={box} onClick={save}>Save</button>
         <button className={box} onClick={reset}>Reset to defaults</button>
       </div>
-      {msg && <p className="text-muted">{msg}</p>}
+      {msg && <p className="text-ink-muted">{msg}</p>}
       {dry && (
         <div className="rounded-md border border-line p-2">
           <p>
             Last {dry.days} days: {dry.candidate.events} changes in {dry.candidate.batches} detection runs.
           </p>
           <table className="w-full text-left">
-            <thead className="text-muted"><tr><th>Action</th><th>Edited: runs (changes)</th><th>Current: runs (changes)</th></tr></thead>
+            <thead className="text-ink-muted"><tr><th>Action</th><th>Edited: runs (changes)</th><th>Current: runs (changes)</th></tr></thead>
             <tbody>
               {Array.from(new Set([...Object.keys(dry.candidate.actions), ...Object.keys(dry.current.actions)])).map((a) => (
                 <tr key={a} className="border-t border-line" title={label(a)}>

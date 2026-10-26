@@ -5,7 +5,7 @@ export default function PipelineLayout({ children }: { children: React.ReactNode
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="text-2xl font-semibold tracking-tight">Data pipeline</h1>
-      <p className="mt-2 mb-4 text-muted">
+      <p className="mt-2 mb-4 text-ink-muted">
         Each source is read on its interval; only what changed is processed, by the rules. The weekly refresh still
         rebuilds everything as a reconciliation.
       </p>

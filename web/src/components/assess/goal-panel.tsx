@@ -22,7 +22,7 @@ export function GoalPanel({ request }: { request: AssessRequest }) {
   }
   return (
     <div className="rounded-xl border border-line bg-surface p-5">
-      <h3 className="mb-2 text-sm font-semibold text-muted">Set a goal</h3>
+      <h3 className="mb-2 text-sm font-semibold text-ink-muted">Set a goal</h3>
       <div className="flex flex-wrap items-end gap-3 text-sm">
         <label className="text-xs">Awarded within (days)
           <input type="number" min={7} max={2000} value={days} onChange={(e) => setDays(Number(e.target.value))}
@@ -37,11 +37,11 @@ export function GoalPanel({ request }: { request: AssessRequest }) {
       {error && <p className="mt-2 text-xs text-risk-high">{error}</p>}
       {r && (
         <div className="mt-3 space-y-2">
-          {r.note && <p className="text-xs text-muted">{r.note}</p>}
-          {r.options.length === 0 ? <p className="text-xs text-muted">No method has enough comparable packages for this kind of purchase.</p> : (
+          {r.note && <p className="text-xs text-ink-muted">{r.note}</p>}
+          {r.options.length === 0 ? <p className="text-xs text-ink-muted">No method has enough comparable packages for this kind of purchase.</p> : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="text-muted">
+                <thead className="text-ink-muted">
                   <tr><th className="py-1 pr-2">Method</th><th className="pr-2">Lots</th><th className="pr-2">Met the target</th>
                     <th className="pr-2">Median / 1 in 10</th><th className="pr-2">Based on</th><th>Check</th></tr>
                 </thead>
@@ -51,17 +51,17 @@ export function GoalPanel({ request }: { request: AssessRequest }) {
                       <td className="py-1 pr-2">{o.methodLabel} ({o.method})</td>
                       <td className="pr-2">{o.lots}{o.lotValueUsd ? ` × ${usd.format(o.lotValueUsd)}` : ""}</td>
                       <td className="pr-2">
-                        {o.share == null ? <span className="text-muted">{o.note}</span> : (
+                        {o.share == null ? <span className="text-ink-muted">{o.note}</span> : (
                           <span className="inline-flex items-center gap-2">
                             <span className="inline-block h-2 w-16 rounded bg-subtle">
-                              <span className="block h-2 rounded bg-accent" style={{ width: `${Math.round(o.share * 100)}%` }} />
+                              <span className="block h-2 rounded bg-brand" style={{ width: `${Math.round(o.share * 100)}%` }} />
                             </span>
                             {Math.round(o.share * 100)}%
                           </span>
                         )}
                       </td>
                       <td className="pr-2 tabular-nums">{o.medianDays != null ? `${o.medianDays} / ${o.p90Days} days` : "–"}</td>
-                      <td className="pr-2 text-muted">{o.n} packages · {o.scope}</td>
+                      <td className="pr-2 text-ink-muted">{o.n} packages · {o.scope}</td>
                       <td className="text-risk-medium">{o.flag ?? ""}</td>
                     </tr>
                   ))}
@@ -69,7 +69,7 @@ export function GoalPanel({ request }: { request: AssessRequest }) {
               </table>
             </div>
           )}
-          {r.caveats.map((c, i) => <p key={i} className="text-xs text-muted">{c}</p>)}
+          {r.caveats.map((c, i) => <p key={i} className="text-xs text-ink-muted">{c}</p>)}
         </div>
       )}
     </div>
