@@ -43,6 +43,8 @@ export interface AssessRequest {
   methodCode: string;
   sector?: string;
   estimatedValueUsd?: number;
+  /** the tracked project it belongs to, if any: the model then uses the project's age and size */
+  projectId?: string;
   description?: string;
   /** bid reference of the tender being planned; lets the pilot compare the prediction with the actual award time */
   tenderReference?: string;

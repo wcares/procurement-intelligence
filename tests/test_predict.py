@@ -42,7 +42,7 @@ def bundle():
 def test_unseen_categories_and_missing_cpia_still_predict(bundle):
     p = predict.predict_one(bundle, {"proc_group": "CS", "method_code": "QCBS", "region": "Mars", "sector": None,
                                      "tender_start": "2026-10-24"})
-    assert all(np.isfinite(v) for v in p.values()) and 0 <= p["p_long"] <= 1
+    assert all(np.isfinite(p[k]) for k in ("p50", "p90", "p_long")) and 0 <= p["p_long"] <= 1
 
 
 def test_model_flags_only_for_targets_that_beat_the_baseline(bundle):
@@ -91,7 +91,7 @@ def test_value_is_optional_and_converted_from_the_estimate(bundle):
     typical = 10 ** bundle["value_median"]["CW/RFB"]
     assert predict.predict_one(bundle, {**common, "value_usd": typical}) == without   # ...using the typical value
     with_value = predict.predict_one(bundle, {**common, "value_usd": 2_500_000})
-    assert all(np.isfinite(v) for v in list(without.values()) + list(with_value.values()))
+    assert all(np.isfinite(d[k]) for d in (without, with_value) for k in ("p50", "p90", "p_long"))
     assert predict.add_features(pd.DataFrame([{**common, "value_usd": 1000}]))["log_value_usd"].iloc[0] == 3.0
 
 
@@ -105,3 +105,43 @@ def test_logged_prediction_takes_the_slow_case_from_whichever_beat_the_other():
     assert assess.logged_prediction(p, strong, t)["days_p90"] == 200 and assess.logged_prediction(p, strong, t)["p_long"] is None
     assert assess.logged_prediction(None, None, t) == {"basis": "historical median", "days_p50": 100, "days_p90": 300,
                                                        "p90_basis": "historical", "p_long": None}
+
+
+def test_the_project_variant_is_used_only_when_the_project_is_known():
+    rng = np.random.default_rng(1)
+    n = 300
+    df = pd.DataFrame({"proc_group": rng.choice(["CW", "GO"], n), "method_code": "RFB", "region": "Africa", "sector": None,
+                       "tender_start": "2022-06-01", "project_id": rng.choice(list("ABCDEFGHIJ"), n),
+                       "board_approval": rng.choice(["2019-01-01", "2021-06-01"], n), "commitment_usd": 1e8, "value_usd": 1e6})
+    for c in predict.CPIA:
+        df[f"cpia_{c}"] = 3.0
+    df["tender_to_award_days"] = 100 + rng.integers(0, 20, n)
+    df = predict.add_features(df)
+    assert df.years_since_approval.round(1).isin([3.4, 1.0]).all() and df.log_commitment.eq(8).all()
+    m = {"days_p50_mae": (10, 20), "days_p90_pinball": (5, 4), "days_p90_coverage": (0.9, 0.9),
+         "over_180_brier": (0.1, 0.2), "over_180_auc": (0.9, 0.5)}
+    b = predict.train(df, m, {**m, "days_p50_mae": (20, 20)})                     # the project variant no better on p50
+    row = {"proc_group": "CW", "method_code": "RFB", "region": "Africa", "sector": None, "tender_start": "2026-10-26",
+           "value_usd": 1e6}
+    plain = predict.predict_one(b, row)
+    known = predict.predict_one(b, row | {"board_approval": "2024-12-01", "commitment_usd": 2e8})
+    assert plain["variant"] == "without project" and plain["use"]["days_p50"] is True
+    assert known["variant"] == "with project" and known["use"]["days_p50"] is False   # its own decision, not the other's
+
+
+def test_repeated_evaluation_averages_random_project_splits():
+    rng = np.random.default_rng(2)
+    n = 200
+    df = pd.DataFrame({"proc_group": rng.choice(["CW", "GO"], n), "method_code": "RFB", "region": "Africa", "sector": None,
+                       "tender_start": "2022-01-01", "project_id": rng.choice([f"P{i}" for i in range(20)], n), "value_usd": 1e6})
+    for c in predict.CPIA:
+        df[f"cpia_{c}"] = 3.0
+    df["tender_to_award_days"] = np.where(df.proc_group == "CW", 200, 60) + rng.integers(0, 60, n)
+    df = predict.add_features(df)
+    one, three = predict.evaluate(df), predict.evaluate(df, repeats=3)
+    assert three["repeats"] == 3 and three["n"] == one["n"]
+    def folds(d):   # which original projects share a fold
+        return {frozenset(d.iloc[te]["orig"]) for _, te in predict.GroupKFold(5).split(d, groups=d.project_id)}
+    df["orig"] = df["project_id"]
+    assert folds(predict._shuffle_groups(df, 1)) != folds(df)                       # relabelled projects: other folds
+    assert three["days_p50_mae"] != one["days_p50_mae"] and three["days_p50_mae"][0] > 0

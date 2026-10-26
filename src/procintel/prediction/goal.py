@@ -75,10 +75,11 @@ def options(history: pd.DataFrame, req: dict, target_days: int, region: str | No
             if bundle:
                 p = predict.predict_one(bundle, {"proc_group": group, "method_code": m, "region": region,
                                                  "sector": req.get("sector") or None, "tender_start": date.today().isoformat(),
-                                                 "value_usd": lot, **{f"cpia_{g['indicator']}": g["value"] for g in gov}})
-                if bundle["use"].get("days_p50"):
+                                                 "value_usd": lot, **{f"cpia_{g['indicator']}": g["value"] for g in gov},
+                                                 **(req.get("project") or {})})
+                if p["use"].get("days_p50"):
                     row["modelMedianDays"] = round(float(p["p50"]))
-                if bundle["use"].get("over_180"):
+                if p["use"].get("over_180"):
                     row["modelOver180"] = round(float(p["p_long"]), 3)
             out.append(row)
     out.sort(key=lambda r: (r["share"] is None, "flag" in r, -(r["share"] or 0), r["lots"]))

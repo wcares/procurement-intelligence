@@ -198,25 +198,26 @@ def model_prediction(bundle: dict | None, req: dict, region: str | None, gov: li
     baseline for at least one target; None otherwise."""
     if not bundle:
         return None
-    use = bundle["use"]
-    if not (use.get("days_p50") or use.get("over_180")):
-        return None
     row = {"proc_group": req["procGroup"], "method_code": req["methodCode"], "region": region,
            "sector": req.get("sector") or None, "tender_start": date.today().isoformat(),
            "value_usd": req.get("estimatedValueUsd")}
     row.update({f"cpia_{g['indicator']}": g["value"] for g in gov})
-    return predict_one(bundle, row)
+    row.update(req.get("project") or {})   # board_approval, commitment_usd: the project variant (predict.predict_one)
+    p = predict_one(bundle, row)
+    use = p["use"]
+    return p if use.get("days_p50") or use.get("over_180") else None
 
 
 def logged_prediction(p: dict | None, bundle: dict | None, t: dict | None) -> dict | None:
     """What the assessment predicted, kept in the response log so the pilot can compare it with the actual award time
     once the tender is awarded (procintel.learning.kpi): the model's median when it is used, else the historical one."""
-    if p and bundle and bundle["use"].get("days_p50"):
+    use = (p or {}).get("use") or (bundle or {}).get("use") or {}
+    if p and bundle and use.get("days_p50"):
         # the slow case from the model only where it beat the baseline on it; otherwise the historical 90th percentile
-        p90 = p["p90"] if bundle["use"].get("days_p90") or not t else t["p90"]
+        p90 = p["p90"] if use.get("days_p90") or not t else t["p90"]
         return {"basis": "model", "days_p50": round(float(p["p50"])), "days_p90": round(float(p90)),
-                "p90_basis": "model" if bundle["use"].get("days_p90") or not t else "historical",
-                "p_long": round(float(p["p_long"]), 3) if bundle["use"].get("over_180") else None}
+                "p90_basis": "model" if use.get("days_p90") or not t else "historical",
+                "p_long": round(float(p["p_long"]), 3) if use.get("over_180") else None}
     if t:
         return {"basis": "historical median", "days_p50": round(t["median"]), "days_p90": round(t["p90"]),
                 "p90_basis": "historical", "p_long": None}
@@ -229,8 +230,10 @@ def model_flags(bundle: dict | None, req: dict, region: str | None, gov: list[di
     p = p if p is not None else model_prediction(bundle, req, region, gov)
     if p is None:
         return []
-    use, m = bundle["use"], bundle["metrics"]
-    tested = f"tested on {bundle['n']} past packages from projects it had not seen"
+    use, m = p.get("use", bundle["use"]), p.get("metrics", bundle["metrics"])
+    tested = (f"tested on {bundle['n']} past packages from projects it had not seen"
+              + ("; this package's project is known, so the variant with project age and size is used"
+                 if p.get("variant") == "with project" else ""))
     out = []
     if use.get("days_p50"):
         days = round(p["p50"])

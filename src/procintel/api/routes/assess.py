@@ -16,6 +16,19 @@ from procintel.prediction.assess import assess as run_assess
 router = APIRouter()
 
 
+def project_facts(project_id: str | None) -> dict | None:
+    """Approval date and size of a tracked project, for the model's project variant."""
+    if not project_id:
+        return None
+    from procintel.core import db
+    con = db.connect(read_only=True)
+    try:
+        r = con.execute("SELECT board_approval::VARCHAR, commitment_usd FROM projects WHERE project_id = ?", [project_id]).fetchone()
+    finally:
+        con.close()
+    return {"board_approval": str(r[0]), "commitment_usd": r[1]} if r and r[0] is not None else None
+
+
 @router.get("/options", response_model=Options)
 def get_options() -> dict:
     return state().options
@@ -26,6 +39,7 @@ def post_assess(req: AssessRequest, request: Request) -> dict:
     started = time.monotonic()
     s = state()
     body = req.model_dump()
+    body["project"] = project_facts(body.get("projectId"))
     out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
                      s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments, s.wgi)
     s.flag_evidence.attach(out["risks"], body, s.bench, out["timeline"], out["governance"], out["wgi"])
@@ -45,6 +59,7 @@ def post_goal(req: GoalRequest) -> dict:
     """Set-ups that met a target award time most often in the past (procintel.prediction.goal)."""
     s = state()
     body = req.model_dump()
+    body["project"] = project_facts(body.get("projectId"))
     if s.goal_history is None:
         s.goal_history = predict.load_frame(predict.DB_PATH)
     labels = {m["code"]: m["label"] for m in s.options["methods"]}

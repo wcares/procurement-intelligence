@@ -56,6 +56,8 @@ class AssessRequest(BaseModel):
     # optional bid / contract reference of the tender being planned, so the pilot can compare the prediction with the
     # actual award time when the award notice is published (docs/pilot-plan.md)
     tenderReference: str | None = Field(default=None, max_length=120)
+    # the tracked project the package belongs to, if any: its approval date and size sharpen the model
+    projectId: str | None = Field(default=None, max_length=20)
 
 
 class GoalRequest(AssessRequest):

@@ -120,6 +120,16 @@ export function AssessView() {
             ))}
           </select>
         </Label>
+        <Label text="Project id (optional)">
+          <input
+            className={field}
+            placeholder="e.g. P179284"
+            maxLength={20}
+            value={form.projectId ?? ""}
+            onChange={(e) => setForm({ ...form, projectId: e.target.value.trim().toUpperCase() || undefined })}
+          />
+          <span className="text-xs text-muted">A tracked project&apos;s age and size sharpen the prediction.</span>
+        </Label>
         <Label text="Estimated value, US$ (optional)">
           <input
             type="number"
