@@ -175,7 +175,8 @@ export function AssessView() {
         {!result && !error && (
           <div className="rounded-xl border border-dashed border-line p-10 text-center text-ink-muted">
             Describe a procurement package to see how comparable packages went: timeline, risks, and quoted lessons from past
-            evaluations.
+            evaluations. To plan toward a target (for example awarded within 90 days), assess the package first: a &ldquo;Set a
+            goal&rdquo; panel then ranks the methods and lot counts that met it most often.
           </div>
         )}
         {result && assessed && startedAssessed && (
