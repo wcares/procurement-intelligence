@@ -203,7 +203,7 @@ Before installing: list exact names and versions for the user's approval (instal
 **Installed (2026-10-25):** recharts 3.10.1, @tanstack/react-table 9.3.1 (v9 API: `useTable`, `tableFeatures`),
 echarts 6.1.0 used directly through a small hook (`web/src/lib/use-echarts.ts`), not echarts-for-react.
 **shadcn/ui (2026-10-26):** the app's own `--muted` / `--accent(-soft)` tokens were renamed `--ink-muted` /
-`--brand(-soft)` (838c42d, a pure rename), and shadcn's theme names (`--primary`, `--muted-foreground`, `--accent`,
+`--brand(-soft)` (a5c825a, a pure rename), and shadcn's theme names (`--primary`, `--muted-foreground`, `--accent`,
 `--border`, `--ring`, ...) are mapped onto this palette in `globals.css`, so a shadcn component takes the app's colours
 in light and dark mode. `components.json` (new-york style, `@/components/ui`), `cn` in `src/lib/utils.ts`, Button added
 with the shadcn CLI 4.21.4 (radix-ui 1.7.0, class-variance-authority 0.7.1, clsx 2.1.1, tailwind-merge 3.7.0); further
@@ -226,14 +226,14 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | # | date | request | status |
 |---|---|---|---|
 | U1 | 2026-10-24 | Configuration dashboard for backend settings | done (Settings page, profiles, search-quality check) |
-| U2 | 2026-10-25 | Home dashboard with graphs: most risky things that happened in the past, worst to best, trends over time | done (25111f2); follow-ups in the tracker |
-| U3 | 2026-10-25 | Interactive visual for query results besides the text report: risks at each tender stage, with colours, clickable | done (c0c02bf stage timeline, 840bec5 answer map, 08f5182 similar contracts and lessons) |
-| U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | done (ba23530 connectors, event log, rules; d058319 upload) |
-| U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | libraries in use (ECharts, Recharts, React Flow, TanStack Table; shadcn/ui waits for a token rename); the planned package's own estimate on the stage timeline: done (0864ff7) |
-| U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | done (3f7bccf, 468a741) |
-| U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | done (84a1041) |
-| U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | done (95091b0); follow-ups in the tracker |
-| U10 | 2026-10-26 | Goal seeking: set a desired outcome for a package and see the set-ups that met it most often | done (affc866): "Set a goal" panel on Assess, shown after a package is assessed; target award time and maximum lots; ranked by the share of comparable packages that met it |
+| U2 | 2026-10-25 | Home dashboard with graphs: most risky things that happened in the past, worst to best, trends over time | done (570c235); follow-ups in the tracker |
+| U3 | 2026-10-25 | Interactive visual for query results besides the text report: risks at each tender stage, with colours, clickable | done (2953ac4 stage timeline, 2e791c0 answer map, d76b2f5 similar contracts and lessons) |
+| U4 | 2026-10-25 | Pipeline pages: connectors, event log, rules (with the state and event system) | done (bd9f5c2 connectors, event log, rules; c8ff86e upload) |
+| U5 | 2026-10-25 | Predictions shown on the timeline and in interactive charts; use existing React component libraries (shadcn/ui or better), no reinventing | libraries in use (ECharts, Recharts, React Flow, TanStack Table; shadcn/ui waits for a token rename); the planned package's own estimate on the stage timeline: done (fff909a) |
+| U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | done (a558345, d6668aa) |
+| U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | done (d1bd7d1) |
+| U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | done (2f5eb49); follow-ups in the tracker |
+| U10 | 2026-10-26 | Goal seeking: set a desired outcome for a package and see the set-ups that met it most often | done (4a7f2f7): "Set a goal" panel on Assess, shown after a package is assessed; target award time and maximum lots; ranked by the share of comparable packages that met it |
 | U11 | 2026-10-27 | Plan a project: enter the packages of a new project, see a forecast for each, the project dates, bottleneck and a deadline check | done: page /plan; each package forecast with the existing assess endpoint and its own goal panel; project dates combine the forecasts in the order set by the user (dependencies are not learned from data); plan kept in the browser only |
 
 ## 7. Open questions
