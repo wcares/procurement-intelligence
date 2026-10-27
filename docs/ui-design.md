@@ -6,7 +6,7 @@ part replaceable by configuration or registration, nothing hardcoded. Backend pi
 docs/event-pipeline-design.md.
 
 The app now has these pages (role needed): **Overview** (home dashboard), **Assess a package**, **Ask the evidence**,
-**Insights** and **Documents** (planner); **Evaluation** (reviewer); **Pipeline** (connectors, event log, rules, upload)
+**Plan a project**, **Insights** and **Documents** (planner); **Evaluation** (reviewer); **Pipeline** (connectors, event log, rules, upload)
 and **Settings** (admin). The first version had only Assess, Ask and Settings, with text, cards and one timeline bar.
 
 ## 1. Home dashboard: what went wrong in the past, worst to best
@@ -234,6 +234,7 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | done (84a1041) |
 | U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | done (95091b0); follow-ups in the tracker |
 | U10 | 2026-10-26 | Goal seeking: set a desired outcome for a package and see the set-ups that met it most often | done (affc866): "Set a goal" panel on Assess, shown after a package is assessed; target award time and maximum lots; ranked by the share of comparable packages that met it |
+| U11 | 2026-10-27 | Plan a project: enter the packages of a new project, see a forecast for each, the project dates, bottleneck and a deadline check | done: page /plan; each package forecast with the existing assess endpoint and its own goal panel; project dates combine the forecasts in the order set by the user (dependencies are not learned from data); plan kept in the browser only |
 
 ## 7. Open questions
 

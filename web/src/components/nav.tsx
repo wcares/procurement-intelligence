@@ -8,6 +8,7 @@ import { hasRole, useAuth } from "./auth";
 const NAV: { href: string; label: string; role: Role }[] = [
   { href: "/", label: "Overview", role: "planner" },
   { href: "/assess", label: "Assess a package", role: "planner" },
+  { href: "/plan", label: "Plan a project", role: "planner" },
   { href: "/ask", label: "Ask the evidence", role: "planner" },
   { href: "/insights", label: "Insights", role: "planner" },
   { href: "/documents", label: "Documents", role: "planner" },

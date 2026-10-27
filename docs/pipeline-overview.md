@@ -48,7 +48,7 @@ backend swaps in new data after a job, with no restart (about 3 seconds).
 |---|---|---|
 | Data stores | built | DuckDB (projects, packages, passages, vectors, tags, evidence, firms), the trained prediction models, separate files for pipeline state, jobs, users and feedback. Production mapping: Postgres, Qdrant, S3 or MinIO |
 | Backend API | built | FastAPI; holds the search index and models in memory; serves assessments, goal seeking, answers, insights, settings, jobs and feedback review |
-| Web app | built | Overview, Assess (with Set a goal), Ask, Insights, Documents, Pipeline, Evaluation, Settings |
+| Web app | built | Overview, Assess (with Set a goal), Plan a project, Ask, Insights, Documents, Pipeline, Evaluation, Settings |
 | Planners | built | Read answers with citations, rate them, flag a wrong citation. A passage flagged on two separate answers drops to the end of search results |
 
 ## One upload, end to end
@@ -72,7 +72,7 @@ sentences → fact-check each sentence (decision model) → answer with caveats.
 
 **Assess a package**: package details → timeline (history plus gradient-boosted trees) → risk flags with their
 evidence (notices, CPIA/WGI, reports) → precedents (lessons from past reports, same sector first) → similar contracts
-by description → answer with caveats. **Set a goal** then works backwards from a target award time to the methods and
+by description → answer with caveats. **Plan a project** runs the same assessment for each package of a new project and lays the forecasts on one timeline with the likely bottleneck and a deadline check. **Set a goal** then works backwards from a target award time to the methods and
 lot counts that met it most often, with the number of comparable packages behind each.
 
 Both requests read only from stores the event system keeps current; neither waits for a background job.
