@@ -302,6 +302,11 @@ plan records, before and after.
   the over-180 risk.
 - **Retrieval** is a fixed pipeline with one rephrasing step rather than a multi-step agent; similar past technical
   specifications are matched by description, not by specification documents.
+- **Index size at full scale.** The vector index is small at this sample size and Qdrant takes over in production (§2).
+  If the corpus grew to the full World Bank archive on modest hardware, LEANN (open source, MIT) is one option to test
+  behind the same vector setting: it stores a pruned graph and recomputes embeddings at query time, and its authors
+  report 91-97% smaller indexes than FAISS. Not tested here; the cost is an embedding call per query, and the figures
+  are the authors' own.
 - **Not built:** the subscribe connector mode, image page indexing (OCR of scanned uploads and the Reviewer role were added after this was written, on 2026-10-26).
 - **Planning cycle time** cannot be measured from public data; it needs the planners' own records in the pilot.
 
