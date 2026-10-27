@@ -1,0 +1,41 @@
+# Just the database and its admin UI, for looking at the processed data (the full stack is compose.yaml):
+#   docker compose -f compose.db.yaml up -d
+#   PROCINTEL_DB_URL=postgresql://procintel:procintel@127.0.0.1:5433/procintel python -m procintel.core.db copy-to-postgres
+# Postgres on 127.0.0.1:5433, pgAdmin on http://127.0.0.1:5050 (both this machine only). Raw files stay files
+# (data/cache/http, data/uploads), they are not tables.
+name: procintel-db
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: procintel
+      POSTGRES_PASSWORD: procintel
+      POSTGRES_DB: procintel
+    ports:
+      - 127.0.0.1:5433:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "procintel"]
+      interval: 3s
+      retries: 20
+
+  pgadmin:
+    image: dpage/pgadmin4:9.18.0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: procintel
+      PGADMIN_CONFIG_SERVER_MODE: "False"          # one local user, no sign-in screen
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - 127.0.0.1:5050:80
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+      - ./docker/pgadmin-servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+
+volumes:
+  pgdata:
+  pgadmin:
