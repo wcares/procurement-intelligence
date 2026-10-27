@@ -49,7 +49,19 @@ import type {
 export const API_BASE = "/api/backend";
 export const SIGNED_OUT = "procintel:signed-out";
 
+// Pages are mounted (hidden) before the session is known; their requests wait here until the visitor is signed in,
+// instead of going out as certain 401s that a page would then keep showing as its error.
+let signedIn = false;
+const waiting: (() => void)[] = [];
+export function setSignedIn(v: boolean) {
+  signedIn = v;
+  if (v) waiting.splice(0).forEach((go) => go());
+}
+const whenSignedIn = (path: string): Promise<void> =>
+  signedIn || path.startsWith("/auth/") || typeof window === "undefined" ? Promise.resolve() : new Promise((go) => waiting.push(go));
+
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  await whenSignedIn(path);
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
@@ -66,6 +78,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 
 /** POST/PATCH whose 400 answer is an error message the form shows in place. */
 async function send<T>(path: string, method: string, body: unknown): Promise<T | { error: string }> {
+  await whenSignedIn(path);
   const res = await fetch(`${API_BASE}${path}`, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const out = await res.json().catch(() => ({}));
   if (res.ok) return out as T;

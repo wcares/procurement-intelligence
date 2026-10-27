@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { api, SIGNED_OUT } from "@/lib/api/client";
+import { api, setSignedIn, SIGNED_OUT } from "@/lib/api/client";
 import type { AuthUser, Role } from "@/lib/api/types";
 
 const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promise<void> }>({ user: null, refresh: async () => {} });
@@ -35,6 +35,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       live = false;
     };
   }, []);
+
+  useEffect(() => {
+    setSignedIn(Boolean(user));
+  }, [user]);
 
   useEffect(() => {
     const onSignedOut = () => {
