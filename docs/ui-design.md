@@ -141,7 +141,7 @@ admin users who run the pipeline ... exactly the role based").
 | role | who | can |
 |---|---|---|
 | **Planner** | World Bank project teams and procurement specialists, borrower implementing agencies | home dashboard, Assess, Ask, interactive visuals; rate answers, flag citations; upload documents to analyse (their own, on the Documents page; a completion report joins the shared evidence once an admin adds it; built 2026-10-26) |
-| **Admin** | the team running the platform | everything a planner can, plus Settings, connectors, rules, event log, background jobs, evaluation page, feedback review, promotions |
+| **Admin** | the team running the platform | the admin pages only: Pipeline (connectors, rules, event log, upload), Evaluation, Settings (background jobs, users, feedback review, promotions). The planner pages are not shown to an admin account and send it to Pipeline (user, 2026-10-27: "admin shouldn't show what client side sees"); the backend still lets an admin call the planner endpoints |
 | **Reviewer** | domain experts | everything a planner can, plus the Evaluation page to read (quality over time, comparisons, models), the labelling queue and feedback review; no runs, promotions, prompts, pipeline or settings (built 2026-10-26) |
 
 - **Login for now: username and password** (user, 2026-10-25). Passwords stored only as salted hashes; an admin creates

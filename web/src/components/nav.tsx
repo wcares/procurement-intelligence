@@ -3,21 +3,22 @@
 import Link from "next/link";
 import { api } from "@/lib/api/client";
 import type { Role } from "@/lib/api/types";
-import { hasRole, useAuth } from "./auth";
+import { useAuth } from "./auth";
 
-const NAV: { href: string; label: string; role: Role }[] = [
-  { href: "/", label: "Overview", role: "planner" },
-  { href: "/assess", label: "Assess a package", role: "planner" },
-  { href: "/plan", label: "Plan a project", role: "planner" },
-  { href: "/ask", label: "Ask the evidence", role: "planner" },
-  { href: "/insights", label: "Insights", role: "planner" },
-  { href: "/documents", label: "Documents", role: "planner" },
-  { href: "/pipeline", label: "Pipeline", role: "admin" },
-  { href: "/evaluation", label: "Evaluation", role: "reviewer" },
-  { href: "/config", label: "Settings", role: "admin" },
+// Planner pages are for planners (and reviewers, who also read Evaluation); an admin sees only the admin pages.
+const NAV: { href: string; label: string; roles: Role[] }[] = [
+  { href: "/", label: "Overview", roles: ["planner", "reviewer"] },
+  { href: "/assess", label: "Assess a package", roles: ["planner", "reviewer"] },
+  { href: "/plan", label: "Plan a project", roles: ["planner", "reviewer"] },
+  { href: "/ask", label: "Ask the evidence", roles: ["planner", "reviewer"] },
+  { href: "/insights", label: "Insights", roles: ["planner", "reviewer"] },
+  { href: "/documents", label: "Documents", roles: ["planner", "reviewer"] },
+  { href: "/pipeline", label: "Pipeline", roles: ["admin"] },
+  { href: "/evaluation", label: "Evaluation", roles: ["reviewer", "admin"] },
+  { href: "/config", label: "Settings", roles: ["admin"] },
 ];
 
-/** Navigation by role: planners see the planner app, reviewers also Evaluation, admins also the pipeline pages and Settings; the user and sign-out on the right. */
+/** Navigation by role: planners see the planner app, reviewers also Evaluation, admins only Pipeline, Evaluation and Settings; the user and sign-out on the right. */
 export function Nav() {
   const { user, refresh } = useAuth();
   if (!user) return null;
@@ -28,7 +29,7 @@ export function Nav() {
   return (
     <>
       <nav className="flex flex-wrap gap-1 text-sm">
-        {NAV.filter((n) => hasRole(user.role, n.role)).map((n) => (
+        {NAV.filter((n) => n.roles.includes(user.role)).map((n) => (
           <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-ink-muted hover:bg-subtle hover:text-foreground">
             {n.label}
           </Link>

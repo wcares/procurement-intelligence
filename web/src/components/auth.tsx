@@ -10,6 +10,9 @@ const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promis
 export const useAuth = () => useContext(AuthContext);
 
 const PUBLIC_PAGES = ["/login", "/data-handling"]; // readable without signing in
+// The planner app: an admin account is for running the platform and does not use it, so it is sent to its own home.
+const PLANNER_PAGES = ["/", "/assess", "/plan", "/ask", "/insights", "/documents", "/package"];
+export const ADMIN_HOME = "/pipeline";
 
 /** Loads the signed-in user; any page but /login stays hidden until there is one, and a visitor without a session is
  * sent to /login. */
@@ -53,9 +56,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (checked && !user && !PUBLIC_PAGES.includes(pathname)) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
   }, [checked, user, pathname, router]);
 
+  useEffect(() => {
+    if (user?.role === "admin" && PLANNER_PAGES.includes(pathname)) router.replace(ADMIN_HOME);
+  }, [user, pathname, router]);
+
   // The page is rendered but hidden until the session is known (Next validates every rendered segment); the backend
   // checks the session on every call, so a hidden page without one gets 401s and the visitor is sent to /login.
-  const ready = PUBLIC_PAGES.includes(pathname) || Boolean(checked && user);
+  const ready = PUBLIC_PAGES.includes(pathname) || Boolean(checked && user && !(user.role === "admin" && PLANNER_PAGES.includes(pathname)));
   return (
     <AuthContext.Provider value={{ user, refresh }}>
       <div hidden={!ready} className="flex flex-1 flex-col">
