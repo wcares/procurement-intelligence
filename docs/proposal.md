@@ -5,7 +5,7 @@ public data, built and measured alongside the design. Each module states the des
 measured evidence, and the open gaps. Every figure comes from the running system as of 2026-10-26 (tables in DuckDB,
 `eval/report.md`, `eval/history.jsonl`, the saved model, or a run recorded in `docs/TRACKER.md`). The design documents
 behind it: `docs/architecture-principles.md`, `docs/data-model.md`, `docs/event-pipeline-design.md`,
-`docs/ui-design.md`, `docs/pilot-plan.md`. The MVP write-up this replaces is in the git history.
+`docs/ui-design.md`, `docs/pilot-plan.md`, `docs/pipeline-overview.md`. The MVP write-up this replaces is in the git history.
 
 ---
 
@@ -51,7 +51,7 @@ met it most often.
 | layer | prototype | production (configuration only) |
 |---|---|---|
 | tables and state | DuckDB files | Postgres (`PROCINTEL_DB_URL`; checked: same answers on Postgres 17) |
-| vectors | DuckDB table, in-memory search | Qdrant (`PROCINTEL_VECTOR_URL`) |
+| vectors | DuckDB table, in-memory search | Qdrant (`PROCINTEL_VECTOR_URL`); a graph index such as LEANN is an option for much larger corpora (§9) |
 | raw files | data folder | S3 or MinIO (`PROCINTEL_BLOB_URL`) |
 | models | llama.cpp on the host: Saluki 27B (answers), EmbeddingGemma 2 (vectors), Laya (decisions) | any endpoint by URL (`PROCINTEL_LLM_API_BASE`, `_EMBED_`, `_DECIDE_`, `_JUDGE_`), through LiteLLM |
 | background work | a worker thread that runs jobs only while the app is idle | separate worker containers claiming jobs from Postgres |
@@ -302,12 +302,14 @@ plan records, before and after.
   the over-180 risk.
 - **Retrieval** is a fixed pipeline with one rephrasing step rather than a multi-step agent; similar past technical
   specifications are matched by description, not by specification documents.
-- **Index size at full scale.** The vector index is small at this sample size and Qdrant takes over in production (§2).
-  If the corpus grew to the full World Bank archive on modest hardware, LEANN (open source, MIT) is one option to test
-  behind the same vector setting: it stores a pruned graph and recomputes embeddings at query time, and its authors
-  report 91-97% smaller indexes than FAISS. Not tested here; the cost is an embedding call per query, and the figures
-  are the authors' own.
-- **Not built:** the subscribe connector mode, image page indexing (OCR of scanned uploads and the Reviewer role were added after this was written, on 2026-10-26).
+- **Index size at full scale (a production scalability option).** The vector index is small at this sample size and
+  Qdrant takes over in production (§2). If the corpus grew to the full World Bank archive, or had to run on modest
+  hardware, LEANN (open source, MIT) is a candidate to test behind the same vector setting: it stores a pruned graph
+  and recomputes embeddings at query time, and its authors report 91-97% smaller indexes than FAISS. That would cut
+  storage and memory as the corpus and the number of tenants grow, at the cost of an embedding call per query
+  (latency, and load on the embedding server). Not tested here, and the figures are the authors' own; the test to run
+  is recall@10 and query time on the evaluation set against Qdrant, at several corpus sizes.
+- **Not built:** the subscribe connector mode and image page indexing. OCR of scanned uploads and the Reviewer role were added on 2026-10-26.
 - **Planning cycle time** cannot be measured from public data; it needs the planners' own records in the pilot.
 
 ---

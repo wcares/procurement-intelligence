@@ -1,13 +1,13 @@
 # Web app (UI): design and request log
 
-Status: proposed (2026-10-25). This file collects what the web app should show and how; each request is logged in
-Follows docs/architecture-principles.md: every part replaceable by configuration or registration, nothing hardcoded.
-section 6 and queued in docs/TRACKER.md (section "UI (web app)"). Backend pieces it depends on are designed in
+Status: built; updated 2026-10-27. This file collects what the web app shows and how; each request is logged in
+section 6 and was queued in docs/TRACKER.md (section "UI (web app)"). Follows docs/architecture-principles.md: every
+part replaceable by configuration or registration, nothing hardcoded. Backend pieces it depends on are designed in
 docs/event-pipeline-design.md.
 
-Today the app has three pages: **Assess a package** (timeline, risk flags with evidence, precedents, similar
-contracts), **Ask the evidence** (cited answer and caveats) and **Settings** (models, thresholds, profiles, background
-jobs, feedback to review). Results are text, cards and one timeline bar.
+The app now has these pages (role needed): **Overview** (home dashboard), **Assess a package**, **Ask the evidence**,
+**Insights** and **Documents** (planner); **Evaluation** (reviewer); **Pipeline** (connectors, event log, rules, upload)
+and **Settings** (admin). The first version had only Assess, Ask and Settings, with text, cards and one timeline bar.
 
 ## 1. Home dashboard: what went wrong in the past, worst to best
 
@@ -233,6 +233,7 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U6 | 2026-10-25 | Evaluation page for admins: quality over time, comparisons with promote/discard, labelling queue | done (3f7bccf, 468a741) |
 | U7 | 2026-10-25 | Two kinds of users, role based: planners (end clients) and admins who run the pipeline | done (84a1041) |
 | U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | done (95091b0); follow-ups in the tracker |
+| U10 | 2026-10-26 | Goal seeking: set a desired outcome for a package and see the set-ups that met it most often | done (affc866): "Set a goal" panel on Assess, shown after a package is assessed; target award time and maximum lots; ranked by the share of comparable packages that met it |
 
 ## 7. Open questions
 
