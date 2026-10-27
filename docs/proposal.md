@@ -1,6 +1,6 @@
 # Procurement Intelligence Platform: technical proposal
 
-This proposal answers the four modules of `assessment.md` §4 with a design that runs: a working prototype on World Bank
+This proposal answers the four modules of the assessment brief (§4, not included in this repository) with a design that runs: a working prototype on World Bank
 public data, built and measured alongside the design. Each module states the design, what the prototype does, the
 measured evidence, and the open gaps. Every figure comes from the running system as of 2026-10-26 (tables in DuckDB,
 `eval/report.md`, `eval/history.jsonl`, the saved model, or a run recorded in `docs/TRACKER.md`). The design documents

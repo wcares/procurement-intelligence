@@ -32,3 +32,6 @@ web/next-env.d.ts
 data/models/
 data/config*.json
 data/logs/
+
+# the assessment brief: kept locally, not published
+assessment.md
