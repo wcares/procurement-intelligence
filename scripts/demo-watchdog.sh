@@ -77,4 +77,7 @@ pass() {
   [ "$n" -ge 2 ] && backend_up && repoint
 }
 
-if [ "${1:-}" = "--once" ]; then pass; else while true; do pass; sleep "$INTERVAL"; done; fi
+# Only when run directly: scripts/fix-demo.sh sources this file for its functions.
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+  if [ "${1:-}" = "--once" ]; then pass; else while true; do pass; sleep "$INTERVAL"; done; fi
+fi

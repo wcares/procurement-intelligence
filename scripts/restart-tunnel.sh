@@ -23,14 +23,18 @@ done
 [ -n "$URL" ] || { echo "The tunnel would not connect after 3 tries; see $RUN/tunnel.log. Try again in a few minutes."; exit 1; }
 echo "    new address: $URL"
 
-echo "2/4 waiting for the address to answer"   # this Mac's resolver can lag behind a new name; Cloudflare's does not
-HOST="${URL#https://}"
-for i in $(seq 1 50); do   # up to about 2.5 minutes: a new name can take a while to be known
-  IP=$(dig +short @1.1.1.1 "$HOST" | head -1)
-  [ -n "$IP" ] || { sleep 3; continue; }
-  C=$(curl -s -m 8 -o /dev/null -w '%{http_code}' --resolve "$HOST:443:$IP" "$URL/health"); [ "$C" = 200 ] && break; sleep 3
+echo "2/4 waiting for the address to answer"   # this Mac's resolver can lag behind a new name; try Cloudflare's and Google's too
+HOST="${URL#https://}"; C=""
+for i in $(seq 1 30); do
+  C=$(curl -s -m 6 -o /dev/null -w '%{http_code}' "$URL/health"); [ "$C" = 200 ] && break
+  for DNS in 1.1.1.1 8.8.8.8; do
+    IP=$(dig +short @"$DNS" "$HOST" | head -1); [ -n "$IP" ] || continue
+    C=$(curl -s -m 6 -o /dev/null -w '%{http_code}' --resolve "$HOST:443:$IP" "$URL/health"); [ "$C" = 200 ] && break 2
+  done
+  sleep 3
 done
-[ "$C" = 200 ] || { echo "The tunnel does not answer yet (last status $C). Run this again in a minute."; exit 1; }
+# Not fatal: the tunnel is registered, and Vercel's own resolvers may know the name before this Mac's do. Step 4 is the real test.
+[ "$C" = 200 ] || echo "    this Mac cannot reach the new address yet (status ${C:-none}); continuing, step 4 will tell"
 
 echo "3/4 pointing the site at it and redeploying"
 mkdir -p "$RUN/web-deploy/.vercel"; cp "$ROOT/web/.vercel/project.json" "$RUN/web-deploy/.vercel/" 2>/dev/null
@@ -40,9 +44,9 @@ npx --yes vercel@latest env rm API_URL production --yes < /dev/null 2>&1 | /usr/
 printf %s "$URL" | npx --yes vercel@latest env add API_URL production 2>&1 | /usr/bin/grep -iE "added|error"
 npx --yes vercel@latest deploy --prod --yes < /dev/null 2>&1 | /usr/bin/grep -E "Aliased|readyState|rror"
 
-echo "4/4 checking the site (401 = reachable; the first check can fail while the new deploy warms up)"
-for i in 1 2 3 4 5; do
+echo "4/4 checking the site (401 = reachable; a fresh deploy can take a minute to warm up)"
+for i in $(seq 1 12); do
   C=$(curl -s -m 25 -o /dev/null -w '%{http_code}' "$SITE/api/backend/auth/me"); echo "    $C"
-  [ "$C" = 401 ] || [ "$C" = 200 ] && { echo "Done: $SITE is up."; exit 0; }; sleep 5
+  if [ "$C" = 401 ] || [ "$C" = 200 ]; then echo "Done: $SITE is up."; exit 0; fi; sleep 5
 done
 echo "The site still does not reach the backend. Run this script once more."; exit 1
