@@ -252,3 +252,35 @@ class UserUpdate(BaseModel):
     role: Literal["planner", "reviewer", "admin"] | None = None
     active: bool | None = None
     password: str | None = Field(default=None, max_length=200)
+
+
+# --- planning assistant (procintel.assistant): the conversation and the plan live in the browser, each call carries both ---
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class ChatPackage(BaseModel):
+    id: str = Field(max_length=20)
+    name: str = Field(max_length=80)
+    procGroup: ProcGroup
+    methodCode: str = Field(max_length=10)
+    sector: str | None = None
+    estimatedValueUsd: float | None = None
+    description: str | None = Field(default=None, max_length=2000)
+    tenderStart: str | None = None
+    after: str | None = None
+
+
+class ChatPlan(BaseModel):
+    countryCode: str | None = None
+    projectStart: str | None = None
+    deadline: str | None = None
+    packages: list[ChatPackage] = Field(default_factory=list, max_length=12)
+
+
+class PlanChatRequest(BaseModel):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=60)   # ends with the planner's latest message
+    plan: ChatPlan = Field(default_factory=ChatPlan)
+    results: str = Field(default="", max_length=4000)                    # the plan's forecast, as text, for questions about it
