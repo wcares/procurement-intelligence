@@ -7,6 +7,7 @@ import type {
   RankingResponse,
   Account,
   AuthUser,
+  AskEvent,
   AskRequest,
   AskResponse,
   AssessRequest,
@@ -89,6 +90,39 @@ async function send<T>(path: string, method: string, body: unknown): Promise<T |
   throw new Error(`${method} ${path} failed: ${res.status}`);
 }
 
+/** POST that answers with server-sent events: calls onEvent for each as it arrives, resolves with the final answer. */
+async function askStream(req: AskRequest, onEvent: (e: AskEvent) => void): Promise<AskResponse> {
+  await whenSignedIn("/ask/stream");
+  const res = await fetch(`${API_BASE}/ask/stream`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(req) });
+  if (res.status === 401 && typeof window !== "undefined") window.dispatchEvent(new Event(SIGNED_OUT));
+  // a backend without the streaming route (or the in-app mock) answers the plain way
+  if (res.status === 404 || res.status === 405) return call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) });
+  if (!res.ok || !res.body) throw new Error(`POST /ask/stream failed: ${res.status} ${(await res.text().catch(() => "")).slice(0, 200)}`);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let answer: AskResponse | null = null;
+  const take = (block: string) => {
+    const data = block.split("\n").filter((l) => l.startsWith("data: ")).map((l) => l.slice(6)).join("");
+    if (!data) return;
+    const e = JSON.parse(data) as AskEvent;
+    if (e.type === "error") throw new Error(e.message);
+    if (e.type === "done") answer = e.result;
+    onEvent(e);
+  };
+  for (;;) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+    const blocks = buffer.split("\n\n");
+    buffer = blocks.pop() ?? "";
+    blocks.forEach(take);
+    if (done) break;
+  }
+  if (buffer.trim()) take(buffer);
+  if (!answer) throw new Error("the answer stream ended before the answer");
+  return answer;
+}
+
 export const api = {
   /** null when not signed in */
   dashboard: () => call<DashboardResponse>("/dashboard"),
@@ -138,6 +172,8 @@ export const api = {
   planChat: (messages: ChatTurn[], plan: ChatPlan, results: string) =>
     call<PlanChatResponse>("/assistant/plan", { method: "POST", body: JSON.stringify({ messages, plan, results }) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),
+  /** like ask, but onEvent hears the stages, the evidence found and each checked sentence while the answer is written */
+  askStream,
   feedback: (req: FeedbackRequest) => call<FeedbackResponse>("/feedback", { method: "POST", body: JSON.stringify(req) }),
   config: () => call<ConfigResponse>("/config"),
   /** Per-setting errors come back as { errors } instead of an exception, so the form can show them in place. */

@@ -61,6 +61,7 @@ export function usePlan() {
         const r = await api.assess({
           countryCode: country, procGroup: p.procGroup, methodCode: p.methodCode, sector: p.sector,
           estimatedValueUsd: p.estimatedValueUsd, description: p.description,
+          withPrecedents: false,  // the plan shows dates and risks, not passages: skipping them saves a model call a package
         });
         const f = forecastOf(r);
         out[p.id] = f ?? undefined;

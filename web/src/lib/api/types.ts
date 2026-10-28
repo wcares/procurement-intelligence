@@ -48,6 +48,8 @@ export interface AssessRequest {
   description?: string;
   /** bid reference of the tender being planned; lets the pilot compare the prediction with the actual award time */
   tenderReference?: string;
+  /** false: no past-experience passages (their selection takes a model call); the forecast and risks are the same */
+  withPrecedents?: boolean;
 }
 
 export interface TimelineBenchmark {
@@ -239,6 +241,14 @@ export interface AskResponse {
   unsupported: boolean;
   meta: ResponseMeta;
 }
+
+/** What /ask/stream sends while it works: what it is doing, the evidence found, each checked sentence, then the answer. */
+export type AskEvent =
+  | { type: "stage"; text: string }
+  | { type: "passages"; items: { projectId: string; projectName: string; countryCode: string; section: string; docType: string }[] }
+  | { type: "sentence"; text: string; citations: number[] }
+  | { type: "done"; result: AskResponse }
+  | { type: "error"; message: string };
 
 /** A background job (procintel.jobs): runs only after the app has been idle for a while. */
 export interface Job {

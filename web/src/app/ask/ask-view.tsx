@@ -6,9 +6,10 @@ import type { AskResponse, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { AnswerMap } from "@/components/ask/answer-map";
+import { LiveAnswer, emptyLive, fold, type Live } from "@/components/ask/live-answer";
 import { InsightsPanel } from "@/components/insights/insights-panel";
 
-type Turn = { id: number; question: string; response?: AskResponse; error?: string };
+type Turn = { id: number; question: string; response?: AskResponse; error?: string; live?: Live };
 
 const EXAMPLES = [
   "Why were procurement processes cancelled or contracts terminated?",
@@ -37,14 +38,15 @@ export function AskView() {
     const text = q.trim();
     if (!text || busy) return;
     const id = Date.now();
-    setTurns((t) => [...t, { id, question: text }]);
+    setTurns((t) => [...t, { id, question: text, live: emptyLive }]);
     setQuestion("");
     setBusy(true);
     try {
-      const response = await api.ask({ question: text, countryCode: countryCode || undefined, procGroup: procGroup || undefined });
-      setTurns((t) => t.map((x) => (x.id === id ? { ...x, response } : x)));
+      const response = await api.askStream({ question: text, countryCode: countryCode || undefined, procGroup: procGroup || undefined },
+        (e) => setTurns((t) => t.map((x) => (x.id === id && x.live ? { ...x, live: fold(x.live, e) } : x))));
+      setTurns((t) => t.map((x) => (x.id === id ? { ...x, response, live: undefined } : x)));
     } catch (e) {
-      setTurns((t) => t.map((x) => (x.id === id ? { ...x, error: (e as Error).message } : x)));
+      setTurns((t) => t.map((x) => (x.id === id ? { ...x, error: (e as Error).message, live: undefined } : x)));
     } finally {
       setBusy(false);
     }
@@ -73,7 +75,7 @@ export function AskView() {
         {turns.map((t) => (
           <div key={t.id} className="space-y-3">
             <div className="ml-auto w-fit max-w-[85%] rounded-xl bg-brand px-4 py-2 text-sm text-white dark:text-black">{t.question}</div>
-            {!t.response && !t.error && <p className="text-sm text-ink-muted">Searching the evaluations…</p>}
+            {t.live && !t.response && !t.error && <LiveAnswer live={t.live} />}
             {t.error && <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{t.error}</p>}
             {t.response && <Answer turnId={t.id} r={t.response} question={t.question} />}
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/api/types";
 import { Answer } from "@/app/ask/ask-view";
+import { LiveAnswer, emptyLive, fold, type Live } from "@/components/ask/live-answer";
 import { fmt } from "@/components/dashboard/format";
 import { schedule, todayLocal, type PlanPackage } from "@/lib/plan";
 import type { PlanState } from "./use-plan";
@@ -32,10 +33,11 @@ export function PlanChat({ s }: { s: PlanState }) {
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState("");
+  const [live, setLive] = useState<Live | null>(null);   // an evidence answer being written
   const [ctx, setCtx] = useState<ChatContext | null>(null);
   const next = useRef(1);
   const bottom = useRef<HTMLDivElement>(null);
-  useEffect(() => { bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy]);
+  useEffect(() => { bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy, live]);
 
   const add = (m: Omit<ChatMsg, "id">) => setMsgs((all) => [...all, { ...m, id: next.current++ }]);
   const full = ctx?.full ?? false;
@@ -68,14 +70,15 @@ export function PlanChat({ s }: { s: PlanState }) {
       } else if (r.intent === "ask_evidence" && r.evidenceQuestion) {
         setBusy("Searching the reports…");
         // no country or type filter: the question already names what it is about, and filters this narrow made the evidence gate refuse
-        const response = await api.ask({ question: r.evidenceQuestion });
+        setLive(emptyLive);
+        const response = await api.askStream({ question: r.evidenceQuestion }, (e) => setLive((l) => (l ? fold(l, e) : l)));
         add({ role: "assistant", rich: { kind: "evidence", question: r.evidenceQuestion, response },
           content: response.unsupported ? "The reports hold no evidence for that question." : `Answer from the reports: ${response.answer.map((a) => a.text).join(" ").slice(0, 600)}` });
       }
     } catch (e) {
       add({ role: "assistant", content: `Sorry, that did not work (${(e as Error).message.slice(0, 160)}). You can retry, or use the Manual tab.` });
     } finally {
-      setBusy("");
+      setBusy(""); setLive(null);
     }
   }
 
@@ -109,7 +112,8 @@ export function PlanChat({ s }: { s: PlanState }) {
             </div>
           </div>
         ))}
-        {busy && <p className="text-xs text-ink-muted">{s.running && s.progress ? s.progress : busy}</p>}
+        {live ? <div className="max-w-[92%] rounded-xl bg-subtle px-3 py-2"><LiveAnswer live={live} /></div>
+          : busy && <p className="text-xs text-ink-muted">{s.running && s.progress ? s.progress : busy}</p>}
         <div ref={bottom} />
       </div>
       {ctx?.warn && !full && (
