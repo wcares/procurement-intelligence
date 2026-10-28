@@ -67,8 +67,8 @@ export function PlanChat({ s }: { s: PlanState }) {
           content: `Shown: ${data.measure.label} by ${data.groupLabel}, worst first: ${top.map((x) => `${x.label} ${fmt(data.measure, x.value)}`).join("; ")}.` });
       } else if (r.intent === "ask_evidence" && r.evidenceQuestion) {
         setBusy("Searching the reports…");
-        const g = s.packages[0]?.procGroup;
-        const response = await api.ask({ question: r.evidenceQuestion, countryCode: s.countryCode || undefined, procGroup: g });
+        // no country or type filter: the question already names what it is about, and filters this narrow made the evidence gate refuse
+        const response = await api.ask({ question: r.evidenceQuestion });
         add({ role: "assistant", rich: { kind: "evidence", question: r.evidenceQuestion, response },
           content: response.unsupported ? "The reports hold no evidence for that question." : `Answer from the reports: ${response.answer.map((a) => a.text).join(" ").slice(0, 600)}` });
       }
