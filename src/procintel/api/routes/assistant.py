@@ -57,5 +57,7 @@ def post_plan_chat(req: PlanChatRequest) -> dict:
                      if req.results else "there is none yet. Add packages and I will forecast them."))
     else:
         reply = r["modelReply"] or "Tell me about the project you want to plan, for example the country and what you will buy."
+        if r["notes"]:
+            reply = f"{reply} {' '.join(r['notes'])}"
     r.pop("modelReply")
     return {**r, "reply": reply, "context": context.usage(system + fixed, history + [{"role": "assistant", "content": reply}])}

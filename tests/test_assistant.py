@@ -101,8 +101,11 @@ def test_bad_values_are_ignored():
 
 
 def test_statistics_only_for_the_overviews_measures():
-    ok = resolve.resolve({"intent": "ask_statistics", "statistic": {"measure": "rebid", "group": "method"}}, OPTIONS, {}, TODAY)
-    assert ok["intent"] == "ask_statistics" and ok["statistic"] == {"measure": "rebid", "group": "method"}
+    ok = resolve.resolve({"intent": "ask_statistics", "statistic": {"measure": "delay", "group": "method"}}, OPTIONS, {}, TODAY)
+    assert ok["intent"] == "ask_statistics" and ok["statistic"] == {"measure": "delay", "group": "method"}
+    moved = resolve.resolve({"intent": "ask_statistics", "statistic": {"measure": "rebid", "group": "method"}}, OPTIONS, {}, TODAY)
+    assert moved["statistic"] == {"measure": "rebid", "group": "country"} and "not counted by method" in moved["notes"][0]
+    assert resolve.resolve({"intent": "ask_statistics", "statistic": {"measure": "cpia", "group": "sector"}}, OPTIONS, {}, TODAY)["statistic"]["group"] == "country"
     nope = resolve.resolve({"intent": "ask_statistics", "statistic": {"measure": "profit", "group": "method"}, "evidence_question": "Which method is most profitable?"}, OPTIONS, {}, TODAY)
     assert nope["intent"] == "ask_evidence" and nope["statistic"] is None   # no measure fits: the reports may still answer
 

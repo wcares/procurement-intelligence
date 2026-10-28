@@ -11,7 +11,7 @@ import difflib
 import re
 from datetime import date
 
-from procintel.assistant.interpret import TYPES, measure_labels
+from procintel.assistant.interpret import TYPES, measure_groups, measure_labels
 
 INTENTS = ("update_plan", "ask_evidence", "ask_statistics", "explain_plan", "other")
 GROUPS = ("country", "sector", "method")
@@ -209,8 +209,16 @@ def resolve(raw: dict, options: dict, plan: dict, today: date) -> dict:
         needs.append("country")
     stat = raw.get("statistic") if isinstance(raw.get("statistic"), dict) else None
     if intent == "ask_statistics":
+        groups = measure_groups()
         ok = stat and stat.get("measure") in measure_labels() and stat.get("group") in GROUPS
-        stat = {"measure": stat["measure"], "group": stat["group"]} if ok else None
+        if ok:
+            measure, group = stat["measure"], stat["group"]
+            if group not in groups[measure]:   # e.g. re-tendering is counted per project, so not per method
+                notes.append(f"{measure_labels()[measure]} is not counted by {group}, so I show it by {groups[measure][0]}.")
+                group = groups[measure][0]
+            stat = {"measure": measure, "group": group}
+        else:
+            stat = None
         if not stat:
             intent = "ask_evidence"   # no Overview measure fits: the reports may still answer it
     evidence = str(raw["evidence_question"]).strip()[:1000] if raw.get("evidence_question") else None

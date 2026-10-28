@@ -1,6 +1,6 @@
 """Measure the interpreter on eval/plan_chat_cases.jsonl: for each message, does the checked plan match what a planner meant?
 
-    PYTHONPATH=src python -m procintel.assistant.evaluate [--model-env ...]
+    PYTHONPATH=src python -m procintel.assistant.evaluate [substring of case ids to run]
 
 The model comes from the usual PROCINTEL_LLM_* settings, so the same run measures any model. A case passes when every
 field it lists in `expect` matches; the failing fields are printed so the prompt or the model can be fixed on evidence.
@@ -58,6 +58,8 @@ def check(expect: dict, out: dict, options: dict) -> list[str]:
 def run() -> int:
     options = stats.options(db.connect(paths.DB_PATH))
     cases = [json.loads(l) for l in CASES.read_text().splitlines() if l.strip()]
+    if len(sys.argv) > 1:
+        cases = [c for c in cases if sys.argv[1] in c["id"]]
     passed = 0
     t0 = time.time()
     for c in cases:

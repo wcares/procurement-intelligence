@@ -29,7 +29,7 @@ JSON shape:
 Rules:
 - intent "update_plan": the message adds, changes or removes packages, or sets the country, start or deadline.
 - intent "ask_evidence": the message asks what happened or goes wrong in past projects, or why; write evidence_question so it makes sense alone (add the country or type from the plan if the message only implies it).
-- intent "ask_statistics": the message asks which countries, sectors or methods were slowest, riskiest or most often re-tendered in the past; pick the closest measure key and grouping. If no measure fits, use "ask_evidence" instead.
+- intent "ask_statistics": the message asks which countries, sectors or methods were slowest, riskiest or most often re-tendered in the past; pick the closest measure key and one of the groupings listed for it in MEASURES. If no measure fits, use "ask_evidence" instead.
 - intent "explain_plan": the message asks about the plan's own results (dates, bottleneck, risks); answer ONLY from RESULTS, quote its numbers exactly, and say so if RESULTS is empty.
 - intent "other": greetings or anything else; reply briefly and say what you can do.
 - To change an existing package use action "update" and the same name as in PLAN; a package not in PLAN is "add".
@@ -64,6 +64,12 @@ def with_names(plan: dict, options: dict) -> dict:
             "packages": [{**p, "afterName": names.get(p.get("after"))} for p in plan.get("packages", [])]}
 
 
+def measure_groups() -> dict[str, list[str]]:
+    """Which groupings each Overview measure is counted for (a method is a package attribute, so a project-level measure cannot use it)."""
+    from procintel.insights.dashboard import measures
+    return {m["key"]: m["groups"] for m in measures()}
+
+
 def plan_summary(plan: dict) -> str:
     if not plan.get("packages"):
         return "(empty)"
@@ -80,7 +86,8 @@ def fixed_prompt(options: dict, plan: dict, results: str, today: date) -> tuple[
     countries = "; ".join(c["name"] for c in options["countries"])
     methods = "; ".join(f"{m['code']} ({m['label']}; for {','.join(m['procGroups'])})" for m in options["methods"])
     sectors = "; ".join(options["sectors"])
-    measures = "; ".join(f"{k} ({label})" for k, label in (options.get("measures") or measure_labels()).items())
+    groups = measure_groups()
+    measures = "; ".join(f"{k} ({label}; by {'/'.join(groups.get(k, []))})" for k, label in (options.get("measures") or measure_labels()).items())
     fixed = (f"TODAY: {today.isoformat()}\nCOUNTRIES: {countries}\nMETHODS: {methods}\nSECTORS: {sectors}\nMEASURES: {measures}\n"
              f"PLAN:\n{plan_summary(plan)}\nRESULTS:\n{results or '(none yet)'}\n{EXAMPLES}")
     return SYSTEM, fixed
