@@ -129,6 +129,16 @@ configuration (`compose.yaml`, `.env.example`). On a Mac the models stay on the 
 GPU) and the containers reach them as `host.docker.internal`. Docker here runs through Colima
 (`brew install colima docker docker-compose docker-buildx`, `colima start --cpu 4 --memory 6 --disk 60`).
 
+### Keeping a public demo up
+
+The demo site (Vercel) forwards to the backend on this machine through a Cloudflare quick tunnel, whose address changes
+each time it starts. `scripts/demo-watchdog.sh` checks the path a visitor takes (site, then tunnel, then backend), restarts
+the backend or a model server that stopped, and, when the tunnel has changed, restarts it, points the site at the new
+address and redeploys (at most once every 10 minutes). Run it in a terminal (`scripts/demo-watchdog.sh`); `--once` does
+one pass. It cannot help while the machine sleeps. A macOS background service (LaunchAgent) cannot run it from
+`~/Documents`: macOS blocks background services from reading that folder. A permanent tunnel address would remove the
+redeploys; it needs a Cloudflare setting that this repository does not make.
+
 ## How it works
 
 ```
