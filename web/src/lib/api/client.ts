@@ -41,6 +41,9 @@ import type {
   PipelineResponse,
   PipelineRule,
   PromptInfo,
+  ChatPlan,
+  ChatTurn,
+  PlanChatResponse,
   ShadowsResponse,
 } from "./types";
 
@@ -132,6 +135,8 @@ export const api = {
   recommendations: (req: AssessRequest) => call<RecommendationsResponse>("/insights/recommendations", { method: "POST", body: JSON.stringify(req) }),
   markAlertsRead: (ids?: string[]) => call<AlertsResponse>("/insights/alerts/read", { method: "POST", body: JSON.stringify({ ids: ids ?? null }) }),
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),
+  planChat: (messages: ChatTurn[], plan: ChatPlan, results: string) =>
+    call<PlanChatResponse>("/assistant/plan", { method: "POST", body: JSON.stringify({ messages, plan, results }) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),
   feedback: (req: FeedbackRequest) => call<FeedbackResponse>("/feedback", { method: "POST", body: JSON.stringify(req) }),
   config: () => call<ConfigResponse>("/config"),

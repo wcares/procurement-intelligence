@@ -25,6 +25,8 @@ export interface Forecast {
   n: number | null;
   scope: string | null;
   highRisks: number;
+  /** the flags above low, with their level, e.g. "Re-tendering (high)" */
+  risks?: string[];
 }
 
 export interface Scheduled {
@@ -72,6 +74,7 @@ export function forecastOf(r: AssessResponse): Forecast | null {
     n: t?.n ?? null,
     scope: t?.scope ?? null,
     highRisks: r.risks.filter((x) => x.level === "high").length,
+    risks: r.risks.filter((x) => x.level !== "low").slice(0, 4).map((x) => `${x.label} (${x.level})`),
   };
 }
 
@@ -137,4 +140,19 @@ export function deadlineCheck(plan: ProjectPlan, deadline: string): { late: stri
   const late = plan.rows.filter((r) => r.award50 > deadline).map((r) => r.id);
   const atRisk = plan.rows.filter((r) => r.award50 <= deadline && r.award90 > deadline).map((r) => r.id);
   return { late, atRisk };
+}
+
+/** The forecast as plain text: what the chat model is allowed to quote when asked about the plan (numbers come from here). */
+export function resultsText(packages: PlanPackage[], forecasts: Record<string, Forecast | undefined>, plan: ProjectPlan): string {
+  const name = (id: string) => packages.find((p) => p.id === id)?.name || "Unnamed package";
+  const lines = plan.rows.map((r) => {
+    const f = forecasts[r.id];
+    if (!f) return `${name(r.id)}: no forecast`;
+    const bits = [`typical ${f.p50} days`, f.p90 != null ? `slow case ${f.p90} days` : null,
+      f.pLong != null ? `${Math.round(f.pLong * 100)}% chance of over 180 days` : null, `typical award ${r.award50}`,
+      f.risks?.length ? `risks: ${f.risks.join(", ")}` : null, r.waitsFor ? `starts after ${name(r.waitsFor)}` : null];
+    return `${name(r.id)}: ${bits.filter(Boolean).join(", ")}`;
+  });
+  if (plan.end50) lines.push(`All awarded by ${plan.end50} (typical) or ${plan.end90} (slow case). Bottleneck: ${plan.bottleneck ? name(plan.bottleneck) : "none"}.`);
+  return lines.join("\n");
 }

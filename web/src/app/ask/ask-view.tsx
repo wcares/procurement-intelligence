@@ -122,7 +122,7 @@ export function AskView() {
   );
 }
 
-function Answer({ turnId, r, question }: { turnId: number; r: AskResponse; question: string }) {
+export function Answer({ turnId, r, question }: { turnId: number; r: AskResponse; question: string }) {
   const [asMap, setAsMap] = useState(false);
   const toSource = (i: number) => {
     const el = document.getElementById(`t${turnId}-c${i}`);

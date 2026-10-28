@@ -735,3 +735,21 @@ export interface HeatmapResponse {
 export type DashRecords =
   | { kind: "packages"; records: { packageId: string; projectId: string; method: string; description: string; days: number; tenderStart: string | null; url: string }[] }
   | { kind: "projects"; records: { projectId: string; name: string; country: string; rebid: boolean; amendment: boolean; procurementBelowSatisfactory: boolean | null; problemPassages: number | null; url: string }[] };
+
+/** Planning chat (POST /assistant/plan): the conversation and plan live in the browser; each call carries both. */
+export interface ChatTurn { role: "user" | "assistant"; content: string }
+export interface ChatPlanPackage {
+  id: string; name: string; procGroup: ProcGroup; methodCode: string; sector?: string; estimatedValueUsd?: number;
+  description?: string; tenderStart?: string; after?: string;
+}
+export interface ChatPlan { countryCode: string | null; projectStart: string | null; deadline: string | null; packages: ChatPlanPackage[] }
+export interface ChatContext { used: number; budget: number; warn: boolean; full: boolean }
+export interface PlanChatResponse {
+  intent: "update_plan" | "ask_evidence" | "ask_statistics" | "explain_plan" | "other";
+  reply: string;
+  plan: ChatPlan;
+  changes: string[]; assumptions: string[]; notes: string[]; needs: string[];
+  evidenceQuestion: string | null;
+  statistic: { measure: string; group: string } | null;
+  context: ChatContext;
+}
