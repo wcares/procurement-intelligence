@@ -132,7 +132,7 @@ GPU) and the containers reach them as `host.docker.internal`. Docker here runs t
 ### Keeping a public demo up
 
 The demo site (Vercel) forwards to the backend on this machine through a Cloudflare quick tunnel, whose address changes
-each time it starts. `scripts/demo-watchdog.sh` checks the path a visitor takes (site, then tunnel, then backend), restarts
+each time it starts. **When the site shows 502 or 530, run `scripts/restart-tunnel.sh`** (about two minutes: new tunnel, site pointed at it, redeployed, checked). The optional `scripts/demo-watchdog.sh` does that and more by itself while it runs: it checks the path a visitor takes (site, then tunnel, then backend), restarts
 the backend or a model server that stopped, and, when the tunnel has changed, restarts it, points the site at the new
 address and redeploys (at most once every 10 minutes). Run it in a terminal (`scripts/demo-watchdog.sh`); `--once` does
 one pass. It cannot help while the machine sleeps. A macOS background service (LaunchAgent) cannot run it from
