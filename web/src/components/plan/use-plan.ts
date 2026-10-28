@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { ChatPlan, Options } from "@/lib/api/types";
-import { forecastOf, resultsText, schedule, type Forecast, type PlanPackage } from "@/lib/plan";
+import { forecastOf, resultsText, schedule, todayLocal, type Forecast, type PlanPackage } from "@/lib/plan";
 
 const KEY = "procintel-plan";
-const today = () => new Date().toISOString().slice(0, 10);
+const today = todayLocal;
 export const newPackage = (): PlanPackage => ({ id: Math.random().toString(36).slice(2, 9), name: "", procGroup: "CW", methodCode: "RFB" });
 
 interface Saved { countryCode: string; projectStart: string; deadline?: string; packages: PlanPackage[] }
@@ -83,7 +83,7 @@ export function usePlan() {
     setForecasts({}); setRan(false);
   }, []);
 
-  const asChatPlan = useCallback((): ChatPlan => ({ countryCode: countryCode || null, projectStart: projectStart || null, deadline: deadline ?? null, packages }), [countryCode, projectStart, deadline, packages]);
+  const asChatPlan = useCallback((): ChatPlan => ({ countryCode: countryCode || null, projectStart: projectStart || null, deadline: deadline ?? null, packages: packages.filter((p) => p.name.trim() || p.estimatedValueUsd || p.description?.trim()) }), [countryCode, projectStart, deadline, packages]);
   const results = useMemo(() => (ran && !running ? resultsText(packages, forecasts, plan) : ""), [ran, running, packages, forecasts, plan]);
   const clear = useCallback(() => { setPackages([]); setForecasts({}); setErrors({}); setRan(false); setDeadline(undefined); }, []);
 

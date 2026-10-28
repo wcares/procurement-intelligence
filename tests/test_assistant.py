@@ -140,3 +140,9 @@ def test_adding_a_package_never_merges_into_a_similar_name():
         {"id": "p1", "name": "Road works north", "procGroup": "CW", "methodCode": "RFB"}, {"id": "p2", "name": "Road works south", "procGroup": "CW", "methodCode": "RFB"}]}
     amb = resolve.resolve({"intent": "update_plan", "packages": [{"name": "road works", "action": "remove"}]}, OPTIONS, two, TODAY)
     assert len(amb["plan"]["packages"]) == 2 and any("no package called" in n for n in amb["notes"])   # ambiguous: nothing removed
+
+
+def test_a_blank_package_never_matches_a_name():
+    plan = {"countryCode": "KE", "projectStart": "2026-10-27", "packages": [{"id": "p1", "name": "", "procGroup": "CW", "methodCode": "RFB"}]}
+    r = resolve.resolve({"intent": "update_plan", "packages": [{"name": "Road works", "action": "add", "type": "works", "value_usd": 5e6}]}, OPTIONS, plan, TODAY)
+    assert [p["name"] for p in r["plan"]["packages"]] == ["", "Road works"] and "Added Road works" in r["changes"][0]

@@ -5,7 +5,7 @@ import { api } from "@/lib/api/client";
 import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/api/types";
 import { Answer } from "@/app/ask/ask-view";
 import { fmt } from "@/components/dashboard/format";
-import { schedule, type PlanPackage } from "@/lib/plan";
+import { schedule, todayLocal, type PlanPackage } from "@/lib/plan";
 import type { PlanState } from "./use-plan";
 
 type Rich =
@@ -55,7 +55,7 @@ export function PlanChat({ s }: { s: PlanState }) {
         if (r.plan.countryCode && r.plan.packages.length) {
           const pkgs = r.plan.packages as PlanPackage[];
           const f = await s.run(pkgs, r.plan.countryCode);
-          const p = schedule(pkgs, f, r.plan.projectStart || new Date().toISOString().slice(0, 10));
+          const p = schedule(pkgs, f, r.plan.projectStart || todayLocal());
           const name = pkgs.find((x) => x.id === p.bottleneck)?.name;
           add({ role: "assistant", content: `Forecast ready: typical date for all awards ${p.end50 ?? "unknown"}, slow case ${p.end90 ?? "unknown"}${name ? `; bottleneck ${name}` : ""}. The plan is on the right.` });
         }

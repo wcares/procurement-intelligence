@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import type { Options } from "@/lib/api/types";
+import { todayLocal } from "@/lib/plan";
 import { PackageCard } from "./package-card";
 import { PlanResults } from "./plan-results";
 import { newPackage, type PlanState } from "./use-plan";
 
 const field = "w-full rounded-md border border-line bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand";
-const today = () => new Date().toISOString().slice(0, 10);
 
 /** The form: the packages one by one, and the forecast with a button. Edits the same plan as the chat. */
 export function ManualPlan({ s }: { s: PlanState }) {
@@ -29,7 +29,7 @@ export function ManualPlan({ s }: { s: PlanState }) {
             </select>
           </label>
           <label className="text-xs sm:col-span-1">Project start
-            <input type="date" className={field} value={s.projectStart} onChange={(e) => s.setProjectStart(e.target.value || today())} />
+            <input type="date" className={field} value={s.projectStart} onChange={(e) => s.setProjectStart(e.target.value || todayLocal())} />
           </label>
           <label className="text-xs sm:col-span-2">Deadline for all awards (optional)
             <input type="date" className={field} value={s.deadline ?? ""} onChange={(e) => s.setDeadline(e.target.value || undefined)} />

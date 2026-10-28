@@ -49,6 +49,12 @@ export interface ProjectPlan {
   loops: string[];
 }
 
+/** Today as the person's own calendar date (not UTC, which can be a day ahead in the evening). */
+export function todayLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function addDays(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + Math.round(days));

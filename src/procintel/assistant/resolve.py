@@ -98,10 +98,10 @@ def _find(packages: list[dict], name: str, loose: bool = True) -> dict | None:
     contains it. Two candidates is not a match: "P1" must not pick "P10"."""
     want = name.strip().lower()
     for p in packages:
-        if p["name"].lower() == want:
+        if p["name"] and p["name"].lower() == want:
             return p
     if loose and want:
-        hits = [p for p in packages if want in p["name"].lower() or p["name"].lower() in want]
+        hits = [p for p in packages if p["name"] and (want in p["name"].lower() or p["name"].lower() in want)]
         if len(hits) == 1:
             return hits[0]
     return None
