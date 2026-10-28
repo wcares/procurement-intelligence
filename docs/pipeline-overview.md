@@ -72,7 +72,7 @@ sentences → fact-check each sentence (decision model) → answer with caveats.
 
 **Assess a package**: package details → timeline (history plus gradient-boosted trees) → risk flags with their
 evidence (notices, CPIA/WGI, reports) → precedents (lessons from past reports, same sector first) → similar contracts
-by description → answer with caveats. **Plan a project** runs the same assessment for each package of a new project and lays the forecasts on one timeline with the likely bottleneck and a deadline check. **Set a goal** then works backwards from a target award time to the methods and
+by description → answer with caveats. **Plan a project** runs the same assessment for each package of a new project and lays the forecasts on one timeline with the likely bottleneck and a deadline check; its default tab is a planning chat, in which a language model only turns messages into plan edits that are checked against the data, and routes statistics to the Overview's measures and past-project questions to the cited-answer pipeline. **Set a goal** then works backwards from a target award time to the methods and
 lot counts that met it most often, with the number of comparable packages behind each.
 
 Both requests read only from stores the event system keeps current; neither waits for a background job.

@@ -180,6 +180,17 @@ an answer map that shows which sources back each sentence.
 - **Goal seeking** works backwards from a target ("awarded within 90 days"): methods and lot splits ranked by the share
   of comparable packages that met it, with n and scope; lot values outside what a method was used for are flagged for
   the thresholds; worded as association ("packages set up this way were faster"), not cause.
+- **Plan a project** takes several packages of a new project, forecasts each with the assessment, and lays them on one
+  timeline with the likely bottleneck and a deadline check. It has two ways in: a **planning chat** (the default) and a
+  manual form, both editing one plan. In the chat the language model only reads the message and proposes edits; every
+  edit is checked against the data's own vocabulary (countries, purchase types, methods used for that type, values,
+  links) before it reaches the plan, defaults are stated as assumptions, and what cannot be checked becomes a question.
+  The forecast numbers come from the engine, never from the model. The same chat answers questions about the plan (only
+  from the forecast it was given; an answer containing a number that is not in the forecast is replaced by the forecast
+  itself), statistics about past projects (the Overview's measures, shown as a table), and questions about what went
+  wrong in past projects (the cited-answer pipeline). The conversation lives in the browser, a context guard stops it
+  before the model's window is full, and the interpreter is measured on 28 messages (`eval/plan_chat_cases.jsonl`,
+  `python -m procintel.assistant.evaluate`): 28 of 28 with the local answer model on 2026-10-27.
 - **Monitoring** stamps every package of every tracked project active (bidding or contract running), finished,
   replaced (re-tendered) or stale, by configurable rules with reasons and a dry run (now: 495 active, 6,438 finished,
   30 replaced, 1,212 stale); active packages get the survival forecast, the contract end, and warnings (slower than 9 in
@@ -272,6 +283,7 @@ plan records, before and after.
 |---|---|---|
 | Overview | planners | what went wrong in past procurement, ranked and by year, every number clickable to its records |
 | Assess a package | planners | stage timeline with the package's own estimate and risks placed by stage; forecast, flags with evidence, governance, similar contracts as a chart, quoted lessons; "already started?" forecast from today; set a goal; recommendations |
+| Plan a project | planners | a planning chat (default) or a form: several packages, a forecast for each, dates and bottleneck on one timeline, a deadline check, a goal search per package; questions about the plan, past statistics and past projects in the same chat |
 | Ask the evidence | planners | cited answers, an answer map, country and type filters |
 | Insights | planners | alerts on a personal watch-list, trends, ongoing work (projects and packages with status, forecasts and warnings), package pages with a live timeline |
 | Pipeline | admins | connectors, event log, rules, upload, status rules |
@@ -309,6 +321,7 @@ plan records, before and after.
   storage and memory as the corpus and the number of tenants grow, at the cost of an embedding call per query
   (latency, and load on the embedding server). Not tested here, and the figures are the authors' own; the test to run
   is recall@10 and query time on the evaluation set against Qdrant, at several corpus sizes.
+- **Planning chat:** conversations are not saved; the model's window is 8,192 tokens, so long conversations stop with a prompt to start a new one; a forecast of a two-package plan takes about two minutes on the local models. The interpreter test set is small (28) and written by the builder.
 - **Not built:** the subscribe connector mode and image page indexing. OCR of scanned uploads and the Reviewer role were added on 2026-10-26.
 - **Planning cycle time** cannot be measured from public data; it needs the planners' own records in the pilot.
 

@@ -235,6 +235,7 @@ Each UI request from the user, in the order asked. Status: queued, in progress, 
 | U8 | 2026-10-25 | On the query page, a small section with alerts, recommendations and trends, linking to a full detail page | done (2f5eb49); follow-ups in the tracker |
 | U10 | 2026-10-26 | Goal seeking: set a desired outcome for a package and see the set-ups that met it most often | done (4a7f2f7): "Set a goal" panel on Assess, shown after a package is assessed; target award time and maximum lots; ranked by the share of comparable packages that met it |
 | U11 | 2026-10-27 | Plan a project: enter the packages of a new project, see a forecast for each, the project dates, bottleneck and a deadline check | done: page /plan; each package forecast with the existing assess endpoint and its own goal panel; project dates combine the forecasts in the order set by the user (dependencies are not learned from data); plan kept in the browser only |
+| U13 | 2026-10-27 | A planning chat: say what you want to plan, get asked for what is missing, see the plan and forecast beside the chat, and keep talking about it (the plan, past statistics, past projects); default tab of Plan a project, with the form as the Manual tab | done: stateless per conversation, context guard asks for a new conversation, the model only proposes edits that are checked against the data, numbers come from the forecast engine |
 
 ## 7. Open questions
 
