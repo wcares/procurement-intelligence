@@ -50,6 +50,12 @@ def check(expect: dict, out: dict, options: dict) -> list[str]:
             bad.append(f"package {i} value {p.get('estimatedValueUsd')} != {want['value']}")
         if "after" in want and p.get("after") != plan["packages"][want["after"]]["id"]:
             bad.append(f"package {i} should follow package {want['after']}")
+    for word in expect.get("evidence_excludes", []):
+        if word.lower() in (out["evidenceQuestion"] or "").lower():
+            bad.append(f"the question should not mention {word}: {out['evidenceQuestion']}")
+    for word in expect.get("evidence_includes", []):
+        if word.lower() not in (out["evidenceQuestion"] or "").lower():
+            bad.append(f"the question should mention {word}: {out['evidenceQuestion']}")
     if "stat" in expect and out["statistic"] != expect["stat"]:
         bad.append(f"statistic {out['statistic']} != {expect['stat']}")
     return bad
@@ -64,7 +70,7 @@ def run() -> int:
     t0 = time.time()
     for c in cases:
         plan = c.get("plan", {})
-        history = [{"role": "user", "content": c["message"]}]
+        history = [*c.get("history", []), {"role": "user", "content": c["message"]}]
         try:
             raw = interpret.interpret(history, options, interpret.with_names(plan, options), c.get("results", ""), TODAY)
             out = resolve.resolve(raw, options, plan, TODAY)

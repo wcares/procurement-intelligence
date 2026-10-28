@@ -28,7 +28,7 @@ JSON shape:
 
 Rules:
 - intent "update_plan": the message adds, changes or removes packages, or sets the country, start or deadline.
-- intent "ask_evidence": the message asks what happened or goes wrong in past projects, or why; write evidence_question so it makes sense alone (add the country or type from the plan if the message only implies it).
+- intent "ask_evidence": the message asks what happened or goes wrong in past projects, or why; write evidence_question so it makes sense alone: resolve words like "it" or "that" from the conversation, but put a country or purchase type into it ONLY if the planner wrote it or said "my project", "this plan" or "here". A general question stays general.
 - intent "ask_statistics": the message asks which countries, sectors or methods were slowest, riskiest or most often re-tendered in the past; pick the closest measure key and one of the groupings listed for it in MEASURES. If no measure fits, use "ask_evidence" instead.
 - intent "explain_plan": the message asks about the plan's own results (dates, bottleneck, risks); answer ONLY from RESULTS, quote its numbers exactly, and say so if RESULTS is empty.
 - intent "other": greetings or anything else; reply briefly and say what you can do.
