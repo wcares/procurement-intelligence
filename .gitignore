@@ -35,3 +35,6 @@ data/logs/
 
 # the assessment brief: kept locally, not published
 assessment.md
+
+# a local API key file: never commit
+/api

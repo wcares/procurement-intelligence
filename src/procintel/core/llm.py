@@ -50,6 +50,7 @@ def complete(system: str, user: str, *, temperature: float | None = None, max_to
 
     temperature = TEMPERATURE if temperature is None else temperature
     max_tokens = MAX_TOKENS if max_tokens is None else max_tokens
+    kw.setdefault("drop_params", True)  # a model that fixes its own temperature (Claude 5.5) must not fail on ours
     extra = os.environ.get(f"{prefix}_EXTRA_BODY")
     if extra:
         kw.setdefault("extra_body", json.loads(extra))
