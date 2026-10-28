@@ -108,3 +108,28 @@ def test_config_rejects_invalid_values_and_applies_nothing(client, saved_config)
         r = client.put("/config", json={"values": body})
         assert r.status_code == 400, body
     assert answer.SEARCH_K == before  # the valid search_k=7 in the last body was not applied either
+
+
+def test_ask_stream_ends_with_what_ask_returns(client, monkeypatch):
+    import json
+    monkeypatch.delenv("PROCINTEL_LLM_MODEL", raising=False)
+    q = {"question": "Why were contracts terminated?"}
+    res = client.post("/ask/stream", json=q)
+    assert res.headers["content-type"].startswith("text/event-stream") and "no-transform" in res.headers["cache-control"]
+    events = [json.loads(b[len("data: "):]) for b in res.text.split("\n\n") if b.startswith("data: ")]
+    assert events[0]["type"] == "stage" and events[-1]["type"] == "done"
+    plain = client.post("/ask", json=q).json()
+    done = events[-1]["result"]
+    assert done["answer"] == plain["answer"] and done["citations"] == plain["citations"] and done["meta"]["responseId"]
+
+
+def test_assess_without_precedents_gives_the_same_forecast_and_no_passages(client, monkeypatch):
+    from procintel.core import llm
+
+    def no_model(*a, **kw):
+        raise AssertionError("the model must not be called")
+    monkeypatch.setattr(llm, "complete", no_model)
+    body = {"countryCode": "KE", "procGroup": "CW", "methodCode": "RFB"}
+    r = client.post("/assess", json={**body, "withPrecedents": False}).json()
+    assert r["precedents"] == [] and (r["timeline"]["n"], r["timeline"]["median"]) == (215, 112.0)
+    assert r["risks"] and r["prediction"] is not None

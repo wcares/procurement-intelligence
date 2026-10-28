@@ -263,11 +263,14 @@ def assess(retriever: Retriever, bench: dict, governance: dict, req: dict, model
     gov = governance.get(country, [])
     wg = (wgi or {}).get(country, [])
     t = timeline(bench, group, method)
-    precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "",
-                                                req.get("sector") or "", country_name, method)
+    if req.get("withPrecedents", True):
+        precs, widened, how, conflicts = precedents(retriever, country, group, req.get("description") or "",
+                                                    req.get("sector") or "", country_name, method)
+    else:
+        precs, widened, how, conflicts = [], False, "", []
     caveats = ["Timeline and risk numbers are statistics over historical World Bank procurement notices in the "
                "ingested sample; precedents are passages from completion reports (ICRs), supervision reports (ISRs) and "
-               "restructuring papers.", how]
+               "restructuring papers."] + ([how] if how else [])
     if not gov:
         caveats.append("No CPIA governance scores are available for this country (CPIA covers IDA countries only)"
                        + ("; Worldwide Governance Indicators are shown instead." if wg else "."))

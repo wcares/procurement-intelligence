@@ -13,6 +13,14 @@ HITS = [
 ]
 
 
+def fake_generative(result):
+    """Stands in for answer.generative_events: no sentences streamed, the given (sentences, dropped) as the result."""
+    def events(q, hits, use_decide=False, streaming=True):
+        return result
+        yield
+    return events
+
+
 def test_question_words_are_not_evidence(monkeypatch):
     for v in ("PROCINTEL_LLM_MODEL", "PROCINTEL_DECIDE_API_BASE"):  # word-overlap rule only
         monkeypatch.delenv(v, raising=False)
@@ -127,7 +135,7 @@ def test_second_search_runs_only_when_evidence_is_thin_and_keeps_the_larger_set(
     monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
     monkeypatch.setattr(answer, "reformulate", lambda q: ["contractor abandoned terminated contracts"])
     monkeypatch.setattr(answer, "supporting", lambda q, hits: (hits[:1], "terms"))
-    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "Contracts were terminated.", "citations": [0]}], 0))
+    monkeypatch.setattr(answer, "generative_events", fake_generative(([{"text": "Contracts were terminated.", "citations": [0]}], 0)))
     out = answer.ask(R(), "why did firms stop showing up")
     assert calls[0] == "why did firms stop showing up" and "contractor abandoned terminated contracts" in calls
     assert not out["unsupported"] and any("searched again" in c for c in out["meta"]["caveats"])
@@ -143,7 +151,7 @@ def test_no_second_search_when_the_first_finds_enough(monkeypatch):
     monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
     monkeypatch.setattr(answer, "reformulate", lambda q: (_ for _ in ()).throw(AssertionError("should not reformulate")))
     monkeypatch.setattr(answer, "supporting", lambda q, hits: (hits * 2, "terms"))     # 4 >= MIN_EVIDENCE
-    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
+    monkeypatch.setattr(answer, "generative_events", fake_generative(([{"text": "x y z.", "citations": [0]}], 0)))
     answer.ask(R(), "why were contracts terminated")
 
 
@@ -190,18 +198,69 @@ def test_vocabulary_step_searches_rephrasings_and_needs_evidence_from_the_own_se
             return own if q == "the question" else [lookalike]
     monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/fake")
     monkeypatch.setattr(answer, "reformulate", lambda q: ["report words"])
-    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
+    monkeypatch.setattr(answer, "generative_events", fake_generative(([{"text": "x y z.", "citations": [0]}], 0)))
     monkeypatch.setattr(answer, "supporting", lambda q, hits: ([h for h in hits if h.chunk_id == "x:9"], "llm"))
     monkeypatch.setattr(answer, "llm_gate", lambda q, hits: [])
     assert answer.ask(R(), "the question")["unsupported"]           # own search has no evidence: the look-alike is not kept
     monkeypatch.setattr(answer, "llm_gate", lambda q, hits: [h for h in hits if h.chunk_id == "d:1"])
     seen_cites = []
-    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False:
-                        seen_cites.append([h.chunk_id for h in hits]) or ([{"text": "x y z.", "citations": [0]}], 0))
+    def record(q, hits, use_decide=False, streaming=True):
+        seen_cites.append([h.chunk_id for h in hits])
+        return ([{"text": "x y z.", "citations": [0]}], 0)
+        yield
+    monkeypatch.setattr(answer, "generative_events", record)
     assert not answer.ask(R(), "the question")["unsupported"] and seen_cites[-1] == ["x:9", "d:1"]  # in scope: both used
-    monkeypatch.setattr(answer, "generative", lambda q, hits, use_decide=False: ([{"text": "x y z.", "citations": [0]}], 0))
+    monkeypatch.setattr(answer, "generative_events", fake_generative(([{"text": "x y z.", "citations": [0]}], 0)))
     seen = []
     monkeypatch.setattr(answer, "supporting", lambda q, hits: seen.append([h.chunk_id for h in hits]) or (hits, "llm"))
     out = answer.ask(R(), "the question")
     assert set(seen[0]) == {"d:1", "x:9"} and not out["unsupported"]  # both searches go to the gate
     assert any("also searched as: 'report words'" in c for c in out["meta"]["caveats"])
+
+
+REPLY = ('{"sentences": [{"text": "Contracts were terminated after the contractor abandoned the site.", "citations": [1]},'
+         ' {"text": "The ministry should adopt e-procurement nationwide by 2030.", "citations": [1]},'
+         ' {"text": "Consultant selection took long: \\"revised twice\\" {terms}.", "citations": [2]}]}')
+
+
+def pieces(text, n=7):
+    return [text[i:i + n] for i in range(0, len(text), n)]
+
+
+def test_objects_are_found_whatever_size_the_pieces_arrive_in():
+    for n in (1, 3, 11, 500):
+        scan, found = answer._Objects(), []
+        for piece in pieces('Sure! ' + REPLY + " done", n):
+            found += scan.feed(piece)
+        assert len(found) == 3 and found[2].endswith('{terms}.", "citations": [2]}')   # a brace inside a string is text
+
+
+def test_sentences_are_yielded_as_written_and_the_result_is_the_old_one(monkeypatch):
+    monkeypatch.setattr(answer.llm, "stream", lambda system, user: iter(pieces(REPLY)))
+    events = answer.generative_events("why were contracts terminated", HITS)
+    got = []
+    while True:
+        try:
+            got.append(next(events))
+        except StopIteration as done:
+            result = done.value
+            break
+    assert [e["text"] for e in got] == ["Contracts were terminated after the contractor abandoned the site.",
+                                         "Consultant selection took long: \"revised twice\" {terms}."]
+    monkeypatch.setattr(answer.llm, "complete", lambda system, user: REPLY)
+    assert result == answer.generative("why were contracts terminated", HITS)   # streaming changes when, not what
+    assert result[1] == 1
+
+
+def test_ask_events_run_in_order_and_end_with_the_answer(monkeypatch):
+    for v in ("PROCINTEL_LLM_MODEL", "PROCINTEL_DECIDE_API_BASE"):
+        monkeypatch.delenv(v, raising=False)
+
+    class R:
+        records = []
+
+        def search(self, q, k, country=None, proc_group=None):
+            return HITS
+    kinds = [e["type"] for e in answer.ask_events(R(), "why were contracts terminated")]
+    assert kinds[0] == "stage" and kinds[-1] == "done" and kinds.index("passages") < kinds.index("done")
+    assert [e["type"] for e in answer.ask_events(R(), "why were what")][-1] == "done"   # no evidence: still ends with an answer

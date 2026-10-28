@@ -58,6 +58,9 @@ class AssessRequest(BaseModel):
     tenderReference: str | None = Field(default=None, max_length=120)
     # the tracked project the package belongs to, if any: its approval date and size sharpen the model
     projectId: str | None = Field(default=None, max_length=20)
+    # False: the forecast and risks without the past-experience passages, whose selection takes a model call (about 15 s
+    # a package). The planning page shows no passages, so it asks without them.
+    withPrecedents: bool = True
 
 
 class GoalRequest(AssessRequest):

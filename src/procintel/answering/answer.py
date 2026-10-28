@@ -166,11 +166,78 @@ def _supported(sentence: str, cited: list[Hit], use_decide: bool) -> bool:
     return bool(st) and len(st & cited_terms) / len(st) >= GROUNDING_MIN
 
 
-def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tuple[list[dict] | None, int]:
-    """(model-written sentences that survive validation, number dropped as unsupported); None when the output
-    is unusable. A sentence needs a valid citation and must be supported by what it cites."""
+class _Objects:
+    """The complete {...} objects of the "sentences" array, found as the model's JSON arrives piece by piece."""
+
+    def __init__(self) -> None:
+        self.buf, self.pos, self.depth, self.start = "", 0, 0, None
+        self.armed = self.in_str = self.esc = self.ended = False
+
+    def feed(self, piece: str) -> list[str]:
+        self.buf += piece
+        if not self.armed:
+            m = re.search(r'"sentences"\s*:\s*\[', self.buf)
+            if not m:
+                return []
+            self.armed, self.pos = True, m.end()
+        out = []
+        i = self.pos
+        while i < len(self.buf) and not self.ended:
+            ch = self.buf[i]
+            if self.in_str:
+                self.esc = not self.esc and ch == "\\"
+                if not self.esc and ch == '"':
+                    self.in_str = False
+            elif ch == '"':
+                self.in_str = True
+            elif ch == "{":
+                self.start = i if self.depth == 0 else self.start
+                self.depth += 1
+            elif ch == "}" and self.depth:
+                self.depth -= 1
+                if self.depth == 0:
+                    out.append(self.buf[self.start:i + 1])
+            elif ch == "]" and self.depth == 0:
+                self.ended = True
+            i += 1
+        self.pos = i
+        return out
+
+
+def _pieces(system: str, user: str, streaming: bool):
+    """The model's text in pieces, or all at once when not streaming."""
+    if streaming:
+        yield from llm.stream(system, user)
+    else:
+        yield llm.complete(system, user)
+
+
+def generative_events(question: str, hits: list[Hit], use_decide: bool = False, streaming: bool = True):
+    """Like generative(), but yields {"type": "sentence"} for each sentence as soon as it is written and checked, so a
+    page can show it while the model goes on. The generator's return value is generative()'s result: it is worked out
+    from the whole reply, with the checks already made not repeated, so the streamed sentences are previews of it."""
     numbered = "\n\n".join(f"[{i + 1}] ({h.project_id}, {h.section}) {h.text}" for i, h in enumerate(hits))
-    raw = llm.complete(prompts.get("answer"), f"Passages:\n{numbered}\n\nQuestion: {question}")
+    seen: dict[tuple, bool] = {}   # (text, citations) -> supported: each sentence is checked once
+
+    def keep(s) -> dict | None:
+        if not isinstance(s, dict) or not isinstance(s.get("text"), str):
+            return None
+        cites = sorted({c - 1 for c in s.get("citations") or [] if isinstance(c, int) and 1 <= c <= len(hits)})
+        key = (s["text"], tuple(cites))
+        if cites and key not in seen:
+            seen[key] = _supported(s["text"], [hits[c] for c in cites], use_decide)
+        return {"text": s["text"].strip(), "citations": cites} if cites and seen[key] else None
+
+    raw, objects = "", _Objects()
+    for piece in _pieces(prompts.get("answer"), f"Passages:\n{numbered}\n\nQuestion: {question}", streaming):
+        raw += piece
+        for text in objects.feed(piece):
+            try:
+                ok = keep(json.loads(text))
+            except json.JSONDecodeError:
+                continue
+            if ok:
+                yield {"type": "sentence", **ok}
     m = re.search(r"\{.*\}", raw, re.S)
     try:
         sentences = json.loads(m.group(0))["sentences"] if m else None
@@ -182,12 +249,21 @@ def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tupl
     for s in sentences:
         if not isinstance(s, dict) or not isinstance(s.get("text"), str):
             continue
-        cites = sorted({c - 1 for c in s.get("citations") or [] if isinstance(c, int) and 1 <= c <= len(hits)})
-        if cites and _supported(s["text"], [hits[c] for c in cites], use_decide):
-            out.append({"text": s["text"].strip(), "citations": cites})
-        else:
-            dropped += 1
+        ok = keep(s)
+        out.append(ok) if ok else None
+        dropped += 0 if ok else 1
     return out, dropped
+
+
+def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tuple[list[dict] | None, int]:
+    """(model-written sentences that survive validation, number dropped as unsupported); None when the output
+    is unusable. A sentence needs a valid citation and must be supported by what it cites."""
+    events = generative_events(question, hits, use_decide, streaming=False)
+    while True:
+        try:
+            next(events)
+        except StopIteration as done:
+            return done.value
 
 
 def conflict_notes(retriever: Retriever, cited: list[Hit]) -> list[str]:
@@ -242,14 +318,32 @@ def search_multi(retriever: Retriever, queries: list[str], k: int, country: str 
     return fuse([retriever.search(q, k=k, country=country, proc_group=proc_group) for q in queries], k)
 
 
+def stage(text: str) -> dict:
+    return {"type": "stage", "text": text}
+
+
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
+    for ev in ask_events(retriever, question, country, proc_group, streaming=False):
+        if ev["type"] == "done":
+            return ev["result"]
+
+
+def ask_events(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None,
+               streaming: bool = True):
+    """ask() as a stream of events, so a page can show what exists while the rest is worked out: {"type": "stage"}
+    (what is being done), "passages" (the evidence found, before the answer is written), "sentence" (each checked
+    sentence as it is written) and last "done" with ask()'s result, which is the answer: the sentences streamed are
+    previews of it."""
+    yield stage("Searching the reports…")
     own = retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group)
     rephrased = None
     if VOCAB_STEP and llm.available():
+        yield stage("Rewording the question the way the reports phrase it…")
         try:
             rephrased = reformulate(question)
         except Exception:  # model down: search with the question only
             rephrased = None
+    yield stage(f"Checking which of {len(own)} passages help answer it…")
     if rephrased:
         hits, judged_by = supporting(question, fuse([own] + [retriever.search(q, k=SEARCH_K, country=country,
                                                                         proc_group=proc_group) for q in rephrased], SEARCH_K))
@@ -270,6 +364,7 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
     # question kept at least 1 passage on the first pass and 18 of 20 unanswerable ones kept none, while the second
     # search let the "high-speed rail" trap through on a passage about an unrelated "HSIP" project.
     if not rephrased and len(hits) < MIN_EVIDENCE and llm.available() and (hits or judged_by != "llm"):
+        yield stage("Little evidence found; searching again with other wording…")
         try:
             queries = reformulate(question)
         except Exception:  # model down: keep the first search
@@ -286,11 +381,15 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
     if not hits:
         why = (f"{judge} judged none of the retrieved passages relevant to the question." if judge
                else "No evaluation passage shares enough terms with the question to count as evidence.")
-        return {"answer": [], "citations": [], "unsupported": True, "meta": meta(caveats + [why])}
+        yield {"type": "done", "result": {"answer": [], "citations": [], "unsupported": True, "meta": meta(caveats + [why])}}
+        return
+    yield {"type": "passages", "items": [{"projectId": h.project_id, "projectName": h.project_name, "countryCode": h.country_code,
+                                          "section": h.section, "docType": h.doc_type} for h in hits]}
     answer = None
     if llm.available():
+        yield stage(f"Writing the answer from {len(hits)} passage{'s' if len(hits) != 1 else ''}…")
         try:
-            answer, dropped = generative(question, hits, use_decide)
+            answer, dropped = yield from generative_events(question, hits, use_decide, streaming)
         except Exception as e:  # model server down, timeout, auth: answer extractively rather than fail
             caveats.append(f"Language model call failed ({type(e).__name__}); showing quoted sentences instead.")
         else:
@@ -320,9 +419,9 @@ def ask(retriever: Retriever, question: str, country: str | None = None, proc_gr
     used = sorted({c for s in answer for c in s["citations"]})
     caveats += conflict_notes(retriever, [hits[i] for i in used])
     remap = {old: new for new, old in enumerate(used)}
-    return {
+    yield {"type": "done", "result": {
         "answer": [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in answer],
         "citations": [citation(hits[i]) for i in used],
         "unsupported": not answer,
         "meta": meta(caveats),
-    }
+    }}
