@@ -9,7 +9,7 @@ const TABS = [
   { href: "/pipeline/events", label: "Event log" },
   { href: "/pipeline/rules", label: "Rules" },
   { href: "/pipeline/upload", label: "Upload" },
-  { href: "/pipeline/status", label: "Status rules" },
+  // { href: "/pipeline/status", label: "Status rules" },  // hidden 2026-10-28: a tuning page nobody needs to use; the page itself still works at /pipeline/status
 ];
 
 export function PipelineTabs() {
