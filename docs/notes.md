@@ -57,3 +57,19 @@ makes the same code run on Postgres.
 `<Entity>.added`, `.changed` or `.removed` in `pipeline.event_log`. Rules turn those events into actions (`rules.py`,
 `actions.py`). Derived events (`Passages.changed`, `Package.award_changed`, `Data.updated`, `Upload.ingested`) are reported
 by actions and the upload step, not by detection.
+
+## 2. The five databases (2026-10-29)
+
+The app's data is in **five DuckDB files** in `data/` (verified: listed from `data/*.duckdb`; paths in `core/paths.py`). The
+code keeps them apart because DuckDB lets only one process write to a file at a time.
+
+| File | Tables | What it holds |
+|---|---|---|
+| `procintel.duckdb` | 32 | the main data: raw and derived tables, passages with vectors and tags, the experiment leftovers, `refresh_log` and `shadow` |
+| `pipeline.duckdb` | 8 | change detection: entity state, event log, rule firings, actions run, alerts, watches, uploads |
+| `auth.duckdb` | 3 | users, sessions, failed logins |
+| `feedback.duckdb` | 4 | the response log, feedback, review items, demoted citations |
+| `jobs.duckdb` | 2 | the job queue and its metadata |
+
+32 + 8 + 3 + 4 + 2 = 49 tables. In Postgres (`core/db.py`) the same five become five schemas of one database: `public`,
+`pipeline`, `auth`, `feedback`, `jobs`. Searched only `data/`; any `.duckdb` file elsewhere is not counted.
