@@ -112,3 +112,49 @@ watched fields, with the last one. Other fields make no event.
 
 **Which entity triggers what (default rules).** Notice: 2, 6, 8, 14. Project: 3, 6, 12. ContractAward: 4, 7. Indicator: 5.
 Document and SupervisionDoc: 1, 6, 8, 9 (Document added also 14).
+
+## 4. The three timeline models (2026-10-29)
+
+Verified from `src/procintel/prediction/predict.py` and `ingestion/refresh.py`; the latest numbers are from the 2026-10-26
+retrain (`data/models/history.jsonl`). What each output means in plain words is my wording of standard quantile and
+probability definitions, not text from the code.
+
+**What they predict.** One thing: days from tender to contract award. Three models, all scikit-learn gradient-boosted trees
+(`HistGradientBoosting`), differ in how they describe that time. Each also has a project variant (adds years since approval
+and log commitment, used when the project is known), so six fitted models in all.
+
+| Model | Output | Plain meaning | Example |
+|---|---|---|---|
+| `days_p50` | days | Of similar past tenders, half were awarded within this many days and half took longer. The date to plan around. | 112 days |
+| `days_p90` | days | Of similar past tenders, 90% were awarded within this many days; the slowest tenth took longer. The cautious date. | 240 days |
+| `over_180` | probability | The chance the tender takes more than 180 days. A low number is good. The 180 is fixed in the code (`LONG_DAYS`). | 20% means about 1 in 5 similar tenders took longer than 180 days |
+
+"Similar" is not a lookup. The model learned from past tenders how the inputs relate to days and applies that to the new
+package; the output is its estimate of where the line falls, not a count of matching tenders. A p50 is a plan, not a promise:
+it is exceeded about half the time, which is why the p90 and the over-180 risk sit beside it.
+
+**Inputs.** Procurement group, method, region, sector, six CPIA scores as of the tender year, and log contract value. The
+tender year itself is not an input.
+
+**Training.**
+- Rows: tenders in the `package` table with at least 540 days of follow-up (`MIN_FOLLOWUP_DAYS`), so late awards are not
+  missing. 1,336 packages from 94 projects in the latest run.
+- Method: many small trees built one after another, each fitted to the errors the earlier ones still make (150 trees,
+  learning rate 0.05, at most 7 leaves per tree, at least 50 tenders per leaf, L2 5.0). The p50 and p90 models use quantile
+  loss at 0.5 and 0.9; `over_180` is a classifier.
+- The trees come from the data, not from a person or a language model. People choose the inputs, the training rows, the
+  settings and the acceptance rule.
+- Each retrain starts from scratch on all data and overwrites `data/models/timeline.joblib`; the metrics are appended to
+  `history.jsonl`. The tree settings are in code only.
+
+**Does it keep learning?** No. It is retrained, not updated live. Triggers: the weekly refresh step "prediction models"
+(`predict.main`), and the `drift_check` job, which retrains if new packages reach max(20, 5% of the training set) or the
+error on new packages exceeds 1.2 times the cross-validated error (the three drift values are on the Settings page). The
+first model needs one run of `python -m procintel.prediction.predict`; without a saved model, `/assess` uses the benchmark
+statistics only.
+
+**Automatic evaluation.** Every retrain scores itself with 5-fold cross-validation grouped by project (a project is never on
+both sides of the split), repeated 5 times, against a baseline of the plain median. A model is used in `/assess` only if it
+beats the baseline by at least 2% (`MIN_GAIN`). Latest: median error 82.5 days against a baseline of 84.9, project variant
+80.8; `days_p90` did not qualify and is not used. The drift check tests on later-awarded packages and is shown under "Drift
+checks" on the Evaluation page.
