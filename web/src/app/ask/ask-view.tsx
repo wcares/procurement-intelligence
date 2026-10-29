@@ -17,6 +17,10 @@ const EXAMPLES = [
   "What lessons were learned about procurement capacity of implementing agencies?",
 ];
 
+// Hidden 2026-10-28, not removed: alerts, the award-time chart and recommendations above the question repeat Overview and
+// Insights. Set to true to bring them back.
+const SHOW_INSIGHTS = false;
+
 export function AskView() {
   const [opts, setOpts] = useState<Options | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -56,9 +60,11 @@ export function AskView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <InsightsPanel procGroup={procGroup || undefined} countryCode={countryCode || undefined} />
-      </div>
+      {SHOW_INSIGHTS && (
+        <div className="mb-6">
+          <InsightsPanel procGroup={procGroup || undefined} countryCode={countryCode || undefined} />
+        </div>
+      )}
       <div className="space-y-8">
         {turns.length === 0 && (
           <div className="rounded-xl border border-dashed border-line p-6">

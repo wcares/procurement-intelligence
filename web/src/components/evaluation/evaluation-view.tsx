@@ -12,6 +12,10 @@ import { ModelsView } from "./models-view";
 import { QualityChart } from "./quality-chart";
 import { RunsTable } from "./runs-table";
 
+// Hidden 2026-10-28, not removed: the queue for labelling evaluation data is a tool for the people who maintain the
+// evaluation set. Set to true to bring it back.
+const SHOW_LABELLING = false;
+
 export function EvaluationView() {
   const [data, setData] = useState<EvaluationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +60,7 @@ export function EvaluationView() {
       </Section>
       <Section title="Comparisons"><ComparisonsView data={data.comparisons} onChanged={load} /></Section>
       <Section title="Prediction model"><ModelsView data={data.models} /></Section>
-      <Section title="Labelling queue"><Labelling /></Section>
+      {SHOW_LABELLING && <Section title="Labelling queue"><Labelling /></Section>}
       <FeedbackReview />
     </div>
   );

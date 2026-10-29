@@ -13,6 +13,10 @@ type Draft = Record<string, string>;
 
 const show = (v: string | number) => (v === "" ? "(not set)" : String(v));
 
+// Hidden 2026-10-28, not removed: the prompt texts, saved profiles, job queue and pages that Evaluation and Pipeline already
+// have are for engineers, not for the people this is shown to. Set to true to bring them back.
+const SHOW_ADVANCED = false;
+
 export function ConfigView() {
   const [settings, setSettings] = useState<ConfigSetting[] | null>(null);
   const [draft, setDraft] = useState<Draft>({});
@@ -75,21 +79,21 @@ export function ConfigView() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <Users />
-      <Jobs />
-      <section>
+      {SHOW_ADVANCED && <Jobs />}
+      {SHOW_ADVANCED && <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Data pipeline</h2>
         <p className="rounded-xl border border-line bg-surface p-4 text-sm">
           Sources, change events and rules have their own pages: <Link className="underline" href="/pipeline">connectors</Link>,{" "}
           <Link className="underline" href="/pipeline/events">event log</Link>, <Link className="underline" href="/pipeline/rules">rules</Link>.
         </p>
-      </section>
-      <FeedbackReview />
-      <Prompts />
-      <Profiles
+      </section>}
+      {SHOW_ADVANCED && <FeedbackReview />}
+      {SHOW_ADVANCED && <Prompts />}
+      {SHOW_ADVANCED && <Profiles
         disabled={busy}
         onApplied={(s) => (setSettings(s), setDraft({}), setErrors({}), setComparison(null))}
         onStatus={setStatus}
-      />
+      />}
       {groups.map(([group, items]) => (
         <section key={group}>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">{group}</h2>
