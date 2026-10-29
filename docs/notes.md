@@ -73,3 +73,42 @@ code keeps them apart because DuckDB lets only one process write to a file at a 
 
 32 + 8 + 3 + 4 + 2 = 49 tables. In Postgres (`core/db.py`) the same five become five schemas of one database: `public`,
 `pipeline`, `auth`, `feedback`, `jobs`. Searched only `data/`; any `.duckdb` file elsewhere is not counted.
+
+## 3. Events, rules and actions (2026-10-29)
+
+Verified from `pipeline/entities.py`, `rules.py`, `actions.py`; the event list also matches the Rules page.
+
+**Events: 24 types**
+- **3 kinds applied to each of the 6 entities** (Notice, Project, ContractAward, Indicator, Document, SupervisionDoc), which makes 18:
+  `added` (a new item), `changed` (a watched field of the item changed), `removed` (the item is gone from the source).
+- **6 derived events**, reported by actions and the upload step, not by detection: `Package.award_changed`, `Data.updated`,
+  `Documents.changed`, `Passages.changed`, `Upload.ingested`, `Upload.removed`.
+
+**How an entity event is raised.** Detection reads a source and compares each item's fingerprint, built from the entity's
+watched fields, with the last one. Other fields make no event.
+
+**Rules: 11.** A rule lists events (`on`), the actions to run (`do`) and, for `.changed` events, an optional list of fields
+(`fields`). One event can match several rules; an action asked for by several rules or events runs once per batch.
+
+**Actions: 15**, run in this order:
+
+| # | Action | What it does | Default trigger |
+|---|---|---|---|
+| 1 | `ingest_documents` | fetch and write new or changed reports (and new projects' records and notices) | Document, SupervisionDoc added or changed |
+| 2 | `apply_notices` | write new and changed notices | Notice added or changed |
+| 3 | `apply_projects` | write changed project records | Project added or changed, only if status, sector, closing date, board approval or commitment changed |
+| 4 | `apply_contracts` | write new and changed contract awards | ContractAward added, changed, removed |
+| 5 | `apply_indicators` | write CPIA and WGI values | Indicator added, changed, removed |
+| 6 | `rebuild_tables` | rebuild packages, suppliers and links | Notice, Document, SupervisionDoc, Project events; upload events |
+| 7 | `fill_award_dates` | fill award dates from contract signing dates | ContractAward events |
+| 8 | `rebuild_firms` | merge supplier ids of the same firm | Notice, Document, SupervisionDoc events; upload events |
+| 9 | `chunk_documents` | cut report texts into passages | Document, SupervisionDoc, upload events; `Documents.changed` |
+| 10 | `index_passages` | embed and tag new or changed passages | `Passages.changed` |
+| 11 | `document_checks` | rating checks, re-bid and amendment evidence from the passages | `Passages.changed` |
+| 12 | `sector_links` | rebuild contract-to-report links by sector and time | Project events (as above) |
+| 13 | `drift_check` | queue a prediction drift check (at most every 6 hours) | `Package.award_changed` |
+| 14 | `watch_alerts` | alert planners whose watch-list covers the changes | Notice added or changed, Document added, `Upload.ingested`, `Package.award_changed` |
+| 15 | `reload_backend` | reload the backend's data | `Data.updated` |
+
+**Which entity triggers what (default rules).** Notice: 2, 6, 8, 14. Project: 3, 6, 12. ContractAward: 4, 7. Indicator: 5.
+Document and SupervisionDoc: 1, 6, 8, 9 (Document added also 14).
