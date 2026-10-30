@@ -29,12 +29,16 @@ export function UploadView() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
+  const [showRemoved, setShowRemoved] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
   const load = useCallback(() => api.uploads().then(setData).catch((e) => setError((e as Error).message)), []);
   useEffect(() => {
     load();
   }, [load]);
+  // a removed document leaves the list; its record is kept as history and shown on request
+  const removed = data?.uploads.filter((u) => u.status === "removed").length ?? 0;
+  const shown = data?.uploads.filter((u) => showRemoved || u.status !== "removed") ?? [];
   const working = data?.uploads.some((u) => WORKING.has(u.status)) ?? false;
   useEffect(() => {
     if (!working) return;
@@ -75,8 +79,13 @@ export function UploadView() {
         {busy && <p className="mt-2 text-xs text-ink-muted">Uploading…</p>}
       </div>
       {error && <p className="text-sm text-risk-high">{error}</p>}
-      {data && data.uploads.length === 0 && <p className="text-sm text-ink-muted">No uploads yet.</p>}
-      <ul className="space-y-3">{data?.uploads.map((u) => <UploadCard key={u.upload_id} u={u} admin={data.all} onChanged={load} />)}</ul>
+      {data && shown.length === 0 && <p className="text-sm text-ink-muted">No documents{removed ? " in the list" : " yet"}.</p>}
+      <ul className="space-y-3">{shown.map((u) => <UploadCard key={u.upload_id} u={u} admin={data!.all} onChanged={load} />)}</ul>
+      {removed > 0 && (
+        <button type="button" className="text-xs text-ink-muted underline underline-offset-2" onClick={() => setShowRemoved((v) => !v)}>
+          {showRemoved ? "Hide" : "Show"} removed documents ({removed})
+        </button>
+      )}
     </div>
   );
 }
@@ -146,7 +155,7 @@ function UploadCard({ u, admin, onChanged }: { u: Upload; admin: boolean; onChan
           {asking ? (
             <>
               <span>
-                Delete the file{u.doc_id ? " and take its report out of the evidence" : ""}? The record stays, marked removed.
+                Delete the file{u.doc_id ? " and take its report out of the evidence" : ""}? It leaves this list; a record is kept as history (Show removed documents).
               </span>
               <Button variant="outline" size="xs" className="border-line text-risk-high" onClick={remove}>Remove</Button>
               <Button variant="ghost" size="xs" onClick={() => setAsking(false)}>Keep</Button>
