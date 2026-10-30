@@ -77,11 +77,11 @@ export function AssessView() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
-      <div className="space-y-4 self-start lg:sticky lg:top-6">
-      <form onSubmit={submit} className="space-y-4 rounded-xl border border-line bg-surface p-5">
-        <h2 className="font-semibold">Describe the package</h2>
-        <Label text="Country">
+    <div className="grid gap-6 lg:grid-cols-[minmax(380px,460px)_1fr]">
+      <div className="self-start lg:sticky lg:top-0">
+      <form onSubmit={submit} className="grid gap-3 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-2">
+        <h2 className="font-semibold sm:col-span-2">Describe the package</h2>
+        <Label text="Country" wide>
           <select className={field} value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} disabled={!opts}>
             {regions.map(([region, cs]) => (
               <optgroup key={region} label={region}>
@@ -103,7 +103,7 @@ export function AssessView() {
             ))}
           </select>
         </Label>
-        <Label text="Procurement method">
+        <Label text="Procurement method" wide>
           <select className={field} value={form.methodCode} onChange={(e) => setForm({ ...form, methodCode: e.target.value })} disabled={!opts}>
             {methods.map((m) => (
               <option key={m.code} value={m.code}>
@@ -140,15 +140,15 @@ export function AssessView() {
             onChange={(e) => setForm({ ...form, estimatedValueUsd: e.target.value ? Number(e.target.value) : undefined })}
           />
         </Label>
-        <Label text="Short description (optional)">
+        <Label text="Short description (optional)" wide>
           <textarea
-            className={`${field} min-h-20`}
+            className={`${field} min-h-14`}
             placeholder="e.g. rehabilitation of rural feeder roads"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
         </Label>
-        <Label text="Tender reference (optional)">
+        <Label text="Tender reference (optional)" wide>
           <input
             className={field}
             placeholder="bid reference, e.g. KE-KURA-123456-CW-RFB"
@@ -158,16 +158,15 @@ export function AssessView() {
           />
           <span className="text-xs text-ink-muted">Lets us check this prediction against the actual award time later.</span>
         </Label>
-        <StartedFields value={started} onChange={setStarted} />
+        <div className="sm:col-span-2"><StartedFields value={started} onChange={setStarted} /></div>
         <button
           type="submit"
           disabled={!opts || !form.methodCode || loading}
-          className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-lg sm:col-span-2 bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {loading ? "Assessing…" : "Assess package"}
         </button>
       </form>
-      <InsightsPanel procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
       </div>
 
       <section className="min-w-0 space-y-6">
@@ -184,6 +183,7 @@ export function AssessView() {
         )}
         {result && assessed && <GoalPanel request={assessed} />}
         {result && <Results r={result} />}
+        <InsightsPanel wide procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
       </section>
     </div>
   );
@@ -287,9 +287,9 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-function Label({ text, children }: { text: string; children: React.ReactNode }) {
+function Label({ text, children, wide = false }: { text: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <label className="block space-y-1">
+    <label className={`block space-y-1 ${wide ? "sm:col-span-2" : ""}`}>
       <span className="text-xs font-medium text-ink-muted">{text}</span>
       {children}
     </label>
