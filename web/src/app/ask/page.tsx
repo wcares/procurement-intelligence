@@ -1,5 +1,6 @@
-import { AskView } from "./ask-view";
+import { redirect } from "next/navigation";
 
+// Ask the evidence is a tab of Plan a project; old links and bookmarks land there.
 export default function AskPage() {
-  return <AskView />;
+  redirect("/plan?tab=ask");
 }

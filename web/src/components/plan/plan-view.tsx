@@ -3,18 +3,20 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AssessView } from "@/app/assess/assess-view";
+import { AskView } from "@/app/ask/ask-view";
 import { ManualPlan } from "./manual-plan";
 import { PlanChat } from "./plan-chat";
 import { PlanResults } from "./plan-results";
 import { usePlan, type PlanState } from "./use-plan";
 
-type Tab = "chat" | "manual" | "assess";
+type Tab = "chat" | "manual" | "assess" | "ask";
+const TABS = ["chat", "manual", "assess", "ask"];
 const money = (v?: number) => (v ? (v >= 1e6 ? `US$${(v / 1e6).toFixed(1)}M` : `US$${Math.round(v / 1e3)}k`) : "");
 
 /** Plan a project, two ways onto one plan: talk to the assistant (default) or fill the form. */
 export function PlanView() {
   const s = usePlan();
-  const [tab, setTab] = useState<Tab>(useSearchParams().get("tab") === "assess" ? "assess" : "chat");   // /assess redirects here
+  const [tab, setTab] = useState<Tab>(((t) => (TABS.includes(t ?? "") ? t : "chat") as Tab)(useSearchParams().get("tab")));   // /assess and /ask redirect here
   const [pane, setPane] = useState<"chat" | "plan">("chat");   // narrow screens show one side at a time
   if (!s.ready) return <p className="text-sm text-ink-muted">Loading…</p>;
   const seg = (on: boolean) => `rounded-lg px-3.5 py-1.5 text-sm font-medium ${on ? "bg-brand" : "text-ink-muted hover:text-foreground"}`;
@@ -28,6 +30,7 @@ export function PlanView() {
           <button type="button" onClick={() => setTab("chat")} aria-pressed={tab === "chat"} className={seg(tab === "chat")}>Chat</button>
           <button type="button" onClick={() => setTab("manual")} aria-pressed={tab === "manual"} className={seg(tab === "manual")}>Manual</button>
           <button type="button" onClick={() => setTab("assess")} aria-pressed={tab === "assess"} className={seg(tab === "assess")}>Assess a package</button>
+          <button type="button" onClick={() => setTab("ask")} aria-pressed={tab === "ask"} className={seg(tab === "ask")}>Ask the evidence</button>
         </div>
         {tab === "chat" && (
           <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px] lg:hidden" role="group" aria-label="Pane">
@@ -39,6 +42,8 @@ export function PlanView() {
       </div>
       {tab === "manual" ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8"><ManualPlan s={s} /></div>
+      ) : tab === "ask" ? (
+        <div className="min-h-0 flex-1"><AskView embedded /></div>
       ) : tab === "assess" ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
           <p className="mb-5 max-w-2xl text-sm text-ink-muted">See how comparable World Bank–financed packages actually went, and what past evaluations say went wrong, with every lesson quoted from its source.</p>

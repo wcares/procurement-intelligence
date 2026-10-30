@@ -10,7 +10,6 @@ import { useAuth } from "./auth";
 const NAV: { href: string; label: string; roles: Role[] }[] = [
   { href: "/", label: "Overview", roles: ["planner", "reviewer"] },
   { href: "/plan", label: "Plan a project", roles: ["planner", "reviewer"] },
-  { href: "/ask", label: "Ask the evidence", roles: ["planner", "reviewer"] },
   { href: "/insights", label: "Insights", roles: ["planner", "reviewer"] },
   { href: "/documents", label: "Documents", roles: ["planner", "reviewer"] },
   { href: "/pipeline", label: "Pipeline", roles: ["admin"] },

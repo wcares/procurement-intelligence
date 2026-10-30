@@ -20,7 +20,7 @@ const EXAMPLES = [
 // Insights. Set to true to bring them back.
 const SHOW_INSIGHTS = false;
 
-export function AskView() {
+export function AskView({ embedded = false }: { embedded?: boolean }) {
   const [opts, setOpts] = useState<Options | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState("");
@@ -58,12 +58,15 @@ export function AskView() {
   const select = "rounded-lg border border-line bg-subtle px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-brand";
 
   return (
-    // fills the space between the header and the footer; the negative margins cancel the page padding
-    <div className="-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[520px] flex-col lg:-mx-8">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8">
-        <h1 className="text-[15px] font-semibold tracking-tight">Ask the evidence</h1>
-        <p className="hidden text-xs text-ink-muted md:block">Answered from completion reports, supervision reports and restructuring papers. Each sentence links to its passage.</p>
-      </div>
+    // on its own page it fills the space between the header and the footer (the negative margins cancel the page padding);
+    // as a tab of Plan a project it fills the tab
+    <div className={embedded ? "flex h-full min-h-0 flex-col" : "-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[520px] flex-col lg:-mx-8"}>
+      {!embedded && (
+        <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8">
+          <h1 className="text-[15px] font-semibold tracking-tight">Ask the evidence</h1>
+          <p className="hidden text-xs text-ink-muted md:block">Answered from completion reports, supervision reports and restructuring papers. Each sentence links to its passage.</p>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-6 lg:px-8">
         <div className="mx-auto flex max-w-3xl flex-col gap-7">
           {SHOW_INSIGHTS && <InsightsPanel procGroup={procGroup || undefined} countryCode={countryCode || undefined} />}
