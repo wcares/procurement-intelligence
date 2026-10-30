@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { api, setSignedIn, SIGNED_OUT } from "@/lib/api/client";
 import type { AuthUser, Role } from "@/lib/api/types";
 
-const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promise<void> }>({ user: null, refresh: async () => {} });
+const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promise<AuthUser | null> }>({ user: null, refresh: async () => null });
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -13,6 +13,20 @@ const PUBLIC_PAGES = ["/login", "/data-handling"]; // readable without signing i
 // The planner app: an admin account is for running the platform and does not use it, so it is sent to its own home.
 const PLANNER_PAGES = ["/", "/assess", "/plan", "/ask", "/insights", "/documents", "/package"];
 export const ADMIN_HOME = "/pipeline";
+
+// What a page needs; a page not listed is open to every signed-in role.
+const PAGE_ROLE: [string, Role][] = [["/pipeline", "admin"], ["/config", "admin"], ["/evaluation", "reviewer"]];
+
+/** Where to go after signing in: the page asked for when this role may use it, otherwise the role's own home. A session that
+ * ended on an admin page must not land a planner on "this page needs the admin role". */
+export function landingFor(next: string | null, role: Role): string {
+  const home = role === "admin" ? ADMIN_HOME : "/";
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return home;
+  const needed = PAGE_ROLE.find(([p]) => next === p || next.startsWith(`${p}/`))?.[1];
+  if (needed && !hasRole(role, needed)) return home;
+  if (role === "admin" && PLANNER_PAGES.includes(next.split("?")[0])) return home;
+  return next;
+}
 
 /** Loads the signed-in user; any page but /login stays hidden until there is one, and a visitor without a session is
  * sent to /login. */
@@ -23,8 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const refresh = async () => {
-    setUser(await api.me().catch(() => null));
+    const u = await api.me().catch(() => null);
+    setUser(u);
     setChecked(true);
+    return u;
   };
 
   useEffect(() => {

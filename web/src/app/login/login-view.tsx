@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/components/auth";
+import { landingFor, useAuth } from "@/components/auth";
 
 const field = "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand";
 
@@ -23,9 +23,8 @@ export function LoginView() {
     try {
       const r = await api.login(username, password);
       if ("error" in r) return setError(r.error);
-      await refresh();
-      const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
+      const user = await refresh();
+      router.replace(landingFor(new URLSearchParams(window.location.search).get("next"), user?.role ?? "planner"));
     } catch (err) {
       setError((err as Error).message);
     } finally {
