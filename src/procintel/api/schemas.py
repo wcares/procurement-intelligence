@@ -290,6 +290,10 @@ class ChatPlan(BaseModel):
     packages: list[ChatPackage] = Field(default_factory=list, max_length=12)
 
 
+class SummarizeRequest(BaseModel):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=60)
+
+
 class PlanChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=60)   # ends with the planner's latest message
     plan: ChatPlan = Field(default_factory=ChatPlan)

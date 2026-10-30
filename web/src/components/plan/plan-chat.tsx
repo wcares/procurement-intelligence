@@ -14,7 +14,7 @@ type Rich =
   | { kind: "stats"; data: RankingResponse }
   | { kind: "evidence"; question: string; response: AskResponse };
 /** content is what the model sees of this message later; rich is what the person sees. */
-export interface ChatMsg { id: number; role: "user" | "assistant"; content: string; rich?: Rich }
+export interface ChatMsg { id: number; role: "user" | "assistant"; content: string; rich?: Rich; summary?: boolean }
 
 const STARTERS: { kind: "Plan" | "Statistics" | "Evidence"; text: string }[] = [
   { kind: "Plan", text: "I want to plan a roads project in Kenya, about 5 million, then supervision consultants after the works" },
@@ -26,8 +26,12 @@ const KIND_COLOR = { Plan: "border-t-brand text-brand", Statistics: "border-t-ri
 const KEEP_TURNS = 14;
 const KEEP_CHARS = 900;
 
-const historyFor = (msgs: ChatMsg[]): ChatTurn[] =>
-  msgs.slice(-KEEP_TURNS).map((m) => ({ role: m.role, content: m.content.slice(0, KEEP_CHARS) }));
+/** What the model is sent: from the latest summary on (the summary stands in for everything before it), the last KEEP_TURNS. */
+const historyFor = (msgs: ChatMsg[]): ChatTurn[] => {
+  const at = msgs.map((m) => !!m.summary).lastIndexOf(true);
+  const head: ChatTurn[] = at >= 0 ? [{ role: "assistant", content: `Summary of the earlier conversation: ${msgs[at].content}` }] : [];
+  return [...head, ...msgs.slice(at + 1).slice(-KEEP_TURNS).map((m) => ({ role: m.role, content: m.content.slice(0, KEEP_CHARS) }))];
+};
 
 /** The planning chat: say what you want to plan, answer its questions, ask about the plan or about the past. The plan
  * on the right is the same one the manual tab edits. The conversation lives in this page only. */
@@ -93,6 +97,20 @@ export function PlanChat({ s }: { s: PlanState }) {
   }
 
   function restart() { history.fresh(); }
+  /** Replaces the earlier messages, for the model, with a short summary; the transcript stays on the page. */
+  async function compact() {
+    if (busy) return;
+    setBusy("Summarizing the conversation…");
+    try {
+      const { summary } = await api.summarizeChat(historyFor(msgs));
+      add({ role: "assistant", content: summary, summary: true });
+      setCtx(null);   // the next message measures the shorter conversation
+    } catch (e) {
+      add({ role: "assistant", content: `I could not summarize it (${(e as Error).message.slice(0, 120)}). You can start a new conversation; your plan stays.` });
+    } finally {
+      setBusy("");
+    }
+  }
   const pct = ctx ? Math.min(100, Math.round((ctx.used / ctx.budget) * 100)) : 0;
   const empty = msgs.length === 0 && !busy;
 
@@ -115,7 +133,12 @@ export function PlanChat({ s }: { s: PlanState }) {
               </div>
             </div>
           )}
-          {msgs.map((m) => m.role === "user" ? (
+          {msgs.map((m) => m.summary ? (
+            <details key={m.id} className="rounded-xl border border-dashed border-line px-3.5 py-2.5 text-xs text-ink-muted">
+              <summary className="cursor-pointer">Earlier messages were summarized to make room. Show the summary</summary>
+              <p className="mt-2 whitespace-pre-wrap text-foreground">{m.content}</p>
+            </details>
+          ) : m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
               <p className="max-w-[85%] whitespace-pre-wrap rounded-[18px_18px_4px_18px] bg-gradient-to-br from-brand-strong to-brand-2 px-3.5 py-2 text-[#f1f4ff]">{m.content}</p>
             </div>
@@ -143,13 +166,21 @@ export function PlanChat({ s }: { s: PlanState }) {
         </div>
       </div>
       {ctx?.warn && !full && (
-        <p className="mx-4 mb-2 rounded-lg bg-risk-medium-soft px-3 py-2 text-xs text-risk-medium lg:mx-8">This conversation is getting long ({pct}% of what the model can hold). Start a new one soon; your plan stays.</p>
+        <div className="mx-4 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-risk-medium-soft px-3 py-2 text-xs text-risk-medium lg:mx-8">
+          <span>This conversation is getting long ({pct}% of what the model can hold).</span>
+          <button className="font-medium underline underline-offset-2" onClick={() => void compact()} disabled={Boolean(busy)}>Summarize and continue</button>
+          <button className="underline underline-offset-2" onClick={restart}>Start a new one</button>
+          <span>Your plan stays either way.</span>
+        </div>
       )}
       <div className="px-4 pb-4 pt-2 lg:px-8">
         {full ? (
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
             <span>This conversation has reached the model&apos;s length limit.</span>
-            <button className="rounded-lg bg-brand px-3 py-1.5 font-medium" onClick={restart}>Start a new conversation</button>
+            <span className="flex shrink-0 gap-2">
+              <button className="rounded-lg bg-brand px-3 py-1.5 font-medium" onClick={() => void compact()} disabled={Boolean(busy)}>Summarize and continue</button>
+              <button className="rounded-lg border border-line px-3 py-1.5" onClick={restart}>Start a new one</button>
+            </span>
           </div>
         ) : (
           <form className="mx-auto flex max-w-2xl items-end gap-2.5 rounded-2xl border border-line bg-surface py-2.5 pl-4 pr-2.5 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft"

@@ -134,3 +134,17 @@ def test_assess_without_precedents_gives_the_same_forecast_and_no_passages(clien
     r = client.post("/assess", json={**body, "withPrecedents": False}).json()
     assert r["precedents"] == [] and (r["timeline"]["n"], r["timeline"]["median"]) == (215, 112.0)
     assert r["risks"] and r["prediction"] is not None
+
+
+def test_summarize_compacts_a_conversation(client, monkeypatch):
+    from procintel.core import llm
+    monkeypatch.setattr(llm, "available", lambda *a, **k: True)
+    seen = {}
+
+    def fake(system, user, **k):
+        seen["user"] = user
+        return "Roads project in Kenya, 5 million, supervision after the works."
+    monkeypatch.setattr(llm, "complete", fake)
+    r = client.post("/assistant/summarize", json={"messages": [{"role": "user", "content": "Plan roads in Kenya, 5 million"},
+                                                               {"role": "assistant", "content": "Got it."}]}).json()
+    assert r["summary"].startswith("Roads project") and "Planner: Plan roads in Kenya" in seen["user"]

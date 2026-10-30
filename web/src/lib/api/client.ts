@@ -178,6 +178,8 @@ export const api = {
   assess: (req: AssessRequest) => call<AssessResponse>("/assess", { method: "POST", body: JSON.stringify(req) }),
   planChat: (messages: ChatTurn[], plan: ChatPlan, results: string) =>
     call<PlanChatResponse>("/assistant/plan", { method: "POST", body: JSON.stringify({ messages, plan, results }) }),
+  /** the conversation compacted into a short summary (sent in place of the earlier messages) */
+  summarizeChat: (messages: ChatTurn[]) => call<{ summary: string }>("/assistant/summarize", { method: "POST", body: JSON.stringify({ messages }) }),
   ask: (req: AskRequest) => call<AskResponse>("/ask", { method: "POST", body: JSON.stringify(req) }),
   /** like ask, but onEvent hears the stages, the evidence found and each checked sentence while the answer is written */
   askStream,

@@ -9,14 +9,15 @@ from datetime import date
 
 from fastapi import APIRouter, HTTPException
 
-from procintel.api.schemas import PlanChatRequest
+from procintel.api.schemas import PlanChatRequest, SummarizeRequest
 from procintel.api.state import state
 from procintel.assistant import context, interpret, resolve
-from procintel.core import llm
+from procintel.core import llm, prompts
 
 router = APIRouter()
 
-FULL_REPLY = "This conversation has reached the model's length limit. Start a new conversation to continue; your plan stays."
+FULL_REPLY = ("This conversation has reached the model's length limit. Summarize it to continue in the same conversation, "
+              "or start a new one; your plan stays.")
 
 
 def _numbers(text: str) -> set[str]:
@@ -61,3 +62,18 @@ def post_plan_chat(req: PlanChatRequest) -> dict:
             reply = f"{reply} {' '.join(r['notes'])}"
     r.pop("modelReply")
     return {**r, "reply": reply, "context": context.usage(system + fixed, history + [{"role": "assistant", "content": reply}])}
+
+
+@router.post("/assistant/summarize")
+def post_summarize(req: SummarizeRequest) -> dict:
+    """The conversation compacted into a short summary, which the page then sends in place of the earlier messages."""
+    if not llm.available():
+        raise HTTPException(503, "no language model is configured")
+    transcript = "\n".join(f"{'Planner' if m.role == 'user' else 'Assistant'}: {m.content}" for m in req.messages)
+    try:
+        summary = llm.complete(prompts.get("chat_summary"), transcript, max_tokens=400).strip()
+    except Exception as e:  # server down or timeout: the planner can retry or start a new conversation
+        raise HTTPException(502, f"the language model did not answer: {e}") from e
+    if not summary:
+        raise HTTPException(502, "the language model returned no summary")
+    return {"summary": summary}
