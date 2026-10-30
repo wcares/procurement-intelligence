@@ -269,3 +269,53 @@ A planner's project P105680 gets a new notice: the hourly Notice check finds a `
 package gets its award, `rebuild_tables` reports `Package.award_changed`, which queues `drift_check` and alerts again.
 A new ICR does the same through `Document.added` → `ingest_documents` → `chunk_documents` → `Passages.changed` →
 `index_passages` and `document_checks`. Events and actions are listed in note 3.
+
+## 6. How a package is built (2026-10-30)
+
+Verified from `ingestion/tables.py` (`notice_m`, `package`) and from `data/procintel.duckdb` on 2026-10-30.
+
+**No API returns a package.** The notices API returns single notices (an invitation for bids, a contract award, ...). We group
+them into one tender, a **package**, and `rebuild_tables` recreates the `package` table from `notices` each time. Nothing writes
+to it directly.
+
+**Grouping rule.** `package_id = project_id / bid_reference` (the bid reference is the notice's `bid_ref`). A notice with no
+bid reference becomes a package of its own (its `notice_id` stands in). General Procurement Notices are left out of the package
+(they announce a plan, not a tender).
+
+**Re-linked awards.** Some awards are filed under the tender's reference plus "-N" (for example `...-CW-RFB-3`, likely a
+bidding round). Such an award is linked to the base tender when the suffixed reference has no tender of its own, the base
+reference is a tender, and that tender has no dated award yet. `notice_m.relinked` and `package.award_relinked` mark these
+so the link can be audited.
+
+**Columns (18).**
+
+| Group | Columns |
+|---|---|
+| Identity | `package_id`, `project_id`, `proc_group`, `method_code`, `description` (longest seen), `n_notices` |
+| Tender | `tender_start` (earliest pre-award notice), `first_stage` |
+| Award | `award_date`, `max_notice_version`, `n_award_notices`, `contract_duration_days`, `price_currency`, `price_amount`, `award_relinked`, `award_from_contract` |
+| Outcome | `tender_to_award_days` = days from `tender_start` to `award_date`, only when both exist and the award is not earlier |
+| Re-bid | `rebid_evidence` (`award_under_suffix` or `successor_reference`) |
+
+`award_from_contract` marks an award date copied from the Finances One signing date (`fill_award_dates`, note 3).
+
+**Re-bid evidence is positive-only.** It marks the original package when its reference also exists as `X-N` in the same
+project, or when an award was filed under `-N`. About 12 of 98 projects have it (13 pairs from one project), so a package without it
+may still have been re-bid; it is not a re-bid rate.
+
+**Example (one row).**
+```
+package_id  P126498/RW-RTDA-58025-CW-RFB      proc_group CW   method RFB   first_stage Invitation for Bids
+n_notices 3   n_award_notices 2   tender_start 2018-09-25   award_date 2019-06-20   tender_to_award_days 268
+price_amount 5,440,991,134 RWF   contract_duration_days 1260   rebid_evidence (none)
+```
+
+**Counts today.** 8,347 packages; 6,904 have an award date and 6,160 a price. A package with no award yet has no
+`tender_to_award_days`, so it cannot train the timeline models.
+
+**What uses it.**
+- The timeline models (note 4) train on packages with at least 540 days of follow-up, with `tender_to_award_days` as the thing
+  to predict; inputs come from the package (group, method, value) and its project (region, sector, CPIA scores).
+- `/assess` and the benchmark statistics read it; `supplier` and `award_supplier` are built from the notices' suppliers by package.
+- It is rebuilt by `rebuild_tables` on any Notice, Document, SupervisionDoc or Project event, or upload (note 3), and
+  `Package.award_changed` (a package's award changed) queues the drift check.
