@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { HistoryMenu, useHistory } from "@/components/history";
 import { api } from "@/lib/api/client";
 import type { AskResponse, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard } from "@/components/evidence";
@@ -29,6 +30,8 @@ export function AskView({ embedded = false }: { embedded?: boolean }) {
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
 
+  const restore = useCallback((saved: Turn[]) => setTurns(saved.map((t) => ({ ...t, live: undefined }))), []);
+  const history = useHistory<Turn>("ask", turns, restore, busy);
   useEffect(() => {
     api.options().then(setOpts).catch(() => setOpts(null));
   }, []);
@@ -112,6 +115,10 @@ export function AskView({ embedded = false }: { embedded?: boolean }) {
         }}
         className="px-4 pb-4 pt-2 lg:px-8"
       >
+        <div className="mx-auto mb-2 flex max-w-3xl items-center justify-between text-[11.5px] text-ink-muted">
+          <HistoryMenu h={history} />
+          {turns.length > 0 && <button type="button" className="underline underline-offset-2" onClick={history.fresh}>New conversation</button>}
+        </div>
         <div className="mx-auto max-w-3xl rounded-2xl border border-line bg-surface p-2.5 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft">
           <div className="mb-1.5 flex flex-wrap gap-2 px-1.5 pt-0.5">
             <select className={select} value={countryCode} onChange={(e) => setCountryCode(e.target.value)} aria-label="Country filter">

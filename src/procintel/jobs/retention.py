@@ -72,6 +72,11 @@ def responses(cutoff: datetime, dry: bool) -> int:
     return feedback_rows + _rows(paths.FEEDBACK_DB, "response_log", "created_at < ?", [cutoff], dry)
 
 
+def conversations(cutoff: datetime, dry: bool) -> int:
+    """Saved chats not updated since the cutoff (procintel.learning.conversations)."""
+    return _rows(paths.FEEDBACK_DB, "conversation", "updated_at < ?", [cutoff], dry)
+
+
 def _files(folder, cutoff: datetime, dry: bool) -> int:
     if not folder.exists():
         return 0
@@ -132,6 +137,7 @@ TARGETS = [
     Target("alerts", "Planners' alerts", alerts),
     Target("finished_jobs", "Finished background jobs", finished_jobs),
     Target("responses", "Response log and feedback (kept while a pilot runs)", responses),
+    Target("conversations", "Saved conversations (planning chat and Ask)", conversations),
     Target("http_cache", "Cached World Bank API responses", http_cache),
     Target("refresh_logs", "Refresh logs", refresh_logs),
     Target("old_shadows", "Unpromoted shadow builds and superseded tables", old_shadows),

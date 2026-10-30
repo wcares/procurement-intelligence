@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { HistoryMenu, useHistory } from "@/components/history";
 import { api } from "@/lib/api/client";
 import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/api/types";
 import { Answer } from "@/app/ask/ask-view";
@@ -39,6 +40,14 @@ export function PlanChat({ s }: { s: PlanState }) {
   const next = useRef(1);
   const bottom = useRef<HTMLDivElement>(null);
   useEffect(() => { bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy, live]);
+
+  // saved on the server per user: reopened after a reload, listed under History, continued by opening one
+  const restore = useCallback((saved: ChatMsg[]) => {
+    setMsgs(saved);
+    next.current = saved.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+    setCtx(null); setInput("");
+  }, []);
+  const history = useHistory<ChatMsg>("plan", msgs, restore, Boolean(busy));
 
   const add = (m: Omit<ChatMsg, "id">) => setMsgs((all) => [...all, { ...m, id: next.current++ }]);
   const full = ctx?.full ?? false;
@@ -83,7 +92,7 @@ export function PlanChat({ s }: { s: PlanState }) {
     }
   }
 
-  function restart() { setMsgs([]); setCtx(null); setInput(""); }
+  function restart() { history.fresh(); }
   const pct = ctx ? Math.min(100, Math.round((ctx.used / ctx.budget) * 100)) : 0;
   const empty = msgs.length === 0 && !busy;
 
@@ -156,8 +165,8 @@ export function PlanChat({ s }: { s: PlanState }) {
             </button>
           </form>
         )}
-        <div className="mx-auto mt-2 flex max-w-2xl justify-between gap-3 text-[11.5px] text-ink-muted">
-          <span>Kept on this page only</span>
+        <div className="mx-auto mt-2 flex max-w-2xl items-center justify-between gap-3 text-[11.5px] text-ink-muted">
+          <HistoryMenu h={history} />
           {msgs.length > 0 && <button className="underline underline-offset-2" onClick={restart}>New conversation</button>}
         </div>
       </div>

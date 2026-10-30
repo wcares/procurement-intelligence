@@ -1,4 +1,5 @@
 import type {
+  SavedConversation,
   DashboardResponse,
   RecentChanges,
   RecommendationHistory,
@@ -143,6 +144,12 @@ export const api = {
   updateUser: (username: string, change: { role?: string; active?: boolean; password?: string }) =>
     send<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, "PATCH", change),
   options: () => call<Options>("/options"),
+  /** saved conversations of the signed-in user (kind: the planning chat or Ask) */
+  conversations: (kind: "plan" | "ask") => call<{ items: SavedConversation[] }>(`/conversations?kind=${kind}`),
+  conversation: (id: string) => call<{ id: string; kind: string; title: string; messages: unknown[] }>(`/conversations/${id}`),
+  saveConversation: (id: string, kind: "plan" | "ask", messages: unknown[]) =>
+    call<SavedConversation>(`/conversations/${id}`, { method: "PUT", body: JSON.stringify({ kind, messages }) }),
+  deleteConversation: (id: string) => call<{ ok: boolean }>(`/conversations/${id}`, { method: "DELETE" }),
   watch: () => call<{ watch: WatchList }>("/insights/watch"),
   saveWatch: (watch: WatchList) => call<{ watch: WatchList }>("/insights/watch", { method: "PUT", body: JSON.stringify({ watch }) }),
   alerts: () => call<AlertsResponse>("/insights/alerts"),

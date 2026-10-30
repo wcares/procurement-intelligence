@@ -36,6 +36,7 @@ class Prompt:
 
 PROMPTS = {p.name: p for p in [
     Prompt("answer", "Answer writer", "Ask: writes the cited sentences (procintel.answering.answer)", "answers"),
+    Prompt("clarify", "Question clarifier", "Ask: rewrites a casual or unclear question as a clear one before searching", "answers"),
     Prompt("answer_related", "Closest-material writer", "Ask: when nothing answers directly, says what the closest passages do tell", None),
     Prompt("generalize", "Question generalizer", "Ask: when a specific case has no evidence, the question without the country or project", None),
     Prompt("evidence_gate", "Evidence check", "Ask: keeps only passages that help answer the question", "answers"),

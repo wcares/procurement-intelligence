@@ -90,6 +90,9 @@ def _settings() -> list[Setting]:
                 "again (0 = never)", 0, 12),
         Setting("max_passages", "Evidence passages per answer", "Evidence", "int", *_attr(answer, "MAX_PASSAGES"),
                 "Passages kept as evidence and shown to the answer model", 1, 12),
+        Setting("clarify", "Clarify questions before searching", "Retrieval", "int", *_attr(answer, "CLARIFY"),
+                "1: the answer model first rewrites a casual or unclear question as a clear one (~2 s) and the rest of "
+                "the answer works from that; 0: the question as typed", 0, 1),
         Setting("vocab_step", "Rephrase questions in the reports' words", "Retrieval", "int", *_attr(answer, "VOCAB_STEP"),
                 "1: the answer model rephrases each question in the reports' vocabulary and both are searched (~2 s); "
                 "0: the question only, rephrased just when evidence is thin", 0, 1),

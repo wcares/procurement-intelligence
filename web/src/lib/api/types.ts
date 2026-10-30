@@ -765,3 +765,6 @@ export interface PlanChatResponse {
   statistic: { measure: string; group: string } | null;
   context: ChatContext;
 }
+
+/** One saved conversation in the history list (its messages are fetched when it is opened). */
+export interface SavedConversation { id: string; title: string; updatedAt: string; messages: number }

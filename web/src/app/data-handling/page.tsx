@@ -11,6 +11,7 @@ export default function DataHandling() {
         <ul className="ml-5 list-disc space-y-1">
           <li>What you enter in Assess (country, procurement type and method, sector, value, description, tender reference) and the questions you ask, with the full response shown to you.</li>
           <li>How long each response took, and when it was given.</li>
+          <li>Your conversations in the planning chat and in Ask (what you wrote and what was answered), so you can reopen and continue them from History. Only you can open them; you can delete any of them.</li>
           <li>Your ratings, flagged citations and comments.</li>
           <li>
             A pseudonymous id instead of your name: a code derived from your account that the logs cannot be traced back

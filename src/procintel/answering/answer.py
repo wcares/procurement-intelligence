@@ -53,6 +53,10 @@ LLM_GATE = 1
 # own-search check the "high-speed rail" trap got through again (2 of 2 runs); refusing outright whenever no evidence
 # came from the own search lost 2 answerable questions (misprocurement, PPP). Cost: about 2.3 s per question.
 VOCAB_STEP = 1
+# 1: before anything else the answer LLM rewrites the question as a clear one (typos, casual wording, words read as
+# general rather than procurement terms: "slowest days" -> slow tender-to-award times) and the search, the evidence check
+# and the answer all use that. Off until measured on messy wording (eval/messy_questions.jsonl, learning/clarify_eval.py).
+CLARIFY = 0
 
 
 def terms(text: str) -> set[str]:
@@ -292,6 +296,16 @@ def retrieval_note(hits: list[Hit]) -> str:
     return "Passages found by keyword search (BM25)."
 
 
+def clarify(question: str) -> str | None:
+    """The question rewritten as a clear one, or None when the reply is unusable or nothing changes."""
+    m = re.search(r"\{.*\}", llm.complete(prompts.get("clarify"), question, max_tokens=150), re.S)
+    try:
+        c = json.loads(m.group(0))["question"] if m else None
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return None
+    return c.strip() if isinstance(c, str) and 5 < len(c.strip()) < 400 and c.strip() != question.strip() else None
+
+
 def reformulate(question: str) -> list[str]:
     """Up to 3 search queries in the reports' vocabulary; [] if the reply is unusable."""
     raw = llm.complete(prompts.get("rephrase"), question, max_tokens=150)
@@ -394,6 +408,14 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
     (what is being done), "passages" (the evidence found, before the answer is written), "sentence" (each checked
     sentence as it is written) and last "done" with ask()'s result, which is the answer: the sentences streamed are
     previews of it."""
+    clarified = None
+    if CLARIFY and llm.available():
+        yield stage("Reading the question…")
+        try:
+            clarified = clarify(question)
+        except Exception:  # model down: work from the question as typed
+            clarified = None
+        question = clarified or question
     yield stage("Searching the reports…")
     own = retriever.search(question, k=SEARCH_K, country=country, proc_group=proc_group)
     rephrased = None
@@ -435,8 +457,8 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
                 hits, judged_by, second_search = more, how2, queries
     use_decide = judged_by in ("llm", "decision") and decide.available()  # sentences are checked by the decision model
     checker = f"the decision model {decide.api_base()}" if use_decide else "word overlap"
-    caveats = [] if judged_by != "terms" or not decide.available() else [
-        "Decision model unavailable; evidence and support were checked by word overlap instead."]
+    caveats = ([f"Understood as: {clarified!r}."] if clarified else []) + ([] if judged_by != "terms" or not decide.available() else [
+        "Decision model unavailable; evidence and support were checked by word overlap instead."])
     judge = {"llm": llm.model_name(), "decision": "The decision model"}.get(judged_by)
     if not hits:
         why = (f"{judge} judged none of the retrieved passages relevant to the question." if judge
