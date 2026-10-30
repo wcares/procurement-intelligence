@@ -30,10 +30,14 @@ export function InsightsView() {
         <p className="mb-3 text-xs text-ink-muted">Changes the pipeline found in what you watch: new and re-issued notices, awards, completion reports.</p>
         {data ? <AlertsList alerts={data.alerts} onRead={(id) => api.markAlertsRead([id]).then(setData)} /> : <p className="text-sm text-ink-muted">Loading…</p>}
       </section>
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Your watch-list</h2>
+      <details className="group self-start">
+        <summary className="mb-3 flex cursor-pointer list-none items-baseline gap-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">
+          Your watch-list
+          <span className="text-xs font-normal normal-case group-open:hidden">edit</span>
+          <span className="hidden text-xs font-normal normal-case group-open:inline">hide</span>
+        </summary>
         <WatchListEditor onSaved={() => (load(), setSaved((n) => n + 1))} />
-      </section>
+      </details>
       <section className="md:col-span-2">
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">Ongoing work</h2>
         <p className="mb-3 text-xs text-ink-muted">Every package has a status (active, finished, replaced or stale) from what has been published so far; active ones are forecast from where they are now. Open a project for its packages, a package for its live timeline.</p>
