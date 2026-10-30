@@ -319,3 +319,33 @@ price_amount 5,440,991,134 RWF   contract_duration_days 1260   rebid_evidence (n
 - `/assess` and the benchmark statistics read it; `supplier` and `award_supplier` are built from the notices' suppliers by package.
 - It is rebuilt by `rebuild_tables` on any Notice, Document, SupervisionDoc or Project event, or upload (note 3), and
   `Package.award_changed` (a package's award changed) queues the drift check.
+
+## 7. Labels on a passage (2026-10-30)
+
+Verified from `data/procintel.duckdb` and `ingestion/chunk.py`, `tag.py`, `problem_tag.py` on 2026-10-30. A passage (a row of `chunk`,
+up to 1,400 characters) carries three separate labels.
+
+| Label | Table | Values | Set by | Used for |
+|---|---|---|---|---|
+| Kind | `chunk.kind` | `text` (20,901), `table` (1,960) | the chunker's rules, no model | whether the passage is searched and answered from |
+| Problem tag | `chunk_tag` | 7 options, each with a probability | Laya (decision model) | the "none of these" filter; the other six are not reliable enough to show as facts |
+| Problem described? | `chunk_problem` | yes / no, plus a kind | Saluki, only on passages Laya did not mark "none of these" | a more precise tag for passages describing a problem |
+
+**Laya's 7 options (passages):** none of these 17,484; funding or payment delays 1,139; weak specifications or design 912;
+contractor performance or capacity 842; external shock (pandemic, disaster, conflict) 466; re-tendering or contract
+termination 412; land acquisition or resettlement 73.
+
+**Saluki's check:** 3,572 passages asked; 2,270 no problem, 1,301 problem (funding delays 420, weak specifications 384,
+contractor performance 345, external shock 309, land acquisition 60, another kind 45, re-tendering 38; one with no kind).
+
+**Tables in a passage.** The text export flattens a table's columns, so we do not rebuild tables. The chunker labels a block
+`table` if most of its lines have wide column gaps, or if `is_flat_table` finds it mostly numbers (>= 30% of tokens; >= 20%
+with no sentence boundary; or a "Table 4." caption with >= 10%). Tables of words stay `text` unless the column-gap layout
+test catches them (not counted). Retrieval returns only `kind = text` by default (`retrieve.py`), and tagging, problem
+tagging, evidence extraction and procurement ratings read only `text`. So a number-heavy table is stored but not used as
+evidence, and a question answered only in a table gets the "no direct answer" fallback. Structured figures come from the
+notices, Finances One and indicators instead. Known misses: data-sheet sector tables and short lists with under 20% numbers.
+
+**Possible later improvement (not tested):** a layout parser such as Docling on the PDF (`pdfurl`) could recover table
+rows and headers, so tables could be searched. It would need a new table-aware chunker, new citation anchors and a background
+job, and should first be compared on a sample with our labelled questions.
