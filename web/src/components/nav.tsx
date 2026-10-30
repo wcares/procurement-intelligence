@@ -9,7 +9,7 @@ import { useAuth } from "./auth";
 // Planner pages are for planners (and reviewers, who also read Evaluation); an admin sees only the admin pages.
 const NAV: { href: string; label: string; roles: Role[] }[] = [
   { href: "/", label: "Overview", roles: ["planner", "reviewer"] },
-  { href: "/plan", label: "Plan a project", roles: ["planner", "reviewer"] },
+  { href: "/plan", label: "Planning workspace", roles: ["planner", "reviewer"] },
   { href: "/insights", label: "Insights", roles: ["planner", "reviewer"] },
   { href: "/documents", label: "Documents", roles: ["planner", "reviewer"] },
   { href: "/pipeline", label: "Pipeline", roles: ["admin"] },

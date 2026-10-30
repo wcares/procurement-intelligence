@@ -59,7 +59,7 @@ export function AskView({ embedded = false }: { embedded?: boolean }) {
 
   return (
     // on its own page it fills the space between the header and the footer (the negative margins cancel the page padding);
-    // as a tab of Plan a project it fills the tab
+    // as a tab of the planning workspace it fills the tab
     <div className={embedded ? "flex h-full min-h-0 flex-col" : "-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[520px] flex-col lg:-mx-8"}>
       {!embedded && (
         <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8">

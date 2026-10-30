@@ -13,7 +13,7 @@ type Tab = "chat" | "manual" | "assess" | "ask";
 const TABS = ["chat", "manual", "assess", "ask"];
 const money = (v?: number) => (v ? (v >= 1e6 ? `US$${(v / 1e6).toFixed(1)}M` : `US$${Math.round(v / 1e3)}k`) : "");
 
-/** Plan a project, two ways onto one plan: talk to the assistant (default) or fill the form. */
+/** The planning workspace: plan a project by chat or form, assess a package, ask the evidence. */
 export function PlanView() {
   const s = usePlan();
   const [tab, setTab] = useState<Tab>(((t) => (TABS.includes(t ?? "") ? t : "chat") as Tab)(useSearchParams().get("tab")));   // /assess and /ask redirect here
@@ -25,7 +25,7 @@ export function PlanView() {
     // fills the space between the header and the footer; the negative margins cancel the page padding
     <div className="-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[560px] flex-col lg:-mx-8">
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8">
-        <h1 className="text-[15px] font-semibold tracking-tight">Plan a project</h1>
+        <h1 className="text-[15px] font-semibold tracking-tight">Planning workspace</h1>
         <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px]" role="group" aria-label="Plan mode">
           <button type="button" onClick={() => setTab("chat")} aria-pressed={tab === "chat"} className={seg(tab === "chat")}>Chat</button>
           <button type="button" onClick={() => setTab("manual")} aria-pressed={tab === "manual"} className={seg(tab === "manual")}>Manual</button>
