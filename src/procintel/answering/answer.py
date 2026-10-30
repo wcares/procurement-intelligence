@@ -326,28 +326,52 @@ def stage(text: str) -> dict:
 FALLBACK_PASSAGES = 3  # closest passages offered when nothing answers the question directly
 
 
+def generalize(question: str) -> str | None:
+    """The question without the country or project it names, or None when the reply is unusable or nothing changes."""
+    m = re.search(r"\{.*\}", llm.complete(prompts.get("generalize"), question, max_tokens=120), re.S)
+    try:
+        g = json.loads(m.group(0))["question"] if m else None
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return None
+    return g.strip() if isinstance(g, str) and g.strip().lower() != question.strip().lower() else None
+
+
 def fallback_events(retriever: Retriever, question: str, closest: list[Hit], use_decide: bool, searched: list[str] | None = None):
-    """The reply when nothing answers the question directly, so a page never shows a bare refusal: one plain sentence
-    saying so, then what the closest passages do say (cited and checked like any answer), or, when none is close, where
-    to look next. Yields stage and sentence events; returns {"answer", "citations"} in the shape of the main answer."""
+    """The reply when nothing answers the question directly, so a page never shows a bare refusal. In order of preference:
+    what the reports say about the question asked more generally (a country with few reports, say), what the closest
+    passages do say, or one plain sentence saying what was tried and where to look next. Every cited sentence is checked
+    like any answer. Yields stage and sentence events; returns {"answer", "citations"} in the main answer's shape."""
     closest = closest[:FALLBACK_PASSAGES]
-    sentences = None
-    if closest:
+    tried = f" (also as {'; '.join(repr(q) for q in searched[:2])})" if searched else ""
+    sentences, source, lead = None, closest, None
+    if llm.available():
+        try:
+            g = generalize(question)
+            if g:
+                yield stage("Little on that specific case; checking what the reports say in general…")
+                general, _ = supporting(g, search_multi(retriever, [g], SEARCH_K, None, None))
+                if general:
+                    out, _ = yield from generative_events(g, general, use_decide, True)
+                    if out:
+                        sentences, source = out, general
+                        lead = f"I could not find evidence on this specific case, so here is what the reports say more generally (asked as: {g!r}):"
+        except Exception:  # model down or timeout: go on with the closest passages
+            sentences = None
+    if sentences is None and closest:
         yield stage("Nothing answers it directly; collecting the closest material…")
         if llm.available():
             try:
                 sentences, _ = yield from generative_events(question, closest, use_decide, True, prompt="answer_related")
-            except Exception:  # model down or timeout: quote the closest passages instead
+            except Exception:
                 sentences = None
         if sentences is None:
             try:
                 sentences = extractive(question, closest, idf(retriever), n=2, use_decide=use_decide)
             except Exception:  # a fallback must never fail the reply: with no usable quotes it says where to look next
                 sentences = []
-    tried = f" (also as {'; '.join(repr(q) for q in searched[:2])})" if searched else ""
-    if sentences:
-        lead = f"I searched the reports for this{tried} and none of them explain it directly. What they do say that is close:"
-    else:
+        if sentences:
+            lead = f"I searched the reports for this{tried} and none of them explain it directly. What they do say that is close:"
+    if not sentences:
         sentences = []
         lead = (f"I searched the reports for this{tried} and could not find anything that explains it. That may mean it is not covered "
                 "for this country or contract. Name a project, a procurement step such as bidding, evaluation or contract signing, "
@@ -355,7 +379,7 @@ def fallback_events(retriever: Retriever, question: str, closest: list[Hit], use
     used = sorted({c for s in sentences for c in s["citations"]})
     remap = {old: new for new, old in enumerate(used)}
     return {"answer": [{"text": lead, "citations": []}] + [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in sentences],
-            "citations": [citation(closest[i]) for i in used]}
+            "citations": [citation(source[i]) for i in used]}
 
 
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:

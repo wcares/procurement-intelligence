@@ -149,12 +149,7 @@ export function PlanChat({ s }: { s: PlanState }) {
               placeholder="Describe what you want to plan, or ask a question…" aria-label="Message" value={input} maxLength={1500} disabled={Boolean(busy)}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }} />
-            <svg className="mb-1.5 size-6 shrink-0" viewBox="0 0 24 24" role="img" aria-label={`Conversation length ${pct} percent`}>
-              <title>Conversation length: {pct}% of what the model can hold</title>
-              <circle cx="12" cy="12" r="9" fill="none" stroke="var(--line)" strokeWidth="3" />
-              <circle cx="12" cy="12" r="9" fill="none" stroke={pct >= 70 ? "var(--risk-medium)" : "var(--brand)"} strokeWidth="3" strokeLinecap="round"
-                strokeDasharray={`${(2 * Math.PI * 9 * pct) / 100} ${2 * Math.PI * 9}`} transform="rotate(-90 12 12)" />
-            </svg>
+            {pct >= 50 && <span className={`mb-2 shrink-0 text-[11px] ${pct >= 70 ? "text-risk-medium" : "text-ink-muted"}`} title="How much of what the model can hold this conversation uses">{pct}% full</span>}
             <button type="submit" disabled={Boolean(busy) || !input.trim()} aria-label="Send"
               className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-brand disabled:opacity-35">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" /></svg>
