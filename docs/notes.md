@@ -4,6 +4,9 @@ Running notes on how the system works, written as questions came up. Each note s
 the code or run on 2026-10-29 unless dated otherwise) or **reading** (my interpretation of names and docs, not checked line
 by line). New notes go at the end; correct a note in place and say so.
 
+This file is the primary source. A copy for reading on a phone is the Claude Doc "Procurement Intelligence Notes"
+(https://claude.ai/artifact/S4yGRS7s3ajLetZAAJrRQM); update this file first, then the doc.
+
 ## 1. Entities and tables (2026-10-29)
 
 **Two different things are called "entity" here.**
