@@ -7,6 +7,7 @@ import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/
 import { Answer } from "@/components/ask/answer";
 import { LiveAnswer, emptyLive, fold, type Live } from "@/components/ask/live-answer";
 import { fmt } from "@/components/dashboard/format";
+import { isEvidenceQuestion } from "./route-question";
 import { schedule, todayLocal, type PlanPackage } from "@/lib/plan";
 import type { PlanState } from "./use-plan";
 
@@ -56,13 +57,26 @@ export function PlanChat({ s }: { s: PlanState }) {
   const add = (m: Omit<ChatMsg, "id">) => setMsgs((all) => [...all, { ...m, id: next.current++ }]);
   const full = ctx?.full ?? false;
 
+  /** The answer from the reports, streamed. No country or type filter: the question already names what it is about, and
+   * filters this narrow made the evidence gate refuse. */
+  async function askEvidence(question: string) {
+    setBusy("Searching the reports…");
+    setLive(emptyLive);
+    const response = await api.askStream({ question }, (e) => setLive((l) => (l ? fold(l, e) : l)));
+    add({ role: "assistant", rich: { kind: "evidence", question, response },
+      content: `${response.unsupported ? "No direct answer in the reports. " : "Answer from the reports: "}${(response.unsupported && response.fallback ? response.fallback.answer : response.answer).map((a) => a.text).join(" ").slice(0, 600)}` });
+  }
+
   async function send(text: string) {
     const clean = text.trim();
     if (!clean || busy || full) return;
     const user: ChatMsg = { id: next.current++, role: "user", content: clean };
     const all = [...msgs, user];
-    setMsgs(all); setInput(""); setBusy("Thinking…");
+    // a plain question about past projects goes straight to the streaming search; the rest first works out what is wanted
+    const direct = isEvidenceQuestion(clean);
+    setMsgs(all); setInput(""); setBusy(direct ? "Searching the reports…" : "Understanding your message…");
     try {
+      if (direct) { await askEvidence(clean); return; }
       const r = await api.planChat(historyFor(all), s.asChatPlan(), s.results);
       setCtx(r.context);
       add({ role: "assistant", content: r.reply });
@@ -82,12 +96,7 @@ export function PlanChat({ s }: { s: PlanState }) {
         add({ role: "assistant", rich: { kind: "stats", data },
           content: `Shown: ${data.measure.label} by ${data.groupLabel}, worst first: ${top.map((x) => `${x.label} ${fmt(data.measure, x.value)}`).join("; ")}.` });
       } else if (r.intent === "ask_evidence" && r.evidenceQuestion) {
-        setBusy("Searching the reports…");
-        // no country or type filter: the question already names what it is about, and filters this narrow made the evidence gate refuse
-        setLive(emptyLive);
-        const response = await api.askStream({ question: r.evidenceQuestion }, (e) => setLive((l) => (l ? fold(l, e) : l)));
-        add({ role: "assistant", rich: { kind: "evidence", question: r.evidenceQuestion, response },
-          content: `${response.unsupported ? "No direct answer in the reports. " : "Answer from the reports: "}${(response.unsupported && response.fallback ? response.fallback.answer : response.answer).map((a) => a.text).join(" ").slice(0, 600)}` });
+        await askEvidence(r.evidenceQuestion);
       }
     } catch (e) {
       add({ role: "assistant", content: `Sorry, that did not work (${(e as Error).message.slice(0, 160)}). You can retry, or use the Manual tab.` });
