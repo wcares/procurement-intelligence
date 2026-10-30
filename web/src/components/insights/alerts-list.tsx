@@ -6,13 +6,14 @@ const KIND: Record<Alert["kind"], string> = { new_notices: "new notices", reissu
 
 /** Alerts newest first; each opens to the notices or reports behind it. */
 export function AlertsList({ alerts, onRead, compact = false }: { alerts: Alert[]; onRead?: (id: string) => void; compact?: boolean }) {
-  if (alerts.length === 0) return <p className="text-xs text-ink-muted">No alerts yet.</p>;
+  if (alerts.length === 0) return <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-sm text-ink-muted">No alerts yet. They appear after the next change detection that touches what you follow.</p>;
   return (
-    <ul className="space-y-2">
+    <ul className={compact ? "space-y-2" : "grid gap-2.5 lg:grid-cols-2"}>
       {alerts.map((a) => (
-        <li key={a.id} className={`rounded-lg border bg-surface p-3 text-sm ${a.read ? "border-line" : "border-brand"}`}>
+        <li key={a.id} className={`rounded-xl border bg-subtle p-3.5 text-sm ${a.read ? "border-line" : "border-brand/60"}`}>
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="rounded bg-subtle px-1.5 text-xs">{KIND[a.kind]}</span>
+            {!a.read && <span className="size-2 rounded-full bg-brand" aria-label="unread" />}
+            <span className="rounded-full bg-brand-soft px-2 text-xs text-brand">{KIND[a.kind]}</span>
             <span className="font-medium">{a.title}</span>
             <span className="ml-auto text-xs text-ink-muted">{new Date(a.at).toLocaleString()}</span>
           </div>
