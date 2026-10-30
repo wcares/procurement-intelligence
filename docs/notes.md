@@ -158,3 +158,111 @@ both sides of the split), repeated 5 times, against a baseline of the plain medi
 beats the baseline by at least 2% (`MIN_GAIN`). Latest: median error 82.5 days against a baseline of 84.9, project variant
 80.8; `days_p90` did not qualify and is not used. The drift check tests on later-awarded packages and is shown under "Drift
 checks" on the Evaluation page.
+
+## 5. From the World Bank sources to events: one worked path per kind (2026-10-30)
+
+Five sources (checked in `ingestion/wb_client.py`, `ingestion/contract_awards.py`). Raw examples below were fetched live on
+2026-10-30 (long fields cut); table rows and counts are read from `data/procintel.duckdb` the same day. Which fields are
+watched and how often is from `pipeline/entities.py`. The mapping of source field names to our column names is read from
+the examples side by side, not from every reader line.
+
+**The chain, for every kind:** source API → raw item → entity type (key + watched fields) → raw table → derived tables →
+detection compares fingerprints → event → rule → action.
+
+### 1. Procurement notices → Notice → `notices`
+`GET search.worldbank.org/api/v2/procnotices?format=json&rows=1`
+```
+{"id": "OP00477669", "notice_type": "Invitation for Prequalification", "noticedate": "29-Oct-2026",
+ "project_id": "P509161", "project_name": "Fourth Energy Sector Project", "bid_reference_no": "MN-MOE-ESP4-1-CW-RFP",
+ "bid_description": "Construction of Mandalgobi-Arvaikheer 220kV ... Transmission Line (287 km)",
+ "procurement_group": "CW", "procurement_method_code": "RFP", "submission_deadline_date": "2026-12-11T00:00:00Z", ...}
+```
+Row in `notices` (12,152 rows): `notice_id OP00472266 | project_id P105680 | notice_type Contract Award | bid_ref
+AR-UCOFI-280748-GO-RFB | proc_group GO | method_code RFB | award_date 2023-11-01 | price_currency USD | price_amount
+953944.91 | suppliers [{"name": ..., "firm_id": 1131595}]`.
+- **Key** `notice_id`. **Watched:** `notice_type`, `notice_version`, `notice_date`, `award_date`, `price_currency`,
+  `price_amount`, `suppliers`. **Looked at:** every hour.
+- **Derived:** `notice_m` (cleaned notices) → `package` (8,347 rows; one tender, its notices grouped by project and bid
+  reference, with `tender_start`, `award_date`, `price_amount`, …) → `supplier`, `award_supplier`, `firm`.
+
+### 2. Projects → Project → `projects`
+`GET search.worldbank.org/api/v2/projects?format=json&rows=1&countrycode_exact=KE`
+```
+{"id": "P501648", "countryname": ["Republic of Kenya"], "lendinginstr": "Program-for-Results Financing",
+ "project_name": "Kenya Secondary Education Equity and Quality Improvement Program", "totalcommamt": "540,000,000",
+ "boardapprovaldate": "2024-10-17T00:00:00Z", "closingdate": "12/31/2029 12:00:00 AM", "status": "Active", ...}
+```
+Row in `projects` (153 rows): `project_id P105680 | name Matanza-Riachuelo Basin ... | country Argentine Republic |
+country_code AR | region Latin America and Caribbean | status Active | commitment_usd 840000000.0 | board_approval
+2009-06-08 | closing_date 2025-09-29 | sector Sanitation`.
+- The source writes the amount as text with commas and the date in two formats; the reader turns them into numbers and
+  dates. **Key** `project_id`. **Watched:** `status`, `closing_date`, `sector`, `commitment_usd`, `board_approval`.
+  **Looked at:** hourly.
+- **Derived:** `project`, `country`.
+
+### 3. Documents → Document and SupervisionDoc → `documents`
+`GET search.worldbank.org/api/v3/wds?format=json&rows=1&docty_exact=Implementation Completion and Results Report`
+```
+{"id": "40136409", "count": "Tonga", "docty": "Implementation Completion and Results Report",
+ "docdt": "2026-10-30T04:00:00Z", "abstracts": {"cdata!": "Ratings of the Pacific Resilience Program for Tonga were ..."},
+ "txturl": ".../text/...", "pdfurl": ".../pdf/..."}
+```
+Row in `documents` (364 rows: 122 ICRs, 145 ISRs, 97 restructuring papers): `doc_id 40130914 | project_id P169610 |
+doc_type Implementation Completion and Results Report | doc_date 2026-10-01 | title ... | pdf_url | txt_url | text`.
+- **One API, two entity types** (same fields, different reading): `Document` = completion reports (ICRs), the newest 120,
+  newest first, **hourly**; `SupervisionDoc` = the newest ISRs and restructuring papers of each tracked project, **daily**.
+  **Key** `doc_id`. **Watched:** `doc_type`, `doc_date`, `title`, `txt_url`.
+- The report text is fetched from `txturl` and stored in `text`. **Derived:** `document_m`, `document_project`, then
+  `chunk` (passages), `chunk_tag`, `chunk_vec`, `chunk_problem`, `rating_check`, `procurement_check`, `project_evidence`.
+
+### 4. Finances One contract awards → ContractAward → `contract_award`
+`GET datacatalogapi.worldbank.org/dexapps/fone/api/apiservice?datasetId=DS00005&resourceId=RS00005&type=json&top=1`
+(296,096 rows in the whole dataset; we filter by our projects)
+```
+{"project_id": "P151416", "wb_contract_number": "1543858", "borrower_contract_reference_number": "UDP PPG-QCBS-2016-4-12",
+ "contract_description": "Technical Supervision of construction in pilot Schools and Kindergartens",
+ "contract_signing_date": "19-May-2022", "procurement_category": "Consultant Services",
+ "procurement_method": "Quality And Cost-Based Selection", "supplier": "M/S. AIRES INGEGNERIA", "supplier_id": "316882",
+ "supplier_country_code": "IT", "supplier_contract_amount_usd": 161538.89, "as_of_date": "30-Oct-2026", ...}
+```
+Row in `contract_award` (17,569 rows): `project_id P105680 | contract_ref AR-UCOFI-68647-CW-RFB | signing_date 2020-04-17 |
+category Works | method Request for Bids | supplier ESUCO S.A. | supplier_id 23681 | amount_usd 11959434.07 |
+wb_contract_number 1612096 | firm_id 23681`.
+- **Key** `wb_contract_number|supplier_id`. **Watched:** `signing_date`, `amount_usd`, `supplier`, `contract_ref`.
+  **Looked at:** daily.
+- **Why it exists:** it carries the contract signing date, which notices often lack; `fill_award_dates` copies it into
+  `package.award_date`.
+
+### 5. Indicators → Indicator → `cpia` and `wgi` (and `fx`)
+`GET api.worldbank.org/v2/country/KEN/indicator/IQ.CPA.TRAN.XQ?format=json`
+```
+{"indicator": {"id": "IQ.CPA.TRAN.XQ", "value": "CPIA transparency, accountability, and corruption in the public sector
+ rating (1=low to 6=high)"}, "countryiso3code": "KEN", "date": "2025", "value": 3.5}
+```
+and for governance `.../indicator/GOV_WGI_GE.EST` → `{"date": "2025", "value": -0.0893561}` (government effectiveness,
+about -2.5 to +2.5).
+Rows: `cpia` (6,444): `country_code SN | year 2025 | indicator public_sector_mgmt_cluster | value 3.5`; `wgi` (11,104):
+`country_code MA | year 2025 | indicator control_of_corruption | value -0.5027918`. Our names replace the codes
+(`CPIA_CODES` in `ingestion/tables.py`, `WGI_CODES` in `ingestion/wgi.py`).
+- **Key** source + country + year + indicator. **Watched:** `value`. **Looked at:** weekly (these move once a year).
+- The same API also gives `fx` (3,468 rows, local currency per US dollar), loaded but **not watched**.
+- **Used by:** the six CPIA scores are timeline-model inputs (note 4).
+
+### Summary
+
+| Source | Entity type | Key | Watched fields | Looked at | Raw table(s) |
+|---|---|---|---|---|---|
+| procnotices API | Notice | `notice_id` | type, version, dates, price, suppliers | hourly | `notices` |
+| projects API | Project | `project_id` | status, closing date, sector, commitment, approval | hourly | `projects` |
+| documents API (ICRs) | Document | `doc_id` | type, date, title, text URL | hourly | `documents` |
+| documents API (ISRs, restructuring) | SupervisionDoc | `doc_id` | same | daily | `documents` |
+| Finances One | ContractAward | contract no.+supplier | signing date, amount, supplier, ref | daily | `contract_award` |
+| indicators API | Indicator | country+year+indicator | value | weekly | `cpia`, `wgi` |
+
+### What happens on a change (example)
+A planner's project P105680 gets a new notice: the hourly Notice check finds a `notice_id` not seen before → event
+`Notice.added` in `pipeline.event_log` → default rules run `apply_notices` (write it to `notices`), `rebuild_tables`
+(regroup into `package`), `rebuild_firms` and `watch_alerts` (alert anyone following that project or country). If the
+package gets its award, `rebuild_tables` reports `Package.award_changed`, which queues `drift_check` and alerts again.
+A new ICR does the same through `Document.added` → `ingest_documents` → `chunk_documents` → `Passages.changed` →
+`index_passages` and `document_checks`. Events and actions are listed in note 3.
