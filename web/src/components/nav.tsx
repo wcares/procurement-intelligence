@@ -8,7 +8,6 @@ import { useAuth } from "./auth";
 
 // Planner pages are for planners (and reviewers, who also read Evaluation); an admin sees only the admin pages.
 const NAV: { href: string; label: string; roles: Role[] }[] = [
-  { href: "/", label: "Overview", roles: ["planner", "reviewer"] },
   { href: "/plan", label: "Planning workspace", roles: ["planner", "reviewer"] },
   { href: "/insights", label: "Insights", roles: ["planner", "reviewer"] },
   { href: "/documents", label: "Documents", roles: ["planner", "reviewer"] },
@@ -17,7 +16,7 @@ const NAV: { href: string; label: string; roles: Role[] }[] = [
   { href: "/config", label: "Settings", roles: ["admin"] },
 ];
 
-const on = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+const on = (path: string, href: string) => path.startsWith(href);
 
 /** Navigation by role: planners see the planner app, reviewers also Evaluation, admins only Pipeline, Evaluation and Settings; the user and sign-out on the right. */
 export function Nav() {
