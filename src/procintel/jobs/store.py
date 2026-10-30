@@ -98,7 +98,7 @@ def enqueue(kind: str, reason: str, params: dict | None = None, dedupe: bool = T
 
 _CLAIM = """UPDATE jobs.jobs SET status = 'running', worker = '{w}', started_at = coalesce(started_at, now() at time zone 'utc'),
     heartbeat_at = now() at time zone 'utc'
-    WHERE id = (SELECT id FROM jobs.jobs WHERE status = 'pending' ORDER BY {order} FOR UPDATE SKIP LOCKED LIMIT 1)
+    WHERE id = (SELECT id FROM jobs.jobs WHERE status = 'pending' {only} ORDER BY {order} FOR UPDATE SKIP LOCKED LIMIT 1)
     RETURNING id"""
 
 
@@ -120,19 +120,20 @@ def _claim(con: duckdb.DuckDBPyConnection, sql: str, tries: int = 8) -> tuple | 
     return None
 
 
-def next_pending(db_path: Path | None = None, worker: str = "local") -> dict | None:
-    """The oldest pending job, marked running by this worker (claimed atomically when the queue is shared)."""
+def next_pending(db_path: Path | None = None, worker: str = "local", only: str = "") -> dict | None:
+    """The oldest pending job, marked running by this worker (claimed atomically when the queue is shared). `only` is an
+    extra condition ("AND ...", built by the worker from constants and times) that the job must meet."""
     with _LOCK:
         con = _connect(db_path)
         try:
             if _shared(db_path):
-                sql = _CLAIM.format(w=worker.replace("'", ""), order=ORDER).replace("'", "''")
+                sql = _CLAIM.format(w=worker.replace("'", ""), order=ORDER, only=only).replace("'", "''")
                 r = _claim(con, sql)
                 if r is None:
                     return None
                 q = con.execute("SELECT * FROM jobs WHERE id = ?", [r[0]])
                 return _row([d[0] for d in q.description], q.fetchone())
-            q = con.execute(f"SELECT * FROM jobs WHERE status = 'pending' ORDER BY {ORDER} LIMIT 1")
+            q = con.execute(f"SELECT * FROM jobs WHERE status = 'pending' {only} ORDER BY {ORDER} LIMIT 1")
             r = q.fetchone()
             if r is None:
                 return None

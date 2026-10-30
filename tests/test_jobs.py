@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 from procintel.jobs import handlers, store, worker
 
@@ -52,18 +52,57 @@ def test_a_request_during_a_job_pauses_it_and_it_resumes_from_its_cursor(tmp_pat
     assert j["result"] == {"steps": 3} and seen == [0, 2]                          # resumed at step 3, not from scratch
 
 
-def test_worker_waits_for_idle_time_and_queues_the_daily_drift_check(tmp_path, monkeypatch):
+def test_worker_waits_for_idle_time_and_queues_the_daily_refresh(tmp_path, monkeypatch):
     db = tmp_path / "jobs.duckdb"
     clock = Clock()
-    monkeypatch.setattr(worker, "SCHEDULE", {"drift_check": timedelta(days=1)})
+    monkeypatch.setattr(worker, "SCHEDULE", {"refresh": timedelta(days=1)})
     ran = []
-    monkeypatch.setitem(handlers.REGISTRY, "drift_check", lambda p, c, ctx: (ran.append(1), (yield {"step": 1}))[1])
+    monkeypatch.setitem(handlers.REGISTRY, "refresh", lambda p, c, ctx: (ran.append(1), (yield {"step": 1}))[1])
     w = worker.Worker(worker.Activity(clock), {}, db)
     assert w.tick() is None and ran == []                                           # queued, but the app is busy
-    assert [j["kind"] for j in store.recent(db_path=db)] == ["drift_check"]
+    assert [j["kind"] for j in store.recent(db_path=db)] == ["refresh"]
     clock.t += worker.IDLE_SECONDS
     assert w.tick() == "done" and ran == [1]
     assert w.tick() is None                                                          # done today: not queued again
+
+
+def test_light_jobs_run_while_users_are_active_and_others_wait_until_overdue(tmp_path, monkeypatch):
+    from datetime import datetime, timedelta as td
+    db = tmp_path / "jobs.duckdb"
+    clock = Clock()
+    monkeypatch.setattr(worker, "SCHEDULE", {})
+    ran = []
+    for kind in ("detect_changes", "refresh", "evaluate"):
+        monkeypatch.setitem(handlers.REGISTRY, kind, lambda p, c, ctx, k=kind: (ran.append(k), (yield {"s": 1}))[1])
+    store.enqueue("refresh", "t", db_path=db)
+    store.enqueue("evaluate", "t", db_path=db)
+    store.enqueue("detect_changes", "t", db_path=db)
+    w = worker.Worker(worker.Activity(clock), {}, db)                                # users active: no idle time
+    assert w.tick() == "done" and ran == ["detect_changes"]                          # a light job needs no quiet
+    assert w.tick() is None and ran == ["detect_changes"]                            # the others wait
+    old = datetime.now(timezone.utc).replace(tzinfo=None) - td(seconds=worker.MAX_WAIT_SECONDS + 5)
+    import duckdb
+    con = duckdb.connect(str(db))
+    con.execute("UPDATE jobs SET created_at = ? WHERE kind IN ('refresh', 'evaluate')", [old])
+    con.close()
+    assert w.tick() == "done" and ran == ["detect_changes", "refresh"]               # overdue: runs although users are active
+    assert w.tick() is None                                                          # background jobs wait 12 times as long
+
+
+def test_a_request_does_not_pause_a_light_job(tmp_path, monkeypatch):
+    db = tmp_path / "jobs.duckdb"
+    clock = Clock()
+    activity = worker.Activity(clock)
+
+    def two_steps(params, cursor, ctx):
+        yield {"done": 1}
+        clock.t += 1
+        activity.touch()                                  # a user request arrives mid-job
+        yield {"done": 2}
+        return {}
+    monkeypatch.setitem(handlers.REGISTRY, "retention", two_steps)
+    store.enqueue("retention", "t", db_path=db)
+    assert worker.run_one(store.next_pending(db), activity, {}, db) == "done"
 
 
 def test_drift_decision():

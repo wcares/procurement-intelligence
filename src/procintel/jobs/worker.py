@@ -1,9 +1,11 @@
-"""Background worker that drains the job queue only while nobody is using the app.
+"""Background worker that drains the job queue without getting in a user's way.
 
 Every user request marks activity (Activity.touch, called from the backend's middleware). The worker checks every
-POLL_SECONDS; once IDLE_SECONDS have passed without a request it takes the oldest pending job and runs it step by step.
-Between steps it checks whether a request arrived since the job started; if so the job is paused (back to pending with
-its cursor) and waits for the next idle period. A step itself is not interrupted (a refresh is one step of about
+POLL_SECONDS. Jobs that use neither the answer nor the embedding model (LIGHT: change detection, drift check, retention,
+retraining) run at once, in priority order, and a request does not pause them. The others wait until IDLE_SECONDS have
+passed without a request, then run step by step; between steps it checks whether a request arrived since the job started and,
+if so, pauses the job (back to pending with its cursor) until the next idle period. So that a busy day cannot keep a job waiting
+forever, one that has waited MAX_WAIT_SECONDS (background jobs: BACKGROUND_WAIT times as long) runs anyway and is not paused. A step itself is not interrupted (a refresh is one step of about
 3 minutes with fetching), so a request arriving during a step waits for it to end.
 
 The heavy work shares the machine (and the single local LLM slot) with live requests, which is why idle time, not a
@@ -23,17 +25,41 @@ import os
 import socket
 import threading
 import time
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
 from procintel.jobs import handlers, store
 
 log = logging.getLogger(__name__)
 IDLE_SECONDS = 300  # tunable on the Settings page
+# Jobs that use neither the answer model nor the embedding model never compete with a user's request, so they do not wait for
+# quiet (and are not paused by a request); the rest wait for IDLE_SECONDS without a request.
+LIGHT = {"detect_changes", "drift_check", "retention", "retrain"}
+# Busy all day means quiet never comes: a job that has waited this long runs anyway (background jobs: BACKGROUND_WAIT times as long).
+MAX_WAIT_SECONDS = 3600  # tunable on the Settings page
+BACKGROUND_WAIT = 12
 POLL_SECONDS = 10
 # queued automatically, and how often (detect_changes: procintel.pipeline; the weekly refresh reconciles)
 SCHEDULE = {"drift_check": timedelta(days=1), "refresh": timedelta(days=7), "detect_changes": timedelta(hours=1),
             "retention": timedelta(days=1)}
+
+
+def _only_when_busy(now=None) -> str:
+    """The condition for a job that may start while users are active: a light one, or one that has waited past its limit."""
+    now = now or store._now()
+    cut = (now - timedelta(seconds=MAX_WAIT_SECONDS)).isoformat(sep=" ")
+    cut_background = (now - timedelta(seconds=MAX_WAIT_SECONDS * BACKGROUND_WAIT)).isoformat(sep=" ")
+    kinds = ", ".join(f"'{k}'" for k in sorted(LIGHT))
+    return (f"AND (kind IN ({kinds}) OR (coalesce(priority, 1) < 2 AND created_at < '{cut}') "
+            f"OR (coalesce(priority, 1) >= 2 AND created_at < '{cut_background}'))")
+
+
+def _overdue(job: dict, now=None) -> bool:
+    created = job.get("created_at")   # a time or its ISO text, as the store returns it
+    if isinstance(created, str):
+        created = datetime.fromisoformat(created.rstrip("Z"))
+    waited = ((now or store._now()) - created).total_seconds() if created else 0
+    return waited >= MAX_WAIT_SECONDS * (BACKGROUND_WAIT if (job.get("priority") or 1) >= 2 else 1)
 
 
 class Activity:
@@ -100,7 +126,8 @@ def run_one(job: dict, activity: Activity, ctx: dict, db_path=None) -> str:
             cursor = next(gen)
             store.checkpoint(job["id"], cursor, db_path)
             # a request came in during the step, or a more urgent job is waiting: give the machine back
-            if activity.last != started or store.higher_waiting(job.get("priority"), db_path):
+            yields = job["kind"] not in LIGHT and not _overdue(job)   # light and overdue jobs are not paused by requests
+            if (yields and activity.last != started) or store.higher_waiting(job.get("priority"), db_path):
                 store.pause(job["id"], db_path)
                 return "pending"
     except StopIteration as done:
@@ -119,13 +146,13 @@ class Worker:
         self.current: str | None = None
 
     def tick(self) -> str | None:
-        """One poll: queue due periodic jobs, then run a pending job if the app has been idle long enough."""
+        """One poll: queue due periodic jobs, then run a pending job: any when the app has been idle long enough, otherwise only
+        a light one or one that has waited past its limit."""
         for kind, every in SCHEDULE.items():
             if store.due(kind, every, self.db_path):
                 store.enqueue(kind, f"scheduled: every {every}", db_path=self.db_path)
-        if self.activity.idle_for() < IDLE_SECONDS:
-            return None
-        job = store.next_pending(self.db_path, self.name)
+        idle = self.activity.idle_for() >= IDLE_SECONDS
+        job = store.next_pending(self.db_path, self.name, "" if idle else _only_when_busy())
         if job is None:
             return None
         self.current = job["kind"]

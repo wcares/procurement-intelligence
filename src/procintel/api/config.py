@@ -107,6 +107,11 @@ def _settings() -> list[Setting]:
                 *_attr(jobs_worker, "IDLE_SECONDS"),
                 "Seconds without any request before the queue (drift check, retraining) starts; a request pauses it",
                 10, 86400),
+        Setting("jobs_max_wait_seconds", "Longest a job waits for quiet", "Background jobs", "int",
+                *_attr(jobs_worker, "MAX_WAIT_SECONDS"),
+                "With users active all day, quiet never comes: a job that has waited this long runs anyway (background "
+                "jobs, such as evaluations, wait 12 times as long). Jobs that do not use the models (change detection, "
+                "drift check, retention, retraining) never wait for quiet", 60, 604800),
         Setting("demote_min", "Flags before a citation is demoted", "Background jobs", "int",
                 *_attr(feedback_review, "DEMOTE_MIN"),
                 "Separate responses that must flag a passage as a wrong citation before search moves it to the end "
