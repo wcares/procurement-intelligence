@@ -77,7 +77,7 @@ export function ConfigView() {
 
   const input = "w-full rounded-md border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-brand";
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8">
       <Users />
       {SHOW_ADVANCED && <Jobs />}
       {SHOW_ADVANCED && <section>
@@ -134,7 +134,7 @@ export function ConfigView() {
       ))}
       <div className="sticky bottom-4 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface p-3 shadow-sm">
         <button
-          className="rounded-md bg-brand px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:text-black"
+          className="rounded-md bg-brand px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           disabled={busy || changed.length === 0}
           onClick={() => apply(false)}
         >

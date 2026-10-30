@@ -57,7 +57,7 @@ export function StatusRulesView() {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <button className="rounded-md border border-line px-3 py-1.5" onClick={() => run(async () => setDry(await api.statusDryRun(draft)))}>Dry run</button>
-        <button className="rounded-md bg-brand px-3 py-1.5 text-white dark:text-black" onClick={() => save(draft)}>Save</button>
+        <button className="rounded-md bg-brand px-3 py-1.5 text-white" onClick={() => save(draft)}>Save</button>
         {data.customised && <button className="underline" onClick={() => save(data.defaults)}>reset to defaults</button>}
       </div>
       {dry && (

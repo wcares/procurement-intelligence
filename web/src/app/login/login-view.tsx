@@ -44,7 +44,7 @@ export function LoginView() {
         <input className={field} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </label>
       {error && <p className="text-sm text-risk-high">{error}</p>}
-      <button type="submit" disabled={busy} className="w-full rounded-md bg-brand px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
+      <button type="submit" disabled={busy} className="w-full rounded-md bg-brand px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
         {busy ? "Signing in…" : "Sign in"}
       </button>
       <p className="text-center text-xs text-ink-muted">

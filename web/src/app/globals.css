@@ -1,30 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f5;
-  --foreground: #1c1c1a;
-  --surface: #ffffff;
-  --subtle: #efefec;
-  --line: #e2e2dd;
-  --ink-muted: #6b6b66;
-  --brand: #1f5fbf;
-  --brand-soft: #e6eefa;
-  --risk-high: #b42318;
-  --risk-high-soft: #fdecea;
-  --risk-medium: #a15c07;
-  --risk-medium-soft: #fdf3e2;
-  --risk-low: #1e7a46;
-  --risk-low-soft: #e7f5ec;
+  /* Midnight: one dark look for every page. Blue = actions and links, teal / amber / red = meaning (typical, slow, risk). */
+  color-scheme: dark;
+  --background: #06080f;
+  --foreground: #cfd6ea;
+  --surface: #0a0d17;
+  --subtle: #111626;
+  --line: #1a2038;
+  --ink-muted: #7c86a8;
+  --brand: #5b86e6;
+  --brand-strong: #4a74d6;
+  --brand-2: #6a5bd0;
+  --brand-soft: #121c3a;
+  --risk-high: #e8786c;
+  --risk-high-soft: #2b1412;
+  --risk-medium: #d09b40;
+  --risk-medium-soft: #2a200b;
+  --risk-low: #3bb877;
+  --risk-low-soft: #0c241a;
+  --glow: radial-gradient(60% 45% at 20% 0%, rgba(74, 116, 214, 0.1), transparent 70%);
   /* chart series, fixed order (dataviz reference palette; validated on #ffffff and #1a1a19) */
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
   --series-6: #008300;
   /* shadcn/ui theme names, mapped onto the colours above (components in src/components/ui) */
   --primary: var(--brand);
-  --primary-foreground: #ffffff;
+  --primary-foreground: #f1f4ff;
   --secondary: var(--subtle);
   --secondary-foreground: var(--foreground);
   --muted: var(--subtle);
@@ -42,32 +47,6 @@
   --radius: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #111110;
-    --foreground: #ececea;
-    --surface: #1a1a19;
-    --subtle: #242422;
-    --line: #2e2e2c;
-    --ink-muted: #9a9a94;
-    --brand: #7aa7ec;
-    --brand-soft: #1d2a3d;
-    --risk-high: #f38b80;
-    --risk-high-soft: #3a1d1a;
-    --risk-medium: #f0b45c;
-    --risk-medium-soft: #36290f;
-    --risk-low: #6fcf97;
-    --risk-low-soft: #16301f;
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
-    --series-4: #c98500;
-    --series-5: #d55181;
-    --series-6: #008300;
-    --primary-foreground: #111110;
-  }
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -77,6 +56,8 @@
   --color-ink-muted: var(--ink-muted);
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-2: var(--brand-2);
   --color-risk-high: var(--risk-high);
   --color-risk-high-soft: var(--risk-high-soft);
   --color-risk-medium: var(--risk-medium);
@@ -108,7 +89,16 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: var(--glow);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Primary actions wear the Midnight gradient (blue to violet) wherever a button uses the brand colour. */
+.bg-brand,
+.bg-primary {
+  background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-2));
+  color: #f1f4ff;
 }

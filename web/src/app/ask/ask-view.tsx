@@ -80,7 +80,7 @@ export function AskView() {
         )}
         {turns.map((t) => (
           <div key={t.id} className="space-y-3">
-            <div className="ml-auto w-fit max-w-[85%] rounded-xl bg-brand px-4 py-2 text-sm text-white dark:text-black">{t.question}</div>
+            <div className="ml-auto w-fit max-w-[85%] rounded-xl bg-brand px-4 py-2 text-sm text-white">{t.question}</div>
             {t.live && !t.response && !t.error && <LiveAnswer live={t.live} />}
             {t.error && <p className="rounded-lg bg-risk-high-soft px-4 py-3 text-sm text-risk-high">{t.error}</p>}
             {t.response && <Answer turnId={t.id} r={t.response} question={t.question} />}
@@ -121,7 +121,7 @@ export function AskView() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
-          <button type="submit" disabled={busy || !question.trim()} className="rounded-md bg-brand px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
+          <button type="submit" disabled={busy || !question.trim()} className="rounded-md bg-brand px-4 text-sm font-medium text-white disabled:opacity-50">
             Ask
           </button>
         </div>

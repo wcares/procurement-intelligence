@@ -105,7 +105,7 @@ export function PlanChat({ s }: { s: PlanState }) {
         )}
         {msgs.map((m) => (
           <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            <div className={`max-w-[92%] min-w-0 space-y-2 rounded-xl px-3 py-2 ${m.role === "user" ? "bg-brand text-white dark:text-black" : "bg-subtle"}`}>
+            <div className={`max-w-[92%] min-w-0 space-y-2 rounded-xl px-3 py-2 ${m.role === "user" ? "bg-brand text-white" : "bg-subtle"}`}>
               {m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
                 : m.rich?.kind === "evidence" ? <div className="space-y-2"><p className="text-xs text-ink-muted">{m.rich.question}</p><Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
                 : <p className="whitespace-pre-wrap">{m.content}</p>}
@@ -122,13 +122,13 @@ export function PlanChat({ s }: { s: PlanState }) {
       {full ? (
         <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm">
           <span>This conversation has reached the model&apos;s length limit.</span>
-          <button className="rounded-md bg-brand px-3 py-1.5 text-white dark:text-black" onClick={restart}>Start a new conversation</button>
+          <button className="rounded-md bg-brand px-3 py-1.5 text-white" onClick={restart}>Start a new conversation</button>
         </div>
       ) : (
         <form className="flex gap-2 border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); void send(input); }}>
           <input className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand" placeholder="Describe what you want to plan, or ask a question…"
             value={input} maxLength={1500} onChange={(e) => setInput(e.target.value)} disabled={Boolean(busy)} />
-          <button type="submit" disabled={Boolean(busy) || !input.trim()} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:text-black">Send</button>
+          <button type="submit" disabled={Boolean(busy) || !input.trim()} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Send</button>
         </form>
       )}
     </div>

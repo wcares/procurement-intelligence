@@ -42,7 +42,7 @@ export function ManualPlan({ s }: { s: PlanState }) {
         <div className="flex flex-wrap gap-3">
           <button type="button" className="rounded-md border border-line px-3 py-2 text-sm" onClick={() => s.setPackages((ps) => [...ps, newPackage()])}>Add a package</button>
           <button type="button" disabled={!s.opts || s.running || s.packages.length === 0}
-            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:text-black" onClick={() => void s.run()}>
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50" onClick={() => void s.run()}>
             {s.running ? s.progress || "Forecasting…" : "Forecast the project"}
           </button>
         </div>

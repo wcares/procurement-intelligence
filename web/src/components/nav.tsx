@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { api } from "@/lib/api/client";
 import type { Role } from "@/lib/api/types";
 import { useAuth } from "./auth";
@@ -18,9 +19,12 @@ const NAV: { href: string; label: string; roles: Role[] }[] = [
   { href: "/config", label: "Settings", roles: ["admin"] },
 ];
 
+const on = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+
 /** Navigation by role: planners see the planner app, reviewers also Evaluation, admins only Pipeline, Evaluation and Settings; the user and sign-out on the right. */
 export function Nav() {
   const { user, refresh } = useAuth();
+  const path = usePathname();
   if (!user) return null;
   async function signOut() {
     await api.logout().catch(() => null);
@@ -30,7 +34,8 @@ export function Nav() {
     <>
       <nav className="flex flex-wrap gap-1 text-sm">
         {NAV.filter((n) => n.roles.includes(user.role)).map((n) => (
-          <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-ink-muted hover:bg-subtle hover:text-foreground">
+          <Link key={n.href} href={n.href} aria-current={on(path, n.href) ? "page" : undefined}
+            className={`rounded-md px-3 py-1.5 ${on(path, n.href) ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-subtle hover:text-foreground"}`}>
             {n.label}
           </Link>
         ))}

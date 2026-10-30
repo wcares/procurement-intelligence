@@ -16,7 +16,7 @@ export function PlanView() {
   if (!s.ready) return <p className="text-sm text-ink-muted">Loading…</p>;
   const tabBtn = (t: Tab, label: string) => (
     <button type="button" onClick={() => setTab(t)} aria-pressed={tab === t}
-      className={`rounded-md px-3 py-1.5 text-sm ${tab === t ? "bg-brand text-white dark:text-black" : "border border-line text-ink-muted hover:bg-subtle"}`}>{label}</button>
+      className={`rounded-md px-3 py-1.5 text-sm ${tab === t ? "bg-brand text-white" : "border border-line text-ink-muted hover:bg-subtle"}`}>{label}</button>
   );
   return (
     <div className="space-y-4">

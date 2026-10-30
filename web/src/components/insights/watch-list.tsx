@@ -58,7 +58,7 @@ export function WatchListEditor({ onSaved }: { onSaved?: () => void }) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button className="rounded-md bg-brand px-3 py-1.5 text-sm text-white dark:text-black" onClick={save}>Save watch-list</button>
+        <button className="rounded-md bg-brand px-3 py-1.5 text-sm text-white" onClick={save}>Save watch-list</button>
         {note && <span className="text-xs text-ink-muted">{note}</span>}
       </div>
     </div>
