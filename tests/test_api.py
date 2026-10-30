@@ -41,6 +41,7 @@ def test_ask_cites_every_sentence(client, monkeypatch):
 def test_ask_unsupported(client):
     r = client.post("/ask", json={"question": "What is the boiling point of tungsten?"}).json()
     assert r["unsupported"] and r["answer"] == [] and r["citations"] == []
+    assert r["fallback"]["answer"][0]["text"]          # a plain reply, not a bare refusal
 
 
 def test_bad_input_is_400(client):

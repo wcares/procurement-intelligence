@@ -168,10 +168,17 @@ class AnswerSentence(BaseModel):
     citations: list[int]
 
 
+class AskFallback(BaseModel):
+    """What to show when nothing answers the question directly: what was searched and what the closest passages say."""
+    answer: list[AnswerSentence]
+    citations: list[Citation]
+
+
 class AskResponse(BaseModel):
     answer: list[AnswerSentence]
     citations: list[Citation]
     unsupported: bool
+    fallback: AskFallback | None = None
     meta: ResponseMeta
 
 
