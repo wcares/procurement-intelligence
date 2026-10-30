@@ -41,7 +41,7 @@ export function PlanResults({ packages, plan, forecasts, projectStart, deadline 
         </div>
       )}
 
-      <div className="rounded-xl border border-line bg-surface p-4">
+      <div className="rounded-xl border border-line bg-subtle p-4">
         <p className="mb-3 text-xs text-ink-muted">
           {date(start)} to {date(end)}. Solid bar: tender notice to typical award. Pale: to the slow case (1 in 10).
         </p>
@@ -56,9 +56,9 @@ export function PlanResults({ packages, plan, forecasts, projectStart, deadline 
                     {date(r.award50)} ({f?.p50} days){r.p90Missing ? "" : ` · slow ${date(r.award90)}`}
                   </span>
                 </div>
-                <div className="relative mt-1 h-3 rounded bg-subtle">
-                  <div className="absolute inset-y-0 rounded bg-brand/30" style={{ left: pct(r.start50), width: `calc(${pct(r.award90)} - ${pct(r.start50)})` }} />
-                  <div className="absolute inset-y-0 rounded bg-brand" style={{ left: pct(r.start50), width: `calc(${pct(r.award50)} - ${pct(r.start50)})` }} />
+                <div className="relative mt-1 h-3 rounded bg-background">
+                  <div className="absolute inset-y-0 rounded bg-risk-medium/40" style={{ left: pct(r.start50), width: `calc(${pct(r.award90)} - ${pct(r.start50)})` }} />
+                  <div className="absolute inset-y-0 rounded bg-gradient-to-r from-brand-strong to-teal-500" style={{ left: pct(r.start50), width: `calc(${pct(r.award50)} - ${pct(r.start50)})` }} />
                   {deadline && deadline >= start && deadline <= end && <div className="absolute inset-y-[-3px] w-0.5 bg-risk-high" style={{ left: pct(deadline) }} />}
                 </div>
               </div>
@@ -79,9 +79,9 @@ export function PlanResults({ packages, plan, forecasts, projectStart, deadline 
 
 function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <div className="rounded-xl border border-line bg-surface p-4">
-      <p className="text-xs text-ink-muted">{label}</p>
-      <p className="mt-1 text-lg font-semibold">{value}</p>
+    <div className="rounded-xl border-t-2 border-t-risk-low bg-subtle p-3.5">
+      <p className="text-[11px] uppercase tracking-wider text-ink-muted">{label}</p>
+      <p className="mt-1 text-base font-semibold leading-snug">{value}</p>
       {note && <p className="text-xs text-ink-muted">{note}</p>}
     </div>
   );

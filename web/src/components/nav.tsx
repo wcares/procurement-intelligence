@@ -40,12 +40,17 @@ export function Nav() {
           </Link>
         ))}
       </nav>
-      <div className="ml-auto flex items-center gap-3 text-xs text-ink-muted">
-        <span>
-          {user.username} · {user.role}
+      <div className="ml-auto flex items-center gap-2.5">
+        <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-brand-strong to-brand-2 text-xs font-semibold uppercase text-[#f1f4ff]" aria-hidden>
+          {user.username.slice(0, 2)}
+        </span>
+        <span className="leading-tight">
+          <span className="block text-sm font-medium">{user.username}</span>
+          <span className="block text-[11px] capitalize text-ink-muted">{user.role}</span>
         </span>
         {user.mode === "local" && (
-          <button className="underline" onClick={signOut}>
+          <button className="ml-1 inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs text-ink-muted transition hover:bg-subtle hover:text-foreground" onClick={signOut}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 2.5H3.5v11H6M10 5l3 3-3 3M13 8H6.5" /></svg>
             Sign out
           </button>
         )}

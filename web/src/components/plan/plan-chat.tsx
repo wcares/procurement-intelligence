@@ -15,12 +15,13 @@ type Rich =
 /** content is what the model sees of this message later; rich is what the person sees. */
 export interface ChatMsg { id: number; role: "user" | "assistant"; content: string; rich?: Rich }
 
-const STARTERS = [
-  "I want to plan a roads project in Kenya, about 5 million, then supervision consultants after the works",
-  "Which countries had the slowest awards in the past?",
-  "What usually goes wrong with road works tenders?",
-  "Plan a health project in India: medical equipment for 20 million and a training consultancy, all awarded within 18 months",
+const STARTERS: { kind: "Plan" | "Statistics" | "Evidence"; text: string }[] = [
+  { kind: "Plan", text: "I want to plan a roads project in Kenya, about 5 million, then supervision consultants after the works" },
+  { kind: "Statistics", text: "Which countries had the slowest awards in the past?" },
+  { kind: "Evidence", text: "What usually goes wrong with road works tenders?" },
+  { kind: "Plan", text: "Plan a health project in India: medical equipment for 20 million and a training consultancy, all awarded within 18 months" },
 ];
+const KIND_COLOR = { Plan: "border-t-brand text-brand", Statistics: "border-t-risk-low text-risk-low", Evidence: "border-t-risk-medium text-risk-medium" } as const;
 const KEEP_TURNS = 14;
 const KEEP_CHARS = 900;
 
@@ -84,61 +85,103 @@ export function PlanChat({ s }: { s: PlanState }) {
 
   function restart() { setMsgs([]); setCtx(null); setInput(""); }
   const pct = ctx ? Math.min(100, Math.round((ctx.used / ctx.budget) * 100)) : 0;
+  const empty = msgs.length === 0 && !busy;
 
   return (
-    <div className="flex min-h-[28rem] flex-col rounded-xl border border-line bg-surface">
-      <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2 text-xs text-ink-muted">
-        <span>Planning assistant · the conversation is kept on this page only</span>
-        {msgs.length > 0 && <button className="underline" onClick={restart}>New conversation</button>}
-      </div>
-      <div className="max-h-[60vh] flex-1 space-y-3 overflow-y-auto p-4 text-sm">
-        {msgs.length === 0 && (
-          <div className="space-y-3">
-            <p className="text-ink-muted">Tell me what you want to plan. I will ask for what is missing, forecast it, and you can keep
-              talking: change a method, ask about the risks, or ask what went wrong in past projects.</p>
-            <div className="flex flex-col gap-2">
-              {STARTERS.map((t) => (
-                <button key={t} type="button" onClick={() => void send(t)} className="rounded-lg border border-line px-3 py-2 text-left text-xs hover:bg-subtle">{t}</button>
-              ))}
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-6 lg:px-8">
+        <div className="mx-auto flex max-w-2xl flex-col gap-6 text-sm">
+          {empty && (
+            <div className="flex flex-col gap-5 pt-[4vh]">
+              <h2 className="bg-gradient-to-r from-foreground via-[#8fa9e6] to-[#7cc9bb] bg-clip-text text-3xl font-semibold leading-tight tracking-tight text-transparent">What are you planning?</h2>
+              <p className="max-w-[52ch] text-ink-muted">Tell me what you want to plan. I will ask for what is missing, forecast it, and you can keep talking: change a method, ask about the risks, or ask what went wrong in past projects.</p>
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {STARTERS.map((t) => (
+                  <button key={t.text} type="button" onClick={() => void send(t.text)}
+                    className={`flex flex-col gap-1.5 rounded-xl border border-t-2 border-line bg-surface p-3.5 text-left transition hover:-translate-y-px hover:bg-subtle ${KIND_COLOR[t.kind]}`}>
+                    <span className="text-[11px] font-semibold uppercase tracking-widest">{t.kind}</span>
+                    <span className="text-[13px] leading-snug text-foreground">{t.text}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        {msgs.map((m) => (
-          <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            <div className={`max-w-[92%] min-w-0 space-y-2 rounded-xl px-3 py-2 ${m.role === "user" ? "bg-brand text-white" : "bg-subtle"}`}>
-              {m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
-                : m.rich?.kind === "evidence" ? <div className="space-y-2"><p className="text-xs text-ink-muted">{m.rich.question}</p><Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
-                : <p className="whitespace-pre-wrap">{m.content}</p>}
+          )}
+          {msgs.map((m) => m.role === "user" ? (
+            <div key={m.id} className="flex justify-end">
+              <p className="max-w-[85%] whitespace-pre-wrap rounded-[18px_18px_4px_18px] bg-gradient-to-br from-brand-strong to-brand-2 px-3.5 py-2 text-[#f1f4ff]">{m.content}</p>
             </div>
-          </div>
-        ))}
-        {live ? <div className="max-w-[92%] rounded-xl bg-subtle px-3 py-2"><LiveAnswer live={live} /></div>
-          : busy && <p className="text-xs text-ink-muted">{s.running && s.progress ? s.progress : busy}</p>}
-        <div ref={bottom} />
+          ) : (
+            <div key={m.id} className="flex min-w-0 gap-3">
+              <Mark />
+              <div className="min-w-0 flex-1 space-y-2.5">
+                {m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
+                  : m.rich?.kind === "evidence" ? <div className="space-y-2"><p className="text-xs text-ink-muted">{m.rich.question}</p><Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
+                  : <p className="whitespace-pre-wrap">{m.content}</p>}
+              </div>
+            </div>
+          ))}
+          {(live || busy) && (
+            <div className="flex min-w-0 gap-3">
+              <Mark />
+              <div className="min-w-0 flex-1">
+                {live ? <LiveAnswer live={live} /> : (
+                  <p className="flex items-center gap-2 text-ink-muted"><span className="inline-block size-2 animate-pulse rounded-full bg-brand" aria-hidden />{s.running && s.progress ? s.progress : busy}</p>
+                )}
+              </div>
+            </div>
+          )}
+          <div ref={bottom} />
+        </div>
       </div>
       {ctx?.warn && !full && (
-        <p className="border-t border-line px-4 py-1.5 text-xs text-risk-medium">This conversation is getting long ({pct}% of what the model can hold). Start a new one soon; your plan stays.</p>
+        <p className="mx-4 mb-2 rounded-lg bg-risk-medium-soft px-3 py-2 text-xs text-risk-medium lg:mx-8">This conversation is getting long ({pct}% of what the model can hold). Start a new one soon; your plan stays.</p>
       )}
-      {full ? (
-        <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm">
-          <span>This conversation has reached the model&apos;s length limit.</span>
-          <button className="rounded-md bg-brand px-3 py-1.5 text-white" onClick={restart}>Start a new conversation</button>
+      <div className="px-4 pb-4 pt-2 lg:px-8">
+        {full ? (
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
+            <span>This conversation has reached the model&apos;s length limit.</span>
+            <button className="rounded-lg bg-brand px-3 py-1.5 font-medium" onClick={restart}>Start a new conversation</button>
+          </div>
+        ) : (
+          <form className="mx-auto flex max-w-2xl items-end gap-2.5 rounded-2xl border border-line bg-surface py-2.5 pl-4 pr-2.5 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft"
+            onSubmit={(e) => { e.preventDefault(); void send(input); }}>
+            <textarea className="max-h-32 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm leading-snug outline-none placeholder:text-ink-muted" rows={1}
+              placeholder="Describe what you want to plan, or ask a question…" aria-label="Message" value={input} maxLength={1500} disabled={Boolean(busy)}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }} />
+            <svg className="mb-1.5 size-6 shrink-0" viewBox="0 0 24 24" role="img" aria-label={`Conversation length ${pct} percent`}>
+              <title>Conversation length: {pct}% of what the model can hold</title>
+              <circle cx="12" cy="12" r="9" fill="none" stroke="var(--line)" strokeWidth="3" />
+              <circle cx="12" cy="12" r="9" fill="none" stroke={pct >= 70 ? "var(--risk-medium)" : "var(--brand)"} strokeWidth="3" strokeLinecap="round"
+                strokeDasharray={`${(2 * Math.PI * 9 * pct) / 100} ${2 * Math.PI * 9}`} transform="rotate(-90 12 12)" />
+            </svg>
+            <button type="submit" disabled={Boolean(busy) || !input.trim()} aria-label="Send"
+              className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-brand disabled:opacity-35">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" /></svg>
+            </button>
+          </form>
+        )}
+        <div className="mx-auto mt-2 flex max-w-2xl justify-between gap-3 text-[11.5px] text-ink-muted">
+          <span>Kept on this page only</span>
+          {msgs.length > 0 && <button className="underline underline-offset-2" onClick={restart}>New conversation</button>}
         </div>
-      ) : (
-        <form className="flex gap-2 border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); void send(input); }}>
-          <input className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand" placeholder="Describe what you want to plan, or ask a question…"
-            value={input} maxLength={1500} onChange={(e) => setInput(e.target.value)} disabled={Boolean(busy)} />
-          <button type="submit" disabled={Boolean(busy) || !input.trim()} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Send</button>
-        </form>
-      )}
+      </div>
     </div>
+  );
+}
+
+function Mark() {
+  return (
+    <span className="mt-0.5 grid size-[26px] shrink-0 place-items-center rounded-lg bg-gradient-to-br from-brand-strong to-teal-500 text-white" aria-hidden>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M2.5 11V5l5.5-3 5.5 3v6L8 14z" /><path d="M8 2v12M2.5 5L8 8l5.5-3" /></svg>
+    </span>
   );
 }
 
 function StatsTable({ data }: { data: RankingResponse }) {
   const rows = data.rows.slice(0, 10);
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5 rounded-xl border border-line bg-surface p-3.5">
       <p className="text-xs font-semibold">{data.measure.label}, by {data.groupLabel.toLowerCase()} (worst first)</p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
