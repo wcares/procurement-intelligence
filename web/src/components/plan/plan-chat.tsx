@@ -74,7 +74,7 @@ export function PlanChat({ s }: { s: PlanState }) {
         setLive(emptyLive);
         const response = await api.askStream({ question: r.evidenceQuestion }, (e) => setLive((l) => (l ? fold(l, e) : l)));
         add({ role: "assistant", rich: { kind: "evidence", question: r.evidenceQuestion, response },
-          content: response.unsupported ? "The reports hold no evidence for that question." : `Answer from the reports: ${response.answer.map((a) => a.text).join(" ").slice(0, 600)}` });
+          content: `${response.unsupported ? "No direct answer in the reports. " : "Answer from the reports: "}${(response.unsupported && response.fallback ? response.fallback.answer : response.answer).map((a) => a.text).join(" ").slice(0, 600)}` });
       }
     } catch (e) {
       add({ role: "assistant", content: `Sorry, that did not work (${(e as Error).message.slice(0, 160)}). You can retry, or use the Manual tab.` });

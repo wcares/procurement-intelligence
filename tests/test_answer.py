@@ -264,3 +264,17 @@ def test_ask_events_run_in_order_and_end_with_the_answer(monkeypatch):
     kinds = [e["type"] for e in answer.ask_events(R(), "why were contracts terminated")]
     assert kinds[0] == "stage" and kinds[-1] == "done" and kinds.index("passages") < kinds.index("done")
     assert [e["type"] for e in answer.ask_events(R(), "why were what")][-1] == "done"   # no evidence: still ends with an answer
+
+
+def test_unsupported_question_still_gets_a_plain_reply(monkeypatch):
+    class R:
+        records = []
+
+        def search(self, q, k, country=None, proc_group=None):
+            return HITS
+    monkeypatch.setattr(answer, "VOCAB_STEP", 0)
+    monkeypatch.setattr(answer, "supporting", lambda q, hits: ([], "terms"))
+    out = answer.ask(R(), "Why is Morocco slowest?")
+    assert out["unsupported"] and out["answer"] == []                       # the refusal fields are unchanged
+    lead = out["fallback"]["answer"][0]
+    assert lead["citations"] == [] and "searched the reports" in lead["text"]   # a sentence that says what was tried

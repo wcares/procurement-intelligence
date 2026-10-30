@@ -1,7 +1,8 @@
 """Cited answers to free-text questions over the ICR chunks (the `/ask` endpoint).
 
 Every answer sentence carries citations into the returned passages, and a question the passages do not
-support returns `unsupported: true` instead of a guess. Two modes:
+support returns `unsupported: true` instead of a guess, with a `fallback` reply (what was searched and what the closest
+passages do say) so a page never shows a bare refusal. Two modes:
 
   extractive (no LLM configured)  each sentence is the best-matching sentence of a passage, quoted verbatim;
   generative (procintel.core.llm)      the model writes sentences as JSON with passage numbers; any sentence
@@ -212,7 +213,7 @@ def _pieces(system: str, user: str, streaming: bool):
         yield llm.complete(system, user)
 
 
-def generative_events(question: str, hits: list[Hit], use_decide: bool = False, streaming: bool = True):
+def generative_events(question: str, hits: list[Hit], use_decide: bool = False, streaming: bool = True, prompt: str = "answer"):
     """Like generative(), but yields {"type": "sentence"} for each sentence as soon as it is written and checked, so a
     page can show it while the model goes on. The generator's return value is generative()'s result: it is worked out
     from the whole reply, with the checks already made not repeated, so the streamed sentences are previews of it."""
@@ -229,7 +230,7 @@ def generative_events(question: str, hits: list[Hit], use_decide: bool = False, 
         return {"text": s["text"].strip(), "citations": cites} if cites and seen[key] else None
 
     raw, objects = "", _Objects()
-    for piece in _pieces(prompts.get("answer"), f"Passages:\n{numbered}\n\nQuestion: {question}", streaming):
+    for piece in _pieces(prompts.get(prompt), f"Passages:\n{numbered}\n\nQuestion: {question}", streaming):
         raw += piece
         for text in objects.feed(piece):
             try:
@@ -322,6 +323,41 @@ def stage(text: str) -> dict:
     return {"type": "stage", "text": text}
 
 
+FALLBACK_PASSAGES = 3  # closest passages offered when nothing answers the question directly
+
+
+def fallback_events(retriever: Retriever, question: str, closest: list[Hit], use_decide: bool, searched: list[str] | None = None):
+    """The reply when nothing answers the question directly, so a page never shows a bare refusal: one plain sentence
+    saying so, then what the closest passages do say (cited and checked like any answer), or, when none is close, where
+    to look next. Yields stage and sentence events; returns {"answer", "citations"} in the shape of the main answer."""
+    closest = closest[:FALLBACK_PASSAGES]
+    sentences = None
+    if closest:
+        yield stage("Nothing answers it directly; collecting the closest material…")
+        if llm.available():
+            try:
+                sentences, _ = yield from generative_events(question, closest, use_decide, True, prompt="answer_related")
+            except Exception:  # model down or timeout: quote the closest passages instead
+                sentences = None
+        if sentences is None:
+            try:
+                sentences = extractive(question, closest, idf(retriever), n=2, use_decide=use_decide)
+            except Exception:  # a fallback must never fail the reply: with no usable quotes it says where to look next
+                sentences = []
+    tried = f" (also as {'; '.join(repr(q) for q in searched[:2])})" if searched else ""
+    if sentences:
+        lead = f"I searched the reports for this{tried} and none of them explain it directly. What they do say that is close:"
+    else:
+        sentences = []
+        lead = (f"I searched the reports for this{tried} and could not find anything that explains it. That may mean it is not covered "
+                "for this country or contract. Name a project, a procurement step such as bidding, evaluation or contract signing, "
+                "or another country and I will look there, or keep going with your plan.")
+    used = sorted({c for s in sentences for c in s["citations"]})
+    remap = {old: new for new, old in enumerate(used)}
+    return {"answer": [{"text": lead, "citations": []}] + [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in sentences],
+            "citations": [citation(closest[i]) for i in used]}
+
+
 def ask(retriever: Retriever, question: str, country: str | None = None, proc_group: str | None = None) -> dict:
     for ev in ask_events(retriever, question, country, proc_group, streaming=False):
         if ev["type"] == "done":
@@ -381,7 +417,8 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
     if not hits:
         why = (f"{judge} judged none of the retrieved passages relevant to the question." if judge
                else "No evaluation passage shares enough terms with the question to count as evidence.")
-        yield {"type": "done", "result": {"answer": [], "citations": [], "unsupported": True, "meta": meta(caveats + [why])}}
+        fb = yield from fallback_events(retriever, question, own, use_decide, second_search)
+        yield {"type": "done", "result": {"answer": [], "citations": [], "unsupported": True, "fallback": fb, "meta": meta(caveats + [why])}}
         return
     yield {"type": "passages", "items": [{"projectId": h.project_id, "projectName": h.project_name, "countryCode": h.country_code,
                                           "section": h.section, "docType": h.doc_type} for h in hits]}
@@ -416,6 +453,7 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
         caveats.append(("The question was also searched as: " if rephrased else
                         "The first search found little evidence, so the question was searched again as: ")
                        + "; ".join(f"'{q}'" for q in second_search) + ".")
+    fb = (yield from fallback_events(retriever, question, hits, use_decide, second_search)) if not answer else None
     used = sorted({c for s in answer for c in s["citations"]})
     caveats += conflict_notes(retriever, [hits[i] for i in used])
     remap = {old: new for new, old in enumerate(used)}
@@ -423,5 +461,6 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
         "answer": [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in answer],
         "citations": [citation(hits[i]) for i in used],
         "unsupported": not answer,
+        **({"fallback": fb} if fb else {}),
         "meta": meta(caveats),
     }}

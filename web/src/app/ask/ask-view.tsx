@@ -147,7 +147,9 @@ export function AskView() {
   );
 }
 
-export function Answer({ turnId, r, question }: { turnId: number; r: AskResponse; question: string }) {
+export function Answer({ turnId, r: full, question }: { turnId: number; r: AskResponse; question: string }) {
+  const partial = full.unsupported;   // nothing answered it directly: the reply says what was tried and what is close
+  const r = partial && full.fallback ? { ...full, ...full.fallback } : full;
   const [asMap, setAsMap] = useState(false);
   const toSource = (i: number) => {
     const el = document.getElementById(`t${turnId}-c${i}`);
@@ -155,22 +157,11 @@ export function Answer({ turnId, r, question }: { turnId: number; r: AskResponse
     el?.classList.add("ring-2", "ring-brand", "rounded-xl");
     setTimeout(() => el?.classList.remove("ring-2", "ring-brand"), 1500);
   };
-  if (r.unsupported) {
-    return (
-      <div className="space-y-2">
-        <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">
-          The evaluation documents in the current dataset don&apos;t contain evidence for this question, so there is no answer
-          rather than a guess. Try rephrasing, or removing the filters.
-        </p>
-        <Caveats meta={r.meta} />
-        <FeedbackBar responseId={r.meta.responseId} subject="answer" />
-      </div>
-    );
-  }
   return (
     <div className="space-y-3">
-      <button className="text-xs text-ink-muted underline" onClick={() => setAsMap(!asMap)}>{asMap ? "Show as text" : "Show as map"}</button>
-      {asMap && <AnswerMap r={r} question={question} onSource={toSource} />}
+      {!partial && <button className="text-xs text-ink-muted underline" onClick={() => setAsMap(!asMap)}>{asMap ? "Show as text" : "Show as map"}</button>}
+      {asMap && !partial && <AnswerMap r={r} question={question} onSource={toSource} />}
+      {partial && <span className="inline-block rounded-full bg-risk-medium-soft px-2.5 py-0.5 text-xs font-medium text-risk-medium">No direct answer in the reports</span>}
       <div className="text-sm leading-relaxed">
         {r.answer.map((s, i) => (
           <span key={i}>
@@ -195,7 +186,7 @@ export function Answer({ turnId, r, question }: { turnId: number; r: AskResponse
           </div>
         ))}
       </div>
-      <Caveats meta={r.meta} />
+      {partial ? <details className="text-xs text-ink-muted"><summary className="cursor-pointer">How this was searched</summary><div className="mt-2"><Caveats meta={r.meta} /></div></details> : <Caveats meta={r.meta} />}
       <FeedbackBar responseId={r.meta.responseId} subject="answer" />
     </div>
   );

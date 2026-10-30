@@ -239,6 +239,8 @@ export interface AskResponse {
   citations: Citation[];
   /** true when the sources did not support an answer; the UI must say so rather than show a guess */
   unsupported: boolean;
+  /** when unsupported: a plain reply saying what was searched, plus what the closest passages do say (cited) */
+  fallback?: { answer: AnswerSentence[]; citations: Citation[] };
   meta: ResponseMeta;
 }
 
