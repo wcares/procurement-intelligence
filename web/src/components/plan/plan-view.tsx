@@ -3,17 +3,16 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AssessView } from "@/app/assess/assess-view";
-import { AskView } from "@/app/ask/ask-view";
 import { ManualPlan } from "./manual-plan";
 import { PlanChat } from "./plan-chat";
 import { PlanResults } from "./plan-results";
 import { usePlan, type PlanState } from "./use-plan";
 
-type Tab = "chat" | "assess" | "ask";
-const TABS = ["chat", "assess", "ask"];
+type Tab = "chat" | "assess";
+const TABS = ["chat", "assess"];
 const money = (v?: number) => (v ? (v >= 1e6 ? `US$${(v / 1e6).toFixed(1)}M` : `US$${Math.round(v / 1e3)}k`) : "");
 
-/** The planning workspace: plan a project by chat or form, assess a package, ask the evidence. */
+/** The planning workspace: plan a project by chat or form (questions about past projects are asked in the same chat), or assess a package. */
 export function PlanView() {
   const s = usePlan();
   const [tab, setTab] = useState<Tab>(((t) => (TABS.includes(t ?? "") ? t : "chat") as Tab)(useSearchParams().get("tab")));   // /assess and /ask redirect here
@@ -28,7 +27,6 @@ export function PlanView() {
         <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px]" role="group" aria-label="Plan mode">
           <button type="button" onClick={() => setTab("chat")} aria-pressed={tab === "chat"} className={seg(tab === "chat")}>Chat</button>
           <button type="button" onClick={() => setTab("assess")} aria-pressed={tab === "assess"} className={seg(tab === "assess")}>Assess a package</button>
-          <button type="button" onClick={() => setTab("ask")} aria-pressed={tab === "ask"} className={seg(tab === "ask")}>Ask the evidence</button>
         </div>
         {tab === "chat" && (
           <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px] lg:hidden" role="group" aria-label="Pane">
@@ -36,11 +34,9 @@ export function PlanView() {
             <button type="button" onClick={() => setPane("plan")} aria-pressed={pane === "plan"} className={seg(pane === "plan")}>Plan{count ? ` (${count})` : ""}</button>
           </div>
         )}
-        <p className="hidden text-xs text-ink-muted xl:block">Each package is forecast from comparable past packages and laid out on one timeline. Ask about the plan, or about past projects, in the same chat.</p>
+        <p className="hidden text-xs text-ink-muted xl:block">Each package is forecast from comparable past packages and laid out on one timeline. Ask about the plan, or about past projects in any country, in the same chat.</p>
       </div>
-      {tab === "ask" ? (
-        <div className="min-h-0 flex-1"><AskView embedded /></div>
-      ) : tab === "assess" ? (
+      {tab === "assess" ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
           <p className="mb-5 max-w-2xl text-sm text-ink-muted">See how comparable World Bank–financed packages actually went, and what past evaluations say went wrong, with every lesson quoted from its source.</p>
           <AssessView />

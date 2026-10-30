@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { HistoryMenu, useHistory } from "@/components/history";
 import { api } from "@/lib/api/client";
 import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/api/types";
-import { Answer } from "@/app/ask/ask-view";
+import { Answer } from "@/components/ask/answer";
 import { LiveAnswer, emptyLive, fold, type Live } from "@/components/ask/live-answer";
 import { fmt } from "@/components/dashboard/format";
 import { schedule, todayLocal, type PlanPackage } from "@/lib/plan";
