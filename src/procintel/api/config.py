@@ -72,6 +72,13 @@ def _settings() -> list[Setting]:
                 "OpenAI-compatible endpoint of the judge model"),
         Setting("judge_extra_body", "Independent judge extra options", "Models", "json", *_env("PROCINTEL_JUDGE_EXTRA_BODY"),
                 "JSON merged into each judge request"),
+        Setting("batch_model", "Background jobs model", "Models", "str", *_env("PROCINTEL_BATCH_MODEL"),
+                "The model for tagging passages, evaluations and prompt tests (LiteLLM string). Empty: the answer model, "
+                "and jobs that use it wait for quiet. Another model or endpoint: those jobs run at any time, so users are never slowed"),
+        Setting("batch_api_base", "Background jobs endpoint", "Models", "url", *_env("PROCINTEL_BATCH_API_BASE"),
+                "OpenAI-compatible endpoint of that model. Empty: the answer model's. The API key is PROCINTEL_BATCH_API_KEY in .env"),
+        Setting("batch_extra_body", "Background jobs extra options", "Models", "json", *_env("PROCINTEL_BATCH_EXTRA_BODY"),
+                "JSON merged into the request body for that model. Empty: the answer model's, if it is the same model"),
         Setting("decide_api_base", "Decision model endpoint", "Models", "url", *_env("PROCINTEL_DECIDE_API_BASE"),
                 "llama-server with /v1/systemone. Empty: evidence and support are checked by word overlap."),
         Setting("embed_model", "Embedding model", "Models", "str", lambda: embed.model_name() or "", None,

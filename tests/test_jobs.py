@@ -183,3 +183,18 @@ def test_unknown_priority_is_refused(tmp_path):
     import pytest
     with pytest.raises(ValueError):
         store.enqueue("refresh", "t", db_path=tmp_path / "j.duckdb", priority="urgent")
+
+
+def test_a_dedicated_batch_model_lets_every_job_run_while_users_are_active(tmp_path, monkeypatch):
+    from procintel.core import llm
+    db = tmp_path / "jobs.duckdb"
+    monkeypatch.setattr(worker, "SCHEDULE", {})
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/saluki")
+    monkeypatch.setenv("PROCINTEL_LLM_API_BASE", "http://a/v1")
+    monkeypatch.setenv("PROCINTEL_BATCH_API_BASE", "http://b/v1")
+    seen = []
+    monkeypatch.setitem(handlers.REGISTRY, "refresh", lambda p, c, ctx: (seen.append(llm._env(llm.ANSWER, "API_BASE")), (yield {"s": 1}))[1])
+    store.enqueue("refresh", "t", db_path=db)
+    w = worker.Worker(worker.Activity(Clock()), {}, db)                               # users active: no idle time
+    assert w.tick() == "done" and seen == ["http://b/v1"]                             # ran at once, on the batch endpoint
+    assert llm._env(llm.ANSWER, "API_BASE") == "http://a/v1"                          # outside a job: the answer endpoint

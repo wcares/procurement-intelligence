@@ -14,11 +14,19 @@ Environment:
 
 If PROCINTEL_LLM_MODEL is unset, `available()` is False and callers must use their extractive fallback.
 
+A model for the background jobs (tagging passages, evaluations, prompt tests) is set with PROCINTEL_BATCH_MODEL,
+PROCINTEL_BATCH_API_BASE, PROCINTEL_BATCH_API_KEY and PROCINTEL_BATCH_EXTRA_BODY. While a job runs (use_batch()), every call
+that would go to the answer model goes there instead; a setting left empty falls back to the answer model's, so with none
+set the jobs use the answer model as before. When the batch model is another endpoint or model (batch_dedicated()), jobs
+no longer compete with users' requests and the worker does not make them wait for quiet (procintel.jobs.worker).
+
 A second model, the independent judge of the evaluation, is set the same way with PROCINTEL_JUDGE_MODEL,
 PROCINTEL_JUDGE_API_BASE, PROCINTEL_JUDGE_API_KEY and PROCINTEL_JUDGE_EXTRA_BODY; calls pass prefix=JUDGE.
 """
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import json
 import os
 from typing import Any, Iterator
@@ -26,10 +34,43 @@ from typing import Any, Iterator
 
 ANSWER = "PROCINTEL_LLM"
 JUDGE = "PROCINTEL_JUDGE"
+BATCH = "PROCINTEL_BATCH"
+_in_batch: contextvars.ContextVar[bool] = contextvars.ContextVar("llm_in_batch", default=False)
+
+
+@contextlib.contextmanager
+def use_batch():
+    """Inside this block (a background job), calls for the answer model go to the batch model where one is set."""
+    token = _in_batch.set(True)
+    try:
+        yield
+    finally:
+        _in_batch.reset(token)
+
+
+def _env(prefix: str, name: str) -> str | None:
+    """One setting of a model. For the answer model inside a background job this is the batch model's, field by field: a
+    field left empty is the answer model's, except that a key or extra options are not handed to a different endpoint or model."""
+    if prefix == ANSWER and _in_batch.get():
+        own = os.environ.get(f"{BATCH}_{name}") or None
+        if own is not None:
+            return own
+        if name == "API_KEY" and (os.environ.get(f"{BATCH}_API_BASE") or None) not in (None, os.environ.get(f"{ANSWER}_API_BASE") or None):
+            return None   # the answer model's key stays with the answer model's endpoint
+        if name == "EXTRA_BODY" and (os.environ.get(f"{BATCH}_MODEL") or None) not in (None, os.environ.get(f"{ANSWER}_MODEL") or None):
+            return None   # options written for one model do not belong to another
+    return os.environ.get(f"{prefix}_{name}") or None
+
+
+def batch_dedicated() -> bool:
+    """True when background jobs have a model of their own: another endpoint or another model than the answer model."""
+    model, base = os.environ.get(f"{BATCH}_MODEL") or None, os.environ.get(f"{BATCH}_API_BASE") or None
+    return bool((base and base != (os.environ.get(f"{ANSWER}_API_BASE") or None))
+                or (model and model != (os.environ.get(f"{ANSWER}_MODEL") or None)))
 
 
 def model_name(prefix: str = ANSWER) -> str | None:
-    return os.environ.get(f"{prefix}_MODEL") or None
+    return _env(prefix, "MODEL")
 
 
 def available(prefix: str = ANSWER) -> bool:
@@ -47,12 +88,12 @@ def _request(system: str, user: str, temperature: float | None, max_tokens: int 
         raise RuntimeError(f"{prefix}_MODEL is not set")
     max_tokens = MAX_TOKENS if max_tokens is None else max_tokens
     kw.setdefault("drop_params", True)  # a model that fixes its own temperature (Claude 5.5) must not fail on ours
-    extra = os.environ.get(f"{prefix}_EXTRA_BODY")
+    extra = _env(prefix, "EXTRA_BODY")
     if extra:
         kw.setdefault("extra_body", json.loads(extra))
     return dict(model=m, messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
                 temperature=TEMPERATURE if temperature is None else temperature, max_tokens=max_tokens,
-                api_base=os.environ.get(f"{prefix}_API_BASE"), api_key=os.environ.get(f"{prefix}_API_KEY"), **kw)
+                api_base=_env(prefix, "API_BASE"), api_key=_env(prefix, "API_KEY"), **kw)
 
 
 def _cut(max_tokens: int | None) -> RuntimeError:

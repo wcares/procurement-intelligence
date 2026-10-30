@@ -28,6 +28,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
+from procintel.core import llm
 from procintel.jobs import handlers, store
 
 log = logging.getLogger(__name__)
@@ -126,7 +127,8 @@ def run_one(job: dict, activity: Activity, ctx: dict, db_path=None) -> str:
             cursor = next(gen)
             store.checkpoint(job["id"], cursor, db_path)
             # a request came in during the step, or a more urgent job is waiting: give the machine back
-            yields = job["kind"] not in LIGHT and not _overdue(job)   # light and overdue jobs are not paused by requests
+            # light and overdue jobs, and every job when the batch model is its own, are not paused by requests
+            yields = job["kind"] not in LIGHT and not _overdue(job) and not llm.batch_dedicated()
             if (yields and activity.last != started) or store.higher_waiting(job.get("priority"), db_path):
                 store.pause(job["id"], db_path)
                 return "pending"
@@ -151,13 +153,14 @@ class Worker:
         for kind, every in SCHEDULE.items():
             if store.due(kind, every, self.db_path):
                 store.enqueue(kind, f"scheduled: every {every}", db_path=self.db_path)
-        idle = self.activity.idle_for() >= IDLE_SECONDS
+        idle = self.activity.idle_for() >= IDLE_SECONDS or llm.batch_dedicated()   # a model of their own: no need to wait for users
         job = store.next_pending(self.db_path, self.name, "" if idle else _only_when_busy())
         if job is None:
             return None
         self.current = job["kind"]
         try:
-            return run_one(job, self.activity, self.ctx, self.db_path)
+            with llm.use_batch():   # the job's model calls go to the batch model, where one is set
+                return run_one(job, self.activity, self.ctx, self.db_path)
         finally:
             self.current = None
 
