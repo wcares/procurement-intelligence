@@ -18,7 +18,7 @@ export function ManualPlan({ s }: { s: PlanState }) {
   }, [s.opts]);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+    <div className="grid gap-6">
       <div className="space-y-4">
         <div className="grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-3">
           <label className="text-xs sm:col-span-3">Country
