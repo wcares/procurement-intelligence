@@ -59,8 +59,20 @@ VOCAB_STEP = 1
 CLARIFY = 0
 
 
+_WORD = re.compile(r"[^\s\d.,;:!?()\[\]{}\"'/|\u0964\u061f\u060c]{3,}")   # combining marks stay in their word (Hindi, Arabic)
+_NO_SPACES = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0e00-\u0e7f]+")   # scripts written without spaces
+
+
 def terms(text: str) -> set[str]:
-    return set(_STEM.stemWords([w for w in re.findall(r"[a-z][a-z-]{2,}", text.lower()) if w not in _STOP]))
+    """Content words of a text: English words stemmed and without stopwords, words of other alphabets as written, and
+    character pairs for scripts written without spaces (Chinese, Japanese, Korean, Thai)."""
+    low = text.lower()
+    words = [w.strip("-") for w in _WORD.findall(_NO_SPACES.sub(" ", low))]
+    words = [w for w in words if len(w) >= 3 and w not in _STOP and any(c.isalpha() for c in w)]
+    out = set(_STEM.stemWords([w for w in words if w.isascii()])) | {w for w in words if not w.isascii()}
+    for run in _NO_SPACES.findall(low):
+        out |= {run[i:i + 2] for i in range(len(run) - 1)} or {run}
+    return out
 
 
 def meta(caveats: list[str]) -> dict:
@@ -248,9 +260,12 @@ def generative_events(question: str, hits: list[Hit], use_decide: bool = False, 
             return None
         cites = sorted({c - 1 for c in s.get("citations") or [] if isinstance(c, int) and 1 <= c <= len(hits)})
         key = (s["text"], tuple(cites))
-        if cites and key not in seen:
-            seen[key] = _supported(s["text"], [hits[c] for c in cites], use_decide)
-        return {"text": s["text"].strip(), "citations": cites} if cites and seen[key] else None
+        english = s.get("en") if isinstance(s.get("en"), str) and s["en"].strip() else None
+        if cites and key not in seen:   # a sentence in another language is checked in its English version
+            seen[key] = _supported(english or s["text"], [hits[c] for c in cites], use_decide)
+        if not (cites and seen[key]):
+            return None
+        return {"text": s["text"].strip(), "citations": cites} | ({"en": english.strip()} if english and english.strip() != s["text"].strip() else {})
 
     raw, objects = "", _Objects()
     for piece in _pieces(prompts.get(prompt), f"Passages:\n{numbered}\n\nQuestion: {question}", streaming):

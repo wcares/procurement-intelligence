@@ -278,3 +278,28 @@ def test_unsupported_question_still_gets_a_plain_reply(monkeypatch):
     assert out["unsupported"] and out["answer"] == []                       # the refusal fields are unchanged
     lead = out["fallback"]["answer"][0]
     assert lead["citations"] == [] and "searched the reports" in lead["text"]   # a sentence that says what was tried
+
+
+def test_terms_read_words_of_any_script():
+    from procintel.answering.answer import terms
+    assert {"delay", "contractor"} <= terms("Delays were caused by weak contractors.")
+    assert {"देरी", "सिविल"} <= terms("सिविल कार्यों में देरी हुई।")                  # vowel signs stay in their words
+    assert "采购" in terms("土建工程的采购延误")                                        # no spaces: character pairs
+
+
+def test_a_sentence_in_another_language_is_checked_in_its_english_version(monkeypatch):
+    import json
+
+    from procintel.answering import answer
+    from procintel.answering.retrieve import Hit
+    hit = Hit(chunk_id="d:1", doc_id="d", title="t", doc_type="x", url="u", section="S", para="4", kind="text",
+              text="Delays were caused by weak contractors and late payments to them.", project_id="P",
+              project_name="n", country_code="KE", score=1.0, via="bm25", tag=None, tag_confidence=None, problem=None)
+    hindi = "देरी कमजोर ठेकेदारों और देर से भुगतान के कारण हुई।"
+    reply = {"sentences": [{"text": hindi, "en": "Delays were caused by weak contractors and late payments.", "citations": [1]}]}
+    monkeypatch.setattr(answer, "_pieces", lambda system, user, streaming: iter([json.dumps(reply, ensure_ascii=False)]))
+    out, dropped = answer.generative("q", [hit])
+    assert dropped == 0 and out == [{"text": hindi, "citations": [0], "en": "Delays were caused by weak contractors and late payments."}]
+    del reply["sentences"][0]["en"]                                                  # without it the Hindi cannot be checked
+    out, dropped = answer.generative("q", [hit])
+    assert out == [] and dropped == 1

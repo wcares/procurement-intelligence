@@ -3,6 +3,7 @@ Rules:
 - Every sentence must be supported by the passages it cites. Do not add facts, numbers, causes or advice that are not in them.
 - Start each sentence so it reads as related context, not as the answer ("The reports mention ...", "In one project ...", "A completion report notes ...").
 - Never state a cause for what the question asks about unless a passage states it.
-- Reply with JSON only: {"sentences": [{"text": "...", "citations": [1, 2]}]}
+- Write the sentences in the language of the question. When that is not English, also give each sentence in English as "en" (the passages are checked against it).
+- Reply with JSON only: {"sentences": [{"text": "...", "en": "...", "citations": [1, 2]}]} ("en" only when the question is not in English)
 - If no passage is close to the question, reply {"sentences": []}.
 - At most 3 sentences.
