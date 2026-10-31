@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AssessView } from "@/app/assess/assess-view";
+import { ExportButtons } from "@/components/export-buttons";
 import { ManualPlan } from "./manual-plan";
 import { PlanChat } from "./plan-chat";
 import { PlanResults } from "./plan-results";
@@ -22,8 +23,8 @@ export function PlanView() {
   const count = s.packages.filter((p) => p.name || p.estimatedValueUsd).length;
   return (
     // fills the space between the header and the footer; the negative margins cancel the page padding
-    <div className="-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[560px] flex-col lg:-mx-8">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8">
+    <div className="-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[560px] flex-col lg:-mx-8 print:h-auto print:min-h-0">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8 print:hidden">
         <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px]" role="group" aria-label="Plan mode">
           <button type="button" onClick={() => setTab("chat")} aria-pressed={tab === "chat"} className={seg(tab === "chat")}>Chat</button>
           <button type="button" onClick={() => setTab("assess")} aria-pressed={tab === "assess"} className={seg(tab === "assess")}>Assess a package</button>
@@ -37,14 +38,14 @@ export function PlanView() {
         <p className="hidden text-xs text-ink-muted xl:block">Each package is forecast from comparable past packages and laid out on one timeline. Ask about the plan, or about past projects in any country, in the same chat.</p>
       </div>
       {tab === "assess" ? (
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8 print:overflow-visible">
           <p className="mb-5 max-w-2xl text-sm text-ink-muted">See how comparable World Bank–financed packages actually went, and what past evaluations say went wrong, with every lesson quoted from its source.</p>
           <AssessView />
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-          <div className={`min-h-0 min-w-0 flex-col ${pane === "chat" ? "flex" : "hidden lg:flex"}`}><PlanChat s={s} /></div>
-          <div className={`min-h-0 min-w-0 ${pane === "plan" ? "block" : "hidden lg:block"}`}><PlanPanel s={s} /></div>
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] print:block">
+          <div className={`min-h-0 min-w-0 flex-col ${pane === "chat" ? "flex" : "hidden lg:flex"} print:hidden`}><PlanChat s={s} /></div>
+          <div className={`min-h-0 min-w-0 ${pane === "plan" ? "block" : "hidden lg:block"} print:block`}><PlanPanel s={s} /></div>
         </div>
       )}
     </div>
@@ -58,7 +59,7 @@ function PlanPanel({ s }: { s: PlanState }) {
   const named = s.packages.filter((p) => p.name || p.estimatedValueUsd);
   const seg = (on: boolean) => `rounded-lg px-3.5 py-1.5 text-sm font-medium ${on ? "bg-brand" : "text-ink-muted hover:text-foreground"}`;
   return (
-    <section className="h-full min-w-0 space-y-4 overflow-y-auto border-l border-line bg-surface px-5 py-5 lg:px-6">
+    <section className="h-full min-w-0 space-y-4 overflow-y-auto border-l border-line bg-surface px-5 py-5 lg:px-6 print:h-auto print:overflow-visible print:border-0">
       <div className="flex items-center justify-between gap-2">
         <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px]" role="group" aria-label="Plan view">
           <button type="button" onClick={() => setSide("plan")} aria-pressed={side === "plan"} className={seg(side === "plan")}>Your plan</button>
@@ -88,6 +89,7 @@ function PlanPanel({ s }: { s: PlanState }) {
           {s.running && <p className="text-sm text-ink-muted">{s.progress || "Forecasting…"}</p>}
           {s.ran && !s.running && (
             <>
+              <ExportButtons kind="plan" body={{ packages: s.packages, forecasts: s.forecasts, plan: s.plan, projectStart: s.projectStart, deadline: s.deadline }} />
               <PlanResults packages={s.packages} plan={s.plan} forecasts={s.forecasts} projectStart={s.projectStart} deadline={s.deadline} />
               <p className="text-xs text-ink-muted">
                 Each forecast comes from comparable past packages; the project dates combine them in the order set. The system has not

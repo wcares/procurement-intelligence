@@ -25,11 +25,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <header className="border-b border-line bg-surface">
+          <header className="border-b border-line bg-surface print:hidden">
             <HeaderBar />
           </header>
           <main className="mx-auto w-full max-w-[1800px] flex-1 px-4 py-8 lg:px-8">{children}</main>
-          <footer className="border-t border-line px-4 py-4 text-center text-xs text-ink-muted">
+          <footer className="border-t border-line px-4 py-4 text-center text-xs text-ink-muted print:hidden">
             Data: World Bank Projects, Procurement Notices, Documents &amp; Reports and CPIA APIs. ·{" "}
             <Link href="/data-handling" className="underline">
               How your data is handled

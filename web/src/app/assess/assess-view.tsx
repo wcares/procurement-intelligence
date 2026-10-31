@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
+import { ExportButtons } from "@/components/export-buttons";
 import type { AssessRequest, AssessResponse, FlagEvidenceItem, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
@@ -77,8 +78,8 @@ export function AssessView() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(380px,460px)_1fr]">
-      <div className="self-start lg:sticky lg:top-0">
+    <div className="grid gap-6 lg:grid-cols-[minmax(380px,460px)_1fr] print:block">
+      <div className="self-start lg:sticky lg:top-0 print:hidden">
       <form onSubmit={submit} className="grid gap-3 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-2">
         <h2 className="font-semibold sm:col-span-2">Describe the package</h2>
         <Label text="Country" wide>
@@ -182,6 +183,7 @@ export function AssessView() {
           <StartedForecast procGroup={assessed.procGroup} methodCode={assessed.methodCode} started={startedAssessed} />
         )}
         {result && assessed && <GoalPanel request={assessed} />}
+        {result && assessed && <ExportButtons kind="assessment" body={{ request: assessed, response: result }} />}
         {result && <Results r={result} />}
         <InsightsPanel wide procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
       </section>
