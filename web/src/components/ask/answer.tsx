@@ -35,6 +35,14 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
           </span>
         ))}
       </div>
+      {r.answer.some((s) => s.en) && (
+        <details className="text-xs text-ink-muted">
+          <summary className="cursor-pointer">In English (what each sentence was checked against)</summary>
+          <ol className="mt-1 list-decimal space-y-1 pl-5">
+            {r.answer.filter((s) => s.en).map((s, i) => <li key={i}>{s.en}</li>)}
+          </ol>
+        </details>
+      )}
       <div className="space-y-2">
         {r.citations.map((c, i) => (
           <div key={c.id} id={`t${turnId}-c${i}`} className="scroll-mt-20">

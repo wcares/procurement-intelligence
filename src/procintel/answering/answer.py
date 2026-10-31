@@ -294,6 +294,11 @@ def generative_events(question: str, hits: list[Hit], use_decide: bool = False, 
     return out, dropped
 
 
+def _sentence(s: dict, remap: dict[int, int]) -> dict:
+    """An answer sentence with its citations renumbered; the English version kept when the sentence has one."""
+    return {"text": s["text"], "citations": [remap[c] for c in s["citations"]]} | ({"en": s["en"]} if s.get("en") else {})
+
+
 def generative(question: str, hits: list[Hit], use_decide: bool = False) -> tuple[list[dict] | None, int]:
     """(model-written sentences that survive validation, number dropped as unsupported); None when the output
     is unusable. A sentence needs a valid citation and must be supported by what it cites."""
@@ -426,7 +431,7 @@ def fallback_events(retriever: Retriever, question: str, closest: list[Hit], use
                 "or another country and I will look there, or keep going with your plan.")
     used = sorted({c for s in sentences for c in s["citations"]})
     remap = {old: new for new, old in enumerate(used)}
-    return {"answer": [{"text": lead, "citations": []}] + [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in sentences],
+    return {"answer": [{"text": lead, "citations": []}] + [_sentence(s, remap) for s in sentences],
             "citations": [citation(source[i]) for i in used]}
 
 
@@ -538,7 +543,7 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
     caveats += conflict_notes(retriever, [hits[i] for i in used])
     remap = {old: new for new, old in enumerate(used)}
     yield {"type": "done", "result": {
-        "answer": [{"text": s["text"], "citations": [remap[c] for c in s["citations"]]} for s in answer],
+        "answer": [_sentence(s, remap) for s in answer],
         "citations": [citation(hits[i]) for i in used],
         "unsupported": not answer,
         **({"fallback": fb} if fb else {}),

@@ -236,6 +236,8 @@ export interface AskRequest {
 export interface AnswerSentence {
   text: string;
   citations: number[];
+  /** the sentence in English, when the answer is in another language (it was checked against the passages in English) */
+  en?: string;
 }
 
 export interface AskResponse {
