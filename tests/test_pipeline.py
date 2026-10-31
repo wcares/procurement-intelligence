@@ -250,3 +250,25 @@ def test_missing_dates_in_source_rows_are_logged_as_null_and_old_nat_text_reads_
     assert logged["award_date"] is None and logged["price_amount"] is None and logged["notice_date"].startswith("2026-10-01")
     rows, _ = actions._rows({"n2": {"new": {"notice_id": "n2", "award_date": "NaT", "price_amount": "NaN"}}})
     assert rows[0]["award_date"] is None and rows[0]["price_amount"] is None
+
+
+def test_contract_award_fetch_retries_a_dropped_connection(monkeypatch):
+    import requests
+    from procintel.ingestion import contract_awards
+    monkeypatch.setattr(contract_awards.time, "sleep", lambda s: None)
+    calls = []
+
+    class Reply:
+        def raise_for_status(self): pass
+        def json(self): return {"data": [{"project_id": "P1"}], "count": 1}
+
+    def flaky(url, params, timeout):
+        calls.append(1)
+        if len(calls) < 3:
+            raise requests.ConnectionError("Connection reset by peer")
+        return Reply()
+
+    assert contract_awards.fetch("project_id='P1'", get=flaky) == [{"project_id": "P1"}] and len(calls) == 3
+    calls.clear()
+    with pytest.raises(requests.ConnectionError):                       # still failing after four tries: the read fails
+        contract_awards.fetch("project_id='P1'", get=lambda url, params, timeout: (_ for _ in ()).throw(requests.ConnectionError("x")))

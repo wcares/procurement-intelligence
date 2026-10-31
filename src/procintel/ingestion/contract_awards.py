@@ -31,14 +31,26 @@ COLUMNS = ["project_id", "borrower_contract_reference_number", "contract_descrip
            "supplier_country_code", "supplier_contract_amount_usd", "wb_contract_number", "as_of_date"]
 
 
+def _page(params: dict, get, attempts: int = 4, pause: float = 1.5) -> dict:
+    """One page, tried again after a dropped connection or a server error (as procintel.ingestion.wb_client does):
+    one reset used to fail a whole read of every project."""
+    for attempt in range(attempts):
+        try:
+            r = get(API, params=params, timeout=60)
+            r.raise_for_status()
+            return r.json()
+        except (requests.RequestException, ValueError):
+            if attempt == attempts - 1:
+                raise
+            time.sleep(pause * (attempt + 1))
+
+
 def fetch(filter_: str, get=requests.get) -> list[dict]:
     """Every row matching an OData-style filter, page by page."""
     rows, skip = [], 0
     while True:
-        r = get(API, params={"datasetId": "DS00005", "resourceId": "RS00005", "type": "json", "top": PAGE,
-                             "skip": skip, "filter": filter_}, timeout=60)
-        r.raise_for_status()
-        d = r.json()
+        d = _page({"datasetId": "DS00005", "resourceId": "RS00005", "type": "json", "top": PAGE,
+                   "skip": skip, "filter": filter_}, get)
         batch = d.get("data") or []
         rows += batch
         skip += len(batch)
