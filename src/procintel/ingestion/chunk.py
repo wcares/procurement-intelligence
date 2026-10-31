@@ -58,7 +58,7 @@ SKIP_SECTIONS = re.compile(
 class Chunk:
     section: str
     para: str | None  # numbered paragraph anchor, e.g. "23"
-    kind: str  # "text" | "table" (columns flattened into running text: kept, not searched) | "grid" (a table rebuilt from the PDF's layout, searched)
+    kind: str  # "text" | "table" (columns flattened into running text: kept, not searched) | "grid" (a table rebuilt from the PDF's layout, searched) | "figure" (a chart, map or photo: its caption and a model's description, searched)
     text: str
 
 
@@ -318,13 +318,27 @@ def grid_chunks(tables: list[dict], skip_pages: int = 0) -> list[Chunk]:
     return out
 
 
+def figure_chunks(figs: list[dict]) -> list[Chunk]:
+    """One passage per figure that has text: its printed caption and, when a vision model described it, that description
+    marked as the model's (it is shown beside the image, which is the evidence). Anchored by page, titled by the caption."""
+    out = []
+    for f in figs:
+        parts = [f["caption"]] if f["caption"] else []
+        if f["description"]:
+            parts.append("Description of the figure, written by a model (the report's own words are the caption): " + f["description"])
+        if parts:
+            out.append(Chunk(f["caption"] or f"Figure, page {f['page']}", f"p.{f['page']}", "figure", "\n\n".join(parts)))
+    return out
+
+
 def build(db_path: Path = DB_PATH) -> None:
     con = db.connect(db_path)
     has_chunks = con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk'").fetchone()
     old = dict(con.execute("SELECT chunk_id, text FROM chunk").fetchall()) if has_chunks else {}
     rows = []
-    from procintel.ingestion import doc_tables, isr_chunk, supervision
+    from procintel.ingestion import doc_figures, doc_tables, isr_chunk, supervision
     from procintel.ingestion.wb_client import ICR_TYPE
+    figs = doc_figures.for_chunks(con)
     grids = doc_tables.for_chunks(con)    # reports whose PDF tables were read: those replace the flattened table text
     typed = con.execute("SELECT 1 FROM duckdb_columns() WHERE table_name = 'documents' AND column_name = 'doc_type'").fetchone()
     for doc_id, doc_type, text in con.execute(
@@ -333,6 +347,8 @@ def build(db_path: Path = DB_PATH) -> None:
         cuts = cut(text)
         if doc_id in grids:
             cuts = [c for c in cuts if c.kind != "table"] + grid_chunks(grids[doc_id], GRID_SKIP_PAGES if doc_type == ICR_TYPE else 0)
+        if doc_id in figs:
+            cuts = cuts + figure_chunks(figs[doc_id])
         for i, c in enumerate(cuts):
             rows.append({"chunk_id": f"{doc_id}:{i}", "doc_id": doc_id, "seq": i, "section": c.section,
                          "para": c.para, "kind": c.kind, "text": c.text, "n_chars": len(c.text)})

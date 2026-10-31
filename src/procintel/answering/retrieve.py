@@ -38,6 +38,7 @@ RRF_K = 60  # reciprocal rank fusion constant (Cormack et al. 2009)
 # A table passage (kind "grid") counts this much of a text passage's rank score: 0 = never, 1 = like text.
 # 0.8 from a sweep on the 80 evaluation questions (2026-10-31), hybrid P@5: 1.0 0.680, 0.8 0.690, 0.6 0.688, 0 0.680.
 GRID_WEIGHT = float(os.environ.get("PROCINTEL_GRID_WEIGHT", "0.8"))
+FIGURE_WEIGHT = float(os.environ.get("PROCINTEL_FIGURE_WEIGHT", "0.8"))   # a figure's caption and model description
 
 DB_PATH = paths.DB_PATH
 
@@ -125,7 +126,7 @@ class Retriever:
         self._bm25 = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=10)
 
     def search(self, query: str, k: int = 8, country: str | None = None, proc_group: str | None = None,
-               kinds: tuple[str, ...] = ("text", "grid")) -> list[Hit]:
+               kinds: tuple[str, ...] = ("text", "grid", "figure")) -> list[Hit]:
         mask = np.array([r["kind"] in kinds
                          and (country is None or country in r["country_codes"])
                          and (proc_group is None or proc_group in r["groups"])
@@ -142,7 +143,7 @@ class Retriever:
         found_by: dict[int, list[str]] = {}
         for name, idx in ranked.items():
             for rank, i in enumerate(idx):
-                fused[i] = fused.get(i, 0.0) + (GRID_WEIGHT if self.records[i]["kind"] == "grid" else 1.0) / (RRF_K + rank + 1)
+                fused[i] = fused.get(i, 0.0) + _weight(self.records[i]["kind"]) / (RRF_K + rank + 1)
                 found_by.setdefault(i, []).append(name)
         hits = []
         order = sorted(fused, key=fused.get, reverse=True)
@@ -171,6 +172,10 @@ class Retriever:
     def _vector_ranking(self, query: str, mask: np.ndarray) -> list[int]:
         q = embed.embed([embed.format_query(query)])[0]
         return vector_index.ranking(self.vectors, q, mask, POOL)
+
+
+def _weight(kind: str) -> float:
+    return GRID_WEIGHT if kind == "grid" else FIGURE_WEIGHT if kind == "figure" else 1.0
 
 
 def _load_tags(con: duckdb.DuckDBPyConnection) -> dict[str, tuple[str, float]]:

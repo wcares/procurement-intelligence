@@ -153,7 +153,7 @@ def remove(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = N
         con = db.connect()
         try:
             con.execute("DELETE FROM documents WHERE doc_id = ?", [up["doc_id"]])
-            for t in ("doc_table", "doc_table_read"):
+            for t in ("doc_table", "doc_table_read", "doc_figure", "doc_figure_read"):
                 if con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = ?", [t]).fetchone():
                     con.execute(f"DELETE FROM {t} WHERE doc_id = ?", [up["doc_id"]])
         finally:
@@ -178,15 +178,19 @@ def _read_tables(doc_id: str, up: dict) -> int:
     chunk build turns into passages. Never stops the upload: a PDF whose tables cannot be read just has none."""
     if up["format"] != "pdf" or up["path"].startswith("/"):
         return 0
-    from procintel.ingestion import doc_tables
-    try:
-        con = db.connect()
+    from procintel.ingestion import doc_figures, doc_tables
+    n = 0
+    for reader in (doc_tables, doc_figures):   # figures are only kept with their caption; descriptions come later
         try:
-            return doc_tables.read_key(con, doc_id, up["path"])
-        finally:
-            con.close()
-    except Exception:  # noqa: BLE001
-        return 0
+            con = db.connect()
+            try:
+                got = reader.read_key(con, doc_id, up["path"])
+                n += got if reader is doc_tables else 0
+            finally:
+                con.close()
+        except Exception:  # noqa: BLE001
+            pass
+    return n
 
 
 def _add_document(doc_id: str, project_ids: str, title: str, text: str, doc_type: str = ICR_TYPE) -> None:

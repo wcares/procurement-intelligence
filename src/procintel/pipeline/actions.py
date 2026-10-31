@@ -162,6 +162,16 @@ def read_tables(keys, events, ctx):
     return []
 
 
+def read_figures(keys, events, ctx):
+    """Find the figures of reports whose PDF has not been read for them yet, and describe the new ones when a vision
+    model is configured (a server that is down just leaves them for the next run). The passages follow in
+    chunk_documents."""
+    from procintel.ingestion import doc_figures
+    doc_figures.build()
+    doc_figures.describe_pending(limit=60)
+    return []
+
+
 def chunk_documents(keys, events, ctx):
     """Re-cut the passages (the whole corpus takes about 2 s, and unchanged texts keep their ids, vectors and tags);
     reports Passages.changed when any passage text changed."""
@@ -254,6 +264,8 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms,
            ("Data.updated",)),
     Action("read_tables", "Read the tables of new reports from their PDFs (procintel.ingestion.doc_tables)", read_tables,
+           ("Data.updated",)),
+    Action("read_figures", "Find and describe the figures of new reports (procintel.ingestion.doc_figures)", read_figures,
            ("Data.updated",)),
     Action("chunk_documents", "Cut report texts into passages", chunk_documents,
            ("Data.updated", "Passages.changed")),

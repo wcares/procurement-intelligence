@@ -263,3 +263,15 @@ def test_grid_passages_skip_the_data_sheet_pages_when_asked():
               {"page": 30, "caption": "Table 5. Costs", "markdown": "| a | b |\n|---|---|\n| 3 | 4 |"}]
     assert [c.para for c in chunk.grid_chunks(tables)] == ["p.3", "p.30"]
     assert [c.para for c in chunk.grid_chunks(tables, skip_pages=8)] == ["p.30"]
+
+
+def test_figure_passages_carry_the_caption_and_a_marked_model_description():
+    from procintel.ingestion import chunk
+    figs = [{"page": 54, "caption": "Figure 1. Cumulative targets", "description": "A line chart rising over time."},
+            {"page": 9, "caption": None, "description": "A map."},
+            {"page": 12, "caption": "Figure 3. Photo", "description": None},
+            {"page": 13, "caption": None, "description": None}]
+    out = chunk.figure_chunks(figs)
+    assert [(c.kind, c.para) for c in out] == [("figure", "p.54"), ("figure", "p.9"), ("figure", "p.12")]   # no text: no passage
+    assert out[0].section == "Figure 1. Cumulative targets" and "written by a model" in out[0].text
+    assert out[1].section == "Figure, page 9" and out[2].text == "Figure 3. Photo"

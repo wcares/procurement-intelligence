@@ -36,7 +36,7 @@ def test_rules_plan_coalesces_and_follows_the_registry_order():
 def test_a_new_report_is_ingested_chunked_then_indexed_and_checked():
     plan, _ = rules.plan([{"type": "Document.added", "key": "d9"}], rules.DEFAULT_RULES, actions.ORDER)
     assert [a for a, _ in plan] == ["ingest_documents", "rebuild_tables", "rebuild_firms", "read_tables",
-                                    "chunk_documents", "watch_alerts"]
+                                    "read_figures", "chunk_documents", "watch_alerts"]
     derived = [{"type": "Passages.changed", "key": "all"}, {"type": "Data.updated", "key": "all"}]
     plan, _ = rules.plan(derived, rules.DEFAULT_RULES, actions.ORDER)
     assert [a for a, _ in plan] == ["index_passages", "document_checks", "reload_backend"]
