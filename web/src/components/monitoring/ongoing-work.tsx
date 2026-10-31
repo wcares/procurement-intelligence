@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { MonitoredProject } from "@/lib/api/types";
+import { ProjectMediaPanel } from "./project-media";
 import { StatusBadge } from "./status-badge";
 
 /** Ongoing projects (the ones you follow, or all with active packages) and, opened, their packages with status and
@@ -60,6 +61,11 @@ export function OngoingWork({ openProject }: { openProject?: string | null }) {
                     <li className="text-ink-muted">{detail[p.projectId].packages.finished} finished packages not listed.</li>
                   </ul>
                 ) : <p className="mt-1 text-xs text-ink-muted">Loading packages…</p>
+              )}
+              {open === p.projectId && (
+                <ProjectMediaPanel projectId={p.projectId}
+                  packages={(detail[p.projectId]?.packageList ?? []).filter((k) => k.status !== "finished").slice(0, 40)
+                    .map((k) => ({ id: k.packageId, label: `${k.packageId} · ${k.description.slice(0, 40)}` }))} />
               )}
             </li>
           ))}

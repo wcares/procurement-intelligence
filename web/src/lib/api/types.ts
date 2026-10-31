@@ -779,3 +779,22 @@ export interface PlanChatResponse {
 
 /** One saved conversation in the history list (its messages are fetched when it is opened). */
 export interface SavedConversation { id: string; title: string; updatedAt: string; messages: number }
+
+/** A photo or video attached to a project (or one of its packages) as evidence (GET /media). */
+export interface ProjectMedia {
+  id: string;
+  projectId: string;
+  packageRef: string | null;
+  kind: "image" | "video";
+  contentType: string;
+  filename: string;
+  size: number;
+  caption: string | null;
+  takenOn: string | null;
+  uploadedBy: string | null;
+  uploadedAt: string;
+  /** made up for the demo, shown as such */
+  synthetic: boolean;
+  /** the file, served by the backend */
+  url: string;
+}

@@ -1,5 +1,6 @@
 import type {
   SavedConversation,
+  ProjectMedia,
   DashboardResponse,
   RecentChanges,
   RecommendationHistory,
@@ -215,6 +216,19 @@ export const api = {
   /** deletes the file and takes its report out of the evidence; the record stays, marked removed */
   approveUpload: (id: string) => send<Upload>(`/intake/uploads/${encodeURIComponent(id)}/approve`, "POST", {}),
   removeUpload: (id: string) => call<Upload>(`/intake/uploads/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  media: (projectIds: string[]) => call<{ items: ProjectMedia[]; accepted: string[] }>(`/media?projectIds=${encodeURIComponent(projectIds.join(","))}`),
+  removeMedia: (id: string) => call<{ removed: string }>(`/media/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  /** a refused file (type, size, unknown project) comes back as { error } */
+  uploadMedia: async (file: File, fields: { projectId: string; packageRef?: string; caption?: string; takenOn?: string }): Promise<ProjectMedia | { error: string }> => {
+    await whenSignedIn("/media");
+    const form = new FormData();
+    form.append("file", file);
+    Object.entries(fields).forEach(([k, v]) => v && form.append(k, v));
+    const res = await fetch(`${API_BASE}/media`, { method: "POST", body: form });
+    const out = await res.json().catch(() => ({}));
+    if (res.ok) return out as ProjectMedia;
+    return { error: out.error ?? (res.status === 413 ? "the file is too large to send through this site" : `upload failed (${res.status})`) };
+  },
   /** a refused file (type, size, empty) comes back as { error } */
   upload: async (file: File): Promise<Upload | { error: string }> => {
     const form = new FormData();

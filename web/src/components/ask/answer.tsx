@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AskResponse } from "@/lib/api/types";
 import { Caveats, CitationCard } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
+import { RelatedMedia } from "@/components/monitoring/project-media";
 import { AnswerMap } from "./answer-map";
 
 /** An answer from the reports: the sentences with their citation chips and the quoted sources below. When nothing answered
@@ -43,6 +44,7 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
           </ol>
         </details>
       )}
+      <RelatedMedia projectIds={r.citations.map((c) => c.projectId).filter(Boolean)} />
       <div className="space-y-2">
         {r.citations.map((c, i) => (
           <div key={c.id} id={`t${turnId}-c${i}`} className="scroll-mt-20">
