@@ -58,7 +58,7 @@ SKIP_SECTIONS = re.compile(
 class Chunk:
     section: str
     para: str | None  # numbered paragraph anchor, e.g. "23"
-    kind: str  # "text" | "table"
+    kind: str  # "text" | "table" (columns flattened into running text: kept, not searched) | "grid" (a table rebuilt from the PDF's layout, searched)
     text: str
 
 
@@ -297,17 +297,32 @@ def remap_files(mapping: dict[str, str], files=None) -> int:
     return changed
 
 
+def grid_chunks(tables: list[dict]) -> list[Chunk]:
+    """One passage per table read from the PDF (procintel.ingestion.doc_tables); a long table is cut by rows with its
+    caption and header repeated. Anchored by page ("p.27"), titled by its caption."""
+    from procintel.ingestion import pdf_tables
+    out = []
+    for t in tables:
+        for piece in pdf_tables.split_markdown(t["caption"], t["markdown"], MAX_CHARS):
+            out.append(Chunk(t["caption"] or f"Table, page {t['page']}", f"p.{t['page']}", "grid", piece))
+    return out
+
+
 def build(db_path: Path = DB_PATH) -> None:
     con = db.connect(db_path)
     has_chunks = con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'chunk'").fetchone()
     old = dict(con.execute("SELECT chunk_id, text FROM chunk").fetchall()) if has_chunks else {}
     rows = []
-    from procintel.ingestion import isr_chunk, supervision
+    from procintel.ingestion import doc_tables, isr_chunk, supervision
+    grids = doc_tables.for_chunks(con)    # reports whose PDF tables were read: those replace the flattened table text
     typed = con.execute("SELECT 1 FROM duckdb_columns() WHERE table_name = 'documents' AND column_name = 'doc_type'").fetchone()
     for doc_id, doc_type, text in con.execute(
             f"SELECT doc_id, {'doc_type' if typed else 'NULL'}, text FROM documents").fetchall():
         cut = isr_chunk.chunk_isr if doc_type == supervision.ISR_TYPE else chunk_document   # restructuring papers: ICR layout
-        for i, c in enumerate(cut(text)):
+        cuts = cut(text)
+        if doc_id in grids:
+            cuts = [c for c in cuts if c.kind != "table"] + grid_chunks(grids[doc_id])
+        for i, c in enumerate(cuts):
             rows.append({"chunk_id": f"{doc_id}:{i}", "doc_id": doc_id, "seq": i, "section": c.section,
                          "para": c.para, "kind": c.kind, "text": c.text, "n_chars": len(c.text)})
     df = pd.DataFrame(rows)

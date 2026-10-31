@@ -121,7 +121,7 @@ class Retriever:
         self._bm25 = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=10)
 
     def search(self, query: str, k: int = 8, country: str | None = None, proc_group: str | None = None,
-               kinds: tuple[str, ...] = ("text",)) -> list[Hit]:
+               kinds: tuple[str, ...] = ("text", "grid")) -> list[Hit]:
         mask = np.array([r["kind"] in kinds
                          and (country is None or country in r["country_codes"])
                          and (proc_group is None or proc_group in r["groups"])

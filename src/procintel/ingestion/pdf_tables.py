@@ -115,14 +115,18 @@ def tables(path: Path) -> list[PdfTable]:
 
 
 def pieces(t: PdfTable, limit: int = MAX_CHARS) -> list[str]:
-    """The table as markdown passages of at most `limit` characters: caption first, header row repeated in every
+    return split_markdown(t.caption, t.markdown, limit)
+
+
+def split_markdown(caption: str | None, markdown: str, limit: int = MAX_CHARS) -> list[str]:
+    """A table as markdown passages of at most `limit` characters: caption first, header row repeated in every
     piece, rows never cut (a single row longer than the limit is its own piece)."""
-    lead = f"{t.caption}\n\n" if t.caption else ""
-    head = _markdown(t.rows[:1]).split("\n")
+    lead = f"{caption}\n\n" if caption else ""
+    lines = markdown.split("\n")
+    head, rows = lines[:2], lines[2:]
     parts: list[list[str]] = [[]]
     size = len(lead) + sum(len(l) + 1 for l in head)
-    for r in t.rows[1:]:
-        line = "| " + " | ".join(r) + " |"
+    for line in rows:
         if parts[-1] and size + len(line) + 1 > limit:
             parts.append([])
             size = sum(len(l) + 1 for l in head)

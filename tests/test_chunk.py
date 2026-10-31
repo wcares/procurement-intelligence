@@ -230,3 +230,28 @@ def test_rebuilt_chunks_keep_vectors_tags_and_labels_of_moved_texts(tmp_path, mo
     assert sorted(con.execute("SELECT chunk_id, vec FROM chunk_vec").fetchall()) == [("d:2", "v1")]  # moved; the
     con.close()                                                                  # changed text's vector is dropped
     assert json.loads(labels.read_text())["chunk_id"] == "d:2"
+
+
+def test_a_report_with_pdf_tables_gets_grid_passages_in_place_of_flattened_table_text(tmp_path, monkeypatch):
+    import duckdb
+
+    from procintel.ingestion import chunk
+    db = tmp_path / "t.duckdb"
+    con = duckdb.connect(str(db))
+    con.execute("CREATE TABLE documents (doc_id VARCHAR, text VARCHAR)")
+    con.execute("INSERT INTO documents VALUES ('d', 'whole report'), ('e', 'other report')")
+    con.execute("CREATE TABLE doc_table (doc_id VARCHAR, tseq INTEGER, page INTEGER, caption VARCHAR, n_rows INTEGER, "
+                "markdown VARCHAR)")
+    con.execute("INSERT INTO doc_table VALUES ('d', 0, 7, 'Table 2. Costs', 2, "
+                "'| Item | US$ |\n|---|---|\n| Roads | 500 |\n| Bridges | 300 |')")
+    con.close()
+    flat = [chunk.Chunk("S", "1", "text", "A finding."), chunk.Chunk("T", None, "table", "Costs Roads 500 Bridges 300")]
+    monkeypatch.setattr(chunk, "chunk_document", lambda text: list(flat))
+    chunk.build(db)
+    con = duckdb.connect(str(db))
+    d = con.execute("SELECT kind, section, para, text FROM chunk WHERE doc_id = 'd' ORDER BY seq").fetchall()
+    e = con.execute("SELECT kind FROM chunk WHERE doc_id = 'e' ORDER BY seq").fetchall()
+    con.close()
+    assert [r[0] for r in d] == ["text", "grid"]                       # the flattened table text is gone
+    assert d[1][1:3] == ("Table 2. Costs", "p.7") and "| Roads | 500 |" in d[1][3]
+    assert [r[0] for r in e] == ["text", "table"]                      # a report with no PDF tables read is unchanged

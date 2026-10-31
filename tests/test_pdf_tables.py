@@ -40,3 +40,33 @@ def test_tables_read_rows_and_columns_from_a_real_report_page():
     text = "\n".join(t.markdown for t in found)
     assert "| World Bank Financing |" in text and "500,000,000.00" in text
     assert "@#&" not in text
+
+
+def test_doc_tables_reads_each_report_once_and_survives_a_bad_pdf(tmp_path, monkeypatch):
+    import duckdb
+
+    from procintel.ingestion import doc_tables
+    db = tmp_path / "t.duckdb"
+    con = duckdb.connect(str(db))
+    con.execute("CREATE TABLE documents (doc_id VARCHAR, pdf_url VARCHAR)")
+    con.execute("INSERT INTO documents VALUES ('a', 'http://x/a.pdf'), ('b', 'http://x/b.pdf'), ('c', NULL)")
+    con.close()
+    calls = []
+
+    def fake_fetch(doc_id, url):
+        calls.append(doc_id)
+        if doc_id == "b":
+            raise RuntimeError("no PDF")
+        return f"pdfs/{doc_id}.pdf"
+
+    def fake_read(con, doc_id, key, source=None):
+        return doc_tables.save(con, doc_id, source, [T.PdfTable(3, "Table 1. Costs", [["Item", "US$"], ["Roads", "500"]])])
+
+    monkeypatch.setattr(doc_tables, "fetch_pdf", fake_fetch)
+    monkeypatch.setattr(doc_tables, "read_key", fake_read)
+    assert doc_tables.build(db) == {"read": 1, "tables": 1, "failed": 1, "left": 1}   # 'c' has no PDF address
+    assert doc_tables.build(db)["read"] == 0 and calls == ["a", "b", "b"]              # 'a' is not fetched again
+    con = duckdb.connect(str(db))
+    got = doc_tables.for_chunks(con)
+    con.close()
+    assert list(got) == ["a"] and got["a"][0]["page"] == 3 and "| Roads | 500 |" in got["a"][0]["markdown"]
