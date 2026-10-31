@@ -29,9 +29,12 @@ def media_id(doc: str) -> str | None:
     return doc[len(PREFIX):] if doc.startswith(PREFIX) else None
 
 
-def text_of(m: dict) -> str:
+def text_of(m: dict, project: tuple[str, str] | None = None) -> str:
+    """The passage: what the item is, for which project (by id, name and country, so a question naming the project finds
+    it) and package, when it was taken, and the uploader's caption."""
     what = "Video" if m["kind"] == "video" else "Photo"
-    where = f"project {m['projectId']}" + (f", package {m['packageRef']}" if m["packageRef"] else "")
+    named = f" ({project[0]}, {project[1]})" if project else ""
+    where = f"project {m['projectId']}{named}" + (f", package {m['packageRef']}" if m["packageRef"] else "")
     when = f", taken {m['takenOn']}" if m["takenOn"] else ""
     demo = " This is a SYNTHETIC DEMO item made up for a demonstration, not real evidence." if m["synthetic"] else ""
     return f"{what} attached to {where}{when}. The uploader describes it as: {m['caption']}.{demo}"
@@ -54,16 +57,19 @@ def sync() -> dict:
     want = {doc_id(m["id"]): m for m in _wanted()}
     con = db.connect()
     try:
+        names = {p: (n, c) for p, n, c in con.execute("SELECT project_id, name, country FROM projects").fetchall()} \
+            if con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'projects'").fetchone() else {}
+        text = {d: text_of(m, names.get(m["projectId"])) for d, m in want.items()}
         have = dict(con.execute("SELECT doc_id, text FROM documents WHERE doc_id LIKE 'media-%'").fetchall())
         gone = [d for d in have if d not in want]
-        new = [m for d, m in want.items() if have.get(d) != text_of(m)]
+        new = [m for d, m in want.items() if have.get(d) != text[d]]
         for d in gone + [doc_id(m["id"]) for m in new]:
             con.execute("DELETE FROM documents WHERE doc_id = ?", [d])
         if new:
             rows = pd.DataFrame([{"doc_id": doc_id(m["id"]), "project_id": m["projectId"], "doc_type": MEDIA_TYPE,
                                   "doc_date": pd.Timestamp(m["takenOn"] or m["uploadedAt"][:10], tz="UTC"),
                                   "title": f"{'Video' if m['kind'] == 'video' else 'Photo'}: {m['caption']}"[:200],
-                                  "pdf_url": None, "txt_url": None, "text": text_of(m)} for m in new])
+                                  "pdf_url": None, "txt_url": None, "text": text[doc_id(m["id"])]} for m in new])
             con.execute("INSERT INTO documents BY NAME SELECT * FROM rows")
         return {"added": len(new), "removed": len(gone)}
     finally:

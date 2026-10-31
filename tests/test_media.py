@@ -70,6 +70,7 @@ def test_captioned_media_become_evidence_documents_and_leave_with_their_item(tmp
     con = duckdb.connect(str(tmp_path / "main.duckdb"))
     con.execute("CREATE TABLE documents (doc_id VARCHAR, project_id VARCHAR, doc_type VARCHAR, doc_date TIMESTAMPTZ, "
                 "title VARCHAR, pdf_url VARCHAR, txt_url VARCHAR, text VARCHAR)")
+    con.execute("CREATE TABLE projects AS SELECT 'P1' AS project_id, 'Rural Roads' AS name, 'Kenya' AS country")
     con.close()
     real = media.save("a.jpg", b"img", "P1", "ana", package_ref="KE-1", caption="Bridge deck poured", taken_on=None)
     demo = media.save("b.mp4", b"vid", "P1", "x", caption="Progress clip", synthetic=True)
@@ -79,7 +80,7 @@ def test_captioned_media_become_evidence_documents_and_leave_with_their_item(tmp
     con = duckdb.connect(str(tmp_path / "main.duckdb"))
     texts = dict(con.execute("SELECT doc_id, text FROM documents").fetchall())
     con.close()
-    assert texts[f"media-{real['id']}"] == ("Photo attached to project P1, package KE-1. "
+    assert texts[f"media-{real['id']}"] == ("Photo attached to project P1 (Rural Roads, Kenya), package KE-1. "
                                             "The uploader describes it as: Bridge deck poured.")
     assert "SYNTHETIC DEMO" in texts[f"media-{demo['id']}"]
     monkeypatch.setenv("PROCINTEL_MEDIA_SYNTHETIC_EVIDENCE", "off")
