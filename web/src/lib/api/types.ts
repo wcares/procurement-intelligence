@@ -802,3 +802,23 @@ export interface ProjectMedia {
   /** the file, served by the backend */
   url: string;
 }
+
+/** Where a project is: "country" (pinned at the capital; what the data has today) or a finer level from a report. */
+export interface ProjectPlace {
+  level: string;
+  place: string;
+  lat: number;
+  lon: number;
+  source: string;
+  /** the passage that names the place, for finer levels */
+  chunkId: string | null;
+}
+
+export interface MapPoint {
+  projectId: string;
+  name: string;
+  countryCode: string;
+  active: number;
+  warnings: number;
+  places: ProjectPlace[];
+}

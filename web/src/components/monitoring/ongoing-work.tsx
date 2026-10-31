@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { MonitoredProject } from "@/lib/api/types";
+import { ProjectMap } from "./project-map";
 import { ProjectMediaPanel } from "./project-media";
 import { StatusBadge } from "./status-badge";
 
@@ -31,6 +32,7 @@ export function OngoingWork({ openProject }: { openProject?: string | null }) {
           </button>
         ))}
       </div>
+      <ProjectMap scope={scope} focus={open} onOpen={(id) => setOpen(id)} />
       {projects === null ? <p className="text-xs text-ink-muted">Loading…</p> : projects.length === 0 ? (
         <p className="text-xs text-ink-muted">{scope === "watched" ? "No project on your watch-list yet: add project ids below." : "No ongoing projects."}</p>
       ) : (

@@ -1,6 +1,7 @@
 import type {
   SavedConversation,
   ProjectMedia,
+  MapPoint,
   DashboardResponse,
   RecentChanges,
   RecommendationHistory,
@@ -156,6 +157,7 @@ export const api = {
   alerts: () => call<AlertsResponse>("/insights/alerts"),
   goal: (req: AssessRequest & { targetDays: number; maxLots?: number }) =>
     call<GoalResult>("/assess/goal", { method: "POST", body: JSON.stringify(req) }),
+  monitoringMap: (scope: "ongoing" | "watched") => call<{ points: MapPoint[]; unplaced: string[] }>(`/monitoring/map?scope=${scope}`),
   monitoredProjects: (scope: "ongoing" | "watched") => call<{ projects: MonitoredProject[] }>(`/monitoring/projects?scope=${scope}`),
   monitoredProject: (id: string) => call<MonitoredProject>(`/monitoring/projects/${encodeURIComponent(id)}`),
   monitoredPackage: (id: string) => call<PackageDetail>(`/monitoring/package?id=${encodeURIComponent(id)}`),
