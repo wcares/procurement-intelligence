@@ -275,3 +275,16 @@ def test_figure_passages_carry_the_caption_and_a_marked_model_description():
     assert [(c.kind, c.para) for c in out] == [("figure", "p.54"), ("figure", "p.9"), ("figure", "p.12")]   # no text: no passage
     assert out[0].section == "Figure 1. Cumulative targets" and "written by a model" in out[0].text
     assert out[1].section == "Figure, page 9" and out[2].text == "Figure 3. Photo"
+
+
+def test_long_paragraphs_are_cut_at_sentence_ends_of_any_script():
+    from procintel.ingestion import chunk
+    fr = "Les retards étaient dus aux entrepreneurs. Écoles et routes ont été achevées en retard. " * 30
+    hi = "ठेकेदारों की क्षमता सीमित थी। भुगतान में देरी हुई। " * 60
+    zh = "土建工程的采购因重新招标而延误。合同授予推迟了。" * 80
+    for text in (fr, hi, zh):
+        parts = chunk._split_long(text, limit=400)
+        assert len(parts) > 1 and all(len(p) <= 400 for p in parts)
+        assert all(p.rstrip()[-1] in ".।。" for p in parts)                 # every piece ends at a sentence end
+    en = "Delays were caused by weak contractors. The second lot was re-bid. " * 30
+    assert all(p.endswith(".") for p in chunk._split_long(en, limit=400))

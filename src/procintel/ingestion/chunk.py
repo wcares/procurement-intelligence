@@ -163,7 +163,8 @@ def _clean(s: str) -> str:
 
 def _split_words(text: str, limit: int) -> list[str]:
     out, cur = [], ""
-    for w in text.split():
+    words = [w[i:i + limit] for w in text.split() for i in range(0, len(w), limit)]   # a run with no spaces is cut too
+    for w in words:
         if cur and len(cur) + len(w) + 1 > limit:
             out.append(cur)
             cur = w
@@ -174,13 +175,21 @@ def _split_words(text: str, limit: int) -> list[str]:
     return out
 
 
+# Where a long paragraph may be cut: after a full stop or semicolon before a capital or a digit (any alphabet with
+# capitals), after the sentence marks of scripts without capitals (Devanagari danda, Arabic question mark, CJK full
+# stops), and after a full stop before a letter of such a script. English text cuts exactly as before.
+_SENTENCES = re.compile(r"(?<=[.;])\s+(?=[A-Z0-9\u00c0-\u00d6\u00d8-\u00de\u0391-\u03a9\u0410-\u042f])"
+                        r"|(?<=[\u0964\u0965\u061f\u06d4\u3002\uff01\uff1f])\s*"
+                        r"|(?<=[.;!?])\s+(?=[\u0600-\u06ff\u0900-\u0dff\u0e00-\u0e7f\u3040-\u9fff\uac00-\ud7af])")
+
+
 def _split_long(text: str, limit: int | None = None) -> list[str]:
     limit = limit or MAX_CHARS  # read at call time: the limit is a setting
     if len(text) <= limit:
         return [text]
     out, cur = [], ""
     pieces = []
-    for sent in re.split(r"(?<=[.;])\s+(?=[A-Z0-9])", text):
+    for sent in _SENTENCES.split(text):
         # a table row run or run-on text has no sentence end to cut at; fall back to word boundaries
         pieces.extend(_split_words(sent, limit) if len(sent) > limit else [sent])
     for sent in pieces:
