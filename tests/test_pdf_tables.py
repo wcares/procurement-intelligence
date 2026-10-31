@@ -59,11 +59,15 @@ def test_doc_tables_reads_each_report_once_and_survives_a_bad_pdf(tmp_path, monk
             raise RuntimeError("no PDF")
         return f"pdfs/{doc_id}.pdf"
 
-    def fake_read(con, doc_id, key, source=None):
-        return doc_tables.save(con, doc_id, source, [T.PdfTable(3, "Table 1. Costs", [["Item", "US$"], ["Roads", "500"]])])
+    import contextlib
+
+    @contextlib.contextmanager
+    def fake_copy(key, suffix=""):
+        yield Path(key)
 
     monkeypatch.setattr(doc_tables, "fetch_pdf", fake_fetch)
-    monkeypatch.setattr(doc_tables, "read_key", fake_read)
+    monkeypatch.setattr(doc_tables.pdf_tables, "tables", lambda path: [T.PdfTable(3, "Table 1. Costs", [["Item", "US$"], ["Roads", "500"]])])
+    monkeypatch.setattr(doc_tables.blob, "local_copy", fake_copy)
     assert doc_tables.build(db) == {"read": 1, "tables": 1, "failed": 1, "left": 1}   # 'c' has no PDF address
     assert doc_tables.build(db)["read"] == 0 and calls == ["a", "b", "b"]              # 'a' is not fetched again
     con = duckdb.connect(str(db))

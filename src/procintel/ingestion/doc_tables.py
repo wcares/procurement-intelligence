@@ -83,20 +83,31 @@ def pending(con) -> list[tuple[str, str]]:
 
 
 def build(db_path: Path = DB_PATH, limit: int | None = None) -> dict:
-    """Read the tables of every fetched report not read yet. A PDF that cannot be fetched or read is counted and left
-    for the next run; it never stops the others."""
+    """Read the tables of every fetched report not read yet. The database is open only to list the work and to save
+    each report (downloads and PDF reading take minutes, and a long write lock would block the pipeline and the app).
+    A PDF that cannot be fetched or read is counted and left for the next run; it never stops the others."""
     con = db.connect(db_path)
     try:
         todo = pending(con)[:limit]
-        done = tables = failed = 0
-        for doc_id, url in todo:
+    finally:
+        con.close()
+    done = tables = failed = 0
+    for doc_id, url in todo:
+        try:
+            key = fetch_pdf(doc_id, url)
+            with blob.local_copy(key, suffix=".pdf") as path:
+                found = pdf_tables.tables(path)
+            con = db.connect(db_path)
             try:
-                key = fetch_pdf(doc_id, url)
-                tables += read_key(con, doc_id, key, source=url)
-                done += 1
-            except Exception as e:  # noqa: BLE001 - one bad PDF must not stop the batch
-                failed += 1
-                print(f"doc_tables: {doc_id}: {type(e).__name__}: {e}")
+                tables += save(con, doc_id, url, found)
+            finally:
+                con.close()
+            done += 1
+        except Exception as e:  # noqa: BLE001 - one bad PDF must not stop the batch
+            failed += 1
+            print(f"doc_tables: {doc_id}: {type(e).__name__}: {e}", flush=True)
+    con = db.connect(db_path)
+    try:
         return {"read": done, "tables": tables, "failed": failed, "left": len(pending(con))}
     finally:
         con.close()
