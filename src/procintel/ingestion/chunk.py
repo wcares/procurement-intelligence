@@ -373,8 +373,12 @@ def build(db_path: Path = DB_PATH) -> None:
                             f"AND chunk_id NOT IN (SELECT old_id FROM id_map)")
                 con.execute(f"UPDATE {t} SET chunk_id = m.new_id FROM id_map m WHERE {t}.chunk_id = m.old_id")
     files = remap_files(mapping)
+    from procintel.ingestion import language
+    langs = language.build(con=con)
+    passage_langs = language.build_chunks(con)
     print(f"chunk: {len(df)} rows from {df.doc_id.nunique()} documents; {len(mapping)} passages moved to a new id "
-          f"(vectors, tags and {files} evaluation labels follow them)")
+          f"(vectors, tags and {files} evaluation labels follow them); reports by language {langs}, "
+          f"passages by language {passage_langs}")
     con.close()
 
 
