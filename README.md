@@ -93,7 +93,7 @@ after 5 minutes without requests (tunable on the Settings page), pausing between
 queues a prediction drift check daily (retrains when enough packages were labelled since training, or the model does
 worse on them than in cross-validation) and a World Bank refresh weekly; both reload the backend when they change
 data. The Settings page lists the jobs and can queue one. `PROCINTEL_JOBS=0` turns the worker off;
-`scripts/refresh.sh` runs a refresh by hand.
+`python -m procintel.ingestion.refresh` runs a refresh by hand.
 
 Everything the system writes (databases, saved settings, trained models, the HTTP cache) goes under `data/`, or
 under the folder named by `PROCINTEL_DATA_DIR`.
