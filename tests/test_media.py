@@ -9,7 +9,10 @@ def _client(tmp_path, monkeypatch, user=None):
     from procintel.api.routes import media as route
     monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
     monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    monkeypatch.setattr(paths, "DB_PATH", tmp_path / "main.duckdb")
     monkeypatch.setattr(media, "known_project", lambda pid: pid == "P1")
+    from procintel.intake import media_evidence
+    monkeypatch.setattr(media_evidence, "apply_and_queue", lambda jobs_db=None: None)
     app = FastAPI()
 
     @app.middleware("http")
@@ -54,3 +57,31 @@ def test_only_the_uploader_or_an_admin_removes_media(tmp_path, monkeypatch):
     assert c.delete(f"/media/{item['id']}").status_code == 404
     admin = _client(tmp_path, monkeypatch, {"username": "boss", "role": "admin"})
     assert admin.delete(f"/media/{item['id']}").status_code == 200
+
+
+def test_captioned_media_become_evidence_documents_and_leave_with_their_item(tmp_path, monkeypatch):
+    import duckdb
+
+    from procintel.ingestion import chunk
+    from procintel.intake import media_evidence
+    monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    monkeypatch.setattr(paths, "DB_PATH", tmp_path / "main.duckdb")
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    con.execute("CREATE TABLE documents (doc_id VARCHAR, project_id VARCHAR, doc_type VARCHAR, doc_date TIMESTAMPTZ, "
+                "title VARCHAR, pdf_url VARCHAR, txt_url VARCHAR, text VARCHAR)")
+    con.close()
+    real = media.save("a.jpg", b"img", "P1", "ana", package_ref="KE-1", caption="Bridge deck poured", taken_on=None)
+    demo = media.save("b.mp4", b"vid", "P1", "x", caption="Progress clip", synthetic=True)
+    media.save("c.jpg", b"img", "P1", "ana")                                            # no caption: not evidence
+    assert media_evidence.sync() == {"added": 2, "removed": 0}
+    assert media_evidence.sync() == {"added": 0, "removed": 0}                          # nothing changed
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    texts = dict(con.execute("SELECT doc_id, text FROM documents").fetchall())
+    con.close()
+    assert texts[f"media-{real['id']}"] == ("Photo attached to project P1, package KE-1. "
+                                            "The uploader describes it as: Bridge deck poured.")
+    assert "SYNTHETIC DEMO" in texts[f"media-{demo['id']}"]
+    monkeypatch.setenv("PROCINTEL_MEDIA_SYNTHETIC_EVIDENCE", "off")
+    media.remove(real["id"])
+    assert media_evidence.sync() == {"added": 0, "removed": 2}                          # removed, and synthetic left out

@@ -86,7 +86,20 @@ def citation(h: Hit) -> dict:
            "countryCode": h.country_code, "kind": h.kind}
     if h.kind == "figure" and h.para and h.para.startswith("p."):
         out["imageUrl"] = _figure_url(h)
+    if h.kind == "media":
+        out |= _media_fields(h.doc_id)
     return out
+
+
+def _media_fields(doc: str) -> dict:
+    """A cited photo or video: where it is served, whether it is a video, and whether it is a synthetic demo item."""
+    from procintel.intake import media, media_evidence
+    mid = media_evidence.media_id(doc)
+    try:
+        m = media.get(mid) if mid else None
+    except Exception:  # noqa: BLE001 - a citation without its file is still a citation
+        m = None
+    return {"mediaUrl": m["url"], "mediaKind": m["kind"], "synthetic": m["synthetic"]} if m else {}
 
 
 def _figure_url(h: Hit) -> str | None:

@@ -36,9 +36,13 @@ export interface Citation {
   projectName: string;
   countryCode: string;
   /** what the passage is: running text, a table read from the PDF ("grid", markdown), or a figure (caption and description) */
-  kind?: "text" | "table" | "grid" | "figure";
+  kind?: "text" | "table" | "grid" | "figure" | "media";
   /** a figure's image, served by the backend (GET /figures/<doc>/<n>) */
   imageUrl?: string | null;
+  /** a cited project photo or video (kind "media"): the file, whether it is a video, whether it is synthetic demo material */
+  mediaUrl?: string;
+  mediaKind?: "image" | "video";
+  synthetic?: boolean;
 }
 
 export interface AssessRequest {

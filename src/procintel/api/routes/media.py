@@ -4,12 +4,12 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from fastapi import APIRouter, Form, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Form, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
 
 from procintel.api.routes.intake import _who
 from procintel.core import blob
-from procintel.intake import media
+from procintel.intake import media, media_evidence
 
 router = APIRouter()
 _ID = re.compile(r"^[0-9a-f]{12}$")
@@ -17,7 +17,7 @@ _RANGE = re.compile(r"bytes=(\d*)-(\d*)$")
 
 
 @router.post("/media")
-async def post_media(request: Request, file: UploadFile, projectId: str = Form(...), packageRef: str = Form(""),
+async def post_media(request: Request, background: BackgroundTasks, file: UploadFile, projectId: str = Form(...), packageRef: str = Form(""),
                      caption: str = Form(""), takenOn: str = Form("")) -> dict:
     kind = media.type_of(file.filename or "")
     if kind is None:
@@ -31,9 +31,11 @@ async def post_media(request: Request, file: UploadFile, projectId: str = Form(.
     content = await file.read(media.MAX_BYTES[kind[0]] + 1)
     who, _ = _who(request)
     try:
-        return media.save(file.filename, content, projectId.strip(), who, packageRef, caption, taken)
+        item = media.save(file.filename, content, projectId.strip(), who, packageRef, caption, taken)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=413 if "larger" in str(e) else 400)
+    background.add_task(media_evidence.apply_and_queue)   # a captioned item becomes citable evidence
+    return item
 
 
 @router.get("/media")
@@ -70,4 +72,5 @@ def delete_media(media_id: str, request: Request) -> dict:
     if not item or not (admin or (who and item["uploadedBy"] == who)):
         return JSONResponse({"error": "no such media"}, status_code=404)
     media.remove(media_id)
+    media_evidence.apply_and_queue()
     return {"removed": media_id}

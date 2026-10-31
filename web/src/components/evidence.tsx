@@ -28,6 +28,19 @@ export function CitationCard({ c, index, highlight, action }: { c: Citation; ind
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`${API_BASE}${c.imageUrl}`} alt={c.section} loading="lazy" className="mb-2 max-h-80 max-w-full rounded border border-line bg-white" />
       )}
+      {c.mediaUrl && (
+        <div className="relative mb-2 inline-block">
+          {c.mediaKind === "video" ? (
+            <video src={`${API_BASE}${c.mediaUrl}`} controls preload="metadata" className="max-h-72 max-w-full rounded border border-line" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={`${API_BASE}${c.mediaUrl}`} alt={c.section} loading="lazy" className="max-h-72 max-w-full rounded border border-line" />
+          )}
+          {c.synthetic && (
+            <span className="absolute left-1 top-1 rounded bg-risk-medium px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">Synthetic demo</span>
+          )}
+        </div>
+      )}
       {c.kind === "grid" ? (
         <MarkdownTable text={c.quote} />
       ) : (
@@ -36,10 +49,15 @@ export function CitationCard({ c, index, highlight, action }: { c: Citation; ind
         </blockquote>
       )}
       <footer className="mt-2 flex flex-wrap items-center gap-x-1 text-xs text-ink-muted">
-        {c.docType} · <span className="italic">{c.section}</span> ·{" "}
-        <a href={c.url} target="_blank" rel="noreferrer" className="text-brand underline-offset-2 hover:underline">
-          open source PDF
-        </a>
+        {c.docType} · <span className="italic">{c.section}</span>
+        {c.url && (
+          <>
+            {" "}·{" "}
+            <a href={c.url} target="_blank" rel="noreferrer" className="text-brand underline-offset-2 hover:underline">
+              open source PDF
+            </a>
+          </>
+        )}
         {action && <span className="ml-auto">{action}</span>}
       </footer>
     </article>

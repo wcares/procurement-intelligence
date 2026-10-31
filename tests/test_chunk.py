@@ -288,3 +288,19 @@ def test_long_paragraphs_are_cut_at_sentence_ends_of_any_script():
         assert all(p.rstrip()[-1] in ".।。" for p in parts)                 # every piece ends at a sentence end
     en = "Delays were caused by weak contractors. The second lot was re-bid. " * 30
     assert all(p.endswith(".") for p in chunk._split_long(en, limit=400))
+
+
+def test_a_project_media_document_is_one_media_passage(tmp_path):
+    import duckdb
+
+    from procintel.ingestion import chunk
+    db = tmp_path / "t.duckdb"
+    con = duckdb.connect(str(db))
+    con.execute("CREATE TABLE documents (doc_id VARCHAR, doc_type VARCHAR, text VARCHAR)")
+    con.execute("INSERT INTO documents VALUES ('media-abc', 'Project media', 'Photo attached to project P1. The uploader "
+                "describes it as: Bridge deck poured.')")
+    con.close()
+    chunk.build(db)
+    con = duckdb.connect(str(db))
+    assert con.execute("SELECT kind, section, para FROM chunk").fetchall() == [("media", "Project media", None)]
+    con.close()

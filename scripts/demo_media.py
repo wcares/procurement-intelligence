@@ -101,6 +101,8 @@ def remove_all() -> int:
 def main() -> None:
     if "--remove" in sys.argv:
         print(f"removed {remove_all()} synthetic items")
+        from procintel.intake import media_evidence
+        print("evidence:", media_evidence.sync())
         return
     projects = [a for a in sys.argv[1:] if not a.startswith("-")]
     if not projects:
@@ -120,6 +122,8 @@ def main() -> None:
         m = media.save("progress.mp4", video(pid), pid, UPLOADER, package_ref=ref,
                        caption="Works progress clip (synthetic)", taken_on=date.today(), synthetic=True)
         print("  ", m["id"], pid, "video", m["size"], "bytes")
+    from procintel.intake import media_evidence
+    print("evidence:", media_evidence.sync(), "(passages are cut and indexed by the next pipeline batch)")
 
 
 if __name__ == "__main__":

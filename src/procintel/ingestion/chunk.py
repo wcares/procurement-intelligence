@@ -58,7 +58,7 @@ SKIP_SECTIONS = re.compile(
 class Chunk:
     section: str
     para: str | None  # numbered paragraph anchor, e.g. "23"
-    kind: str  # "text" | "table" (columns flattened into running text: kept, not searched) | "grid" (a table rebuilt from the PDF's layout, searched) | "figure" (a chart, map or photo: its caption and a model's description, searched)
+    kind: str  # "text" | "table" (columns flattened into running text: kept, not searched) | "grid" (a table rebuilt from the PDF's layout, searched) | "figure" (a chart, map or photo: its caption and a model's description, searched) | "media" (a project photo or video: its uploader's caption, searched)
     text: str
 
 
@@ -347,13 +347,14 @@ def build(db_path: Path = DB_PATH) -> None:
     rows = []
     from procintel.ingestion import doc_figures, doc_tables, isr_chunk, supervision
     from procintel.ingestion.wb_client import ICR_TYPE
+    from procintel.intake.media_evidence import MEDIA_TYPE
     figs = doc_figures.for_chunks(con)
     grids = doc_tables.for_chunks(con)    # reports whose PDF tables were read: those replace the flattened table text
     typed = con.execute("SELECT 1 FROM duckdb_columns() WHERE table_name = 'documents' AND column_name = 'doc_type'").fetchone()
     for doc_id, doc_type, text in con.execute(
             f"SELECT doc_id, {'doc_type' if typed else 'NULL'}, text FROM documents").fetchall():
         cut = isr_chunk.chunk_isr if doc_type == supervision.ISR_TYPE else chunk_document   # restructuring papers: ICR layout
-        cuts = cut(text)
+        cuts = cut(text) if doc_type != MEDIA_TYPE else [Chunk("Project media", None, "media", text)]
         if doc_id in grids:
             cuts = [c for c in cuts if c.kind != "table"] + grid_chunks(grids[doc_id], GRID_SKIP_PAGES if doc_type == ICR_TYPE else 0)
         if doc_id in figs:
