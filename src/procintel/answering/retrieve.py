@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import copy
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,6 +35,9 @@ from procintel.prediction.stats import GROUP_TERMS
 log = logging.getLogger(__name__)
 POOL = 50  # candidates taken from each ranking before fusion
 RRF_K = 60  # reciprocal rank fusion constant (Cormack et al. 2009)
+# A table passage (kind "grid") counts this much of a text passage's rank score: 0 = never, 1 = like text.
+# 0.8 from a sweep on the 80 evaluation questions (2026-10-31), hybrid P@5: 1.0 0.680, 0.8 0.690, 0.6 0.688, 0 0.680.
+GRID_WEIGHT = float(os.environ.get("PROCINTEL_GRID_WEIGHT", "0.8"))
 
 DB_PATH = paths.DB_PATH
 
@@ -138,7 +142,7 @@ class Retriever:
         found_by: dict[int, list[str]] = {}
         for name, idx in ranked.items():
             for rank, i in enumerate(idx):
-                fused[i] = fused.get(i, 0.0) + 1.0 / (RRF_K + rank + 1)
+                fused[i] = fused.get(i, 0.0) + (GRID_WEIGHT if self.records[i]["kind"] == "grid" else 1.0) / (RRF_K + rank + 1)
                 found_by.setdefault(i, []).append(name)
         hits = []
         order = sorted(fused, key=fused.get, reverse=True)

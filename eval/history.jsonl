@@ -14,3 +14,7 @@
 {"time": "2026-10-25 16:15 UTC", "judged_pairs": 1286, "unjudged_in_results": 1, "bm25_p5": 0.532, "hybrid_p5": 0.698, "bm25_r10": 0.528, "hybrid_r10": 0.766, "gate_prec": null}
 {"time": "2026-10-26 00:30 UTC", "judged_pairs": 1286, "unjudged_in_results": 1, "bm25_p5": 0.532, "hybrid_p5": 0.698, "bm25_r10": 0.528, "hybrid_r10": 0.766, "gate_prec": null}
 {"time": "2026-10-26 02:15 UTC", "judged_pairs": 1437, "unjudged_in_results": 0, "bm25_p5": 0.54, "hybrid_p5": 0.698, "bm25_r10": 0.481, "hybrid_r10": 0.707, "gate_prec": null}
+{"time": "2026-10-31 22:58 UTC", "judged_pairs": 1596, "unjudged_in_results": 0, "bm25_p5": 0.532, "hybrid_p5": 0.677, "bm25_r10": 0.443, "hybrid_r10": 0.646, "gate_prec": null}
+{"time": "2026-10-31 22:59 UTC", "judged_pairs": 1597, "unjudged_in_results": 0, "bm25_p5": 0.535, "hybrid_p5": 0.535, "bm25_r10": 0.444, "hybrid_r10": 0.444, "gate_prec": null}
+{"time": "2026-10-31 23:00 UTC", "judged_pairs": 1597, "unjudged_in_results": 0, "bm25_p5": 0.535, "hybrid_p5": 0.68, "bm25_r10": 0.444, "hybrid_r10": 0.647, "gate_prec": null}
+{"time": "2026-10-31 23:00 UTC", "judged_pairs": 1597, "unjudged_in_results": 0, "bm25_p5": 0.537, "hybrid_p5": 0.69, "bm25_r10": 0.444, "hybrid_r10": 0.646, "gate_prec": null}

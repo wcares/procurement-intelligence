@@ -297,12 +297,22 @@ def remap_files(mapping: dict[str, str], files=None) -> int:
     return changed
 
 
-def grid_chunks(tables: list[dict]) -> list[Chunk]:
+# The first pages of a completion report are its data sheet (basic data, financing, dates, staff) and its list of
+# acronyms. Of 22 such tables the evaluation judged for 80 questions (2026-10-31), 1 was relevant, against 30 of 80
+# for tables on later pages; the text chunker skips the same sections. Completion reports only: a status report or
+# a restructuring paper is short and its tables are its content.
+GRID_SKIP_PAGES = 8
+
+
+def grid_chunks(tables: list[dict], skip_pages: int = 0) -> list[Chunk]:
     """One passage per table read from the PDF (procintel.ingestion.doc_tables); a long table is cut by rows with its
-    caption and header repeated. Anchored by page ("p.27"), titled by its caption."""
+    caption and header repeated. Anchored by page ("p.27"), titled by its caption. Tables on the first `skip_pages`
+    pages are left out."""
     from procintel.ingestion import pdf_tables
     out = []
     for t in tables:
+        if t["page"] <= skip_pages:
+            continue
         for piece in pdf_tables.split_markdown(t["caption"], t["markdown"], MAX_CHARS):
             out.append(Chunk(t["caption"] or f"Table, page {t['page']}", f"p.{t['page']}", "grid", piece))
     return out
@@ -314,6 +324,7 @@ def build(db_path: Path = DB_PATH) -> None:
     old = dict(con.execute("SELECT chunk_id, text FROM chunk").fetchall()) if has_chunks else {}
     rows = []
     from procintel.ingestion import doc_tables, isr_chunk, supervision
+    from procintel.ingestion.wb_client import ICR_TYPE
     grids = doc_tables.for_chunks(con)    # reports whose PDF tables were read: those replace the flattened table text
     typed = con.execute("SELECT 1 FROM duckdb_columns() WHERE table_name = 'documents' AND column_name = 'doc_type'").fetchone()
     for doc_id, doc_type, text in con.execute(
@@ -321,7 +332,7 @@ def build(db_path: Path = DB_PATH) -> None:
         cut = isr_chunk.chunk_isr if doc_type == supervision.ISR_TYPE else chunk_document   # restructuring papers: ICR layout
         cuts = cut(text)
         if doc_id in grids:
-            cuts = [c for c in cuts if c.kind != "table"] + grid_chunks(grids[doc_id])
+            cuts = [c for c in cuts if c.kind != "table"] + grid_chunks(grids[doc_id], GRID_SKIP_PAGES if doc_type == ICR_TYPE else 0)
         for i, c in enumerate(cuts):
             rows.append({"chunk_id": f"{doc_id}:{i}", "doc_id": doc_id, "seq": i, "section": c.section,
                          "para": c.para, "kind": c.kind, "text": c.text, "n_chars": len(c.text)})

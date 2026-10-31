@@ -255,3 +255,11 @@ def test_a_report_with_pdf_tables_gets_grid_passages_in_place_of_flattened_table
     assert [r[0] for r in d] == ["text", "grid"]                       # the flattened table text is gone
     assert d[1][1:3] == ("Table 2. Costs", "p.7") and "| Roads | 500 |" in d[1][3]
     assert [r[0] for r in e] == ["text", "table"]                      # a report with no PDF tables read is unchanged
+
+
+def test_grid_passages_skip_the_data_sheet_pages_when_asked():
+    from procintel.ingestion import chunk
+    tables = [{"page": 3, "caption": None, "markdown": "| a | b |\n|---|---|\n| 1 | 2 |"},
+              {"page": 30, "caption": "Table 5. Costs", "markdown": "| a | b |\n|---|---|\n| 3 | 4 |"}]
+    assert [c.para for c in chunk.grid_chunks(tables)] == ["p.3", "p.30"]
+    assert [c.para for c in chunk.grid_chunks(tables, skip_pages=8)] == ["p.30"]
