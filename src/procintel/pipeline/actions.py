@@ -154,6 +154,13 @@ def rebuild_firms(keys, events, ctx):
     return [DATA]
 
 
+def place_projects(keys, events, ctx):
+    """Pin new and changed projects on the map (country level: procintel.monitoring.places)."""
+    from procintel.monitoring import places
+    places.build()
+    return []
+
+
 def read_tables(keys, events, ctx):
     """Read the tables of reports whose PDF has not been read yet (downloaded once; a report that fails is retried at
     the next run). The passages follow in chunk_documents."""
@@ -263,6 +270,7 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
            ("Data.updated", "Package.award_changed")),
     Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms,
            ("Data.updated",)),
+    Action("place_projects", "Pin projects on the map by country (procintel.monitoring.places)", place_projects),
     Action("read_tables", "Read the tables of new reports from their PDFs (procintel.ingestion.doc_tables)", read_tables,
            ("Data.updated",)),
     Action("read_figures", "Find and describe the figures of new reports (procintel.ingestion.doc_figures)", read_figures,

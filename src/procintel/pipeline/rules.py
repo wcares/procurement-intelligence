@@ -42,7 +42,7 @@ DEFAULT_RULES = [
          ("rebuild_tables", "rebuild_firms", "read_figures", "chunk_documents")),
     Rule("documents-recut", ("Documents.changed",), ("chunk_documents",)),
     Rule("passages-index", ("Passages.changed",), ("index_passages", "document_checks")),
-    Rule("projects-update", ("Project.added", "Project.changed"), ("apply_projects", "rebuild_tables", "sector_links"),
+    Rule("projects-update", ("Project.added", "Project.changed"), ("apply_projects", "rebuild_tables", "place_projects", "sector_links"),
          fields=("status", "sector", "closing_date", "board_approval", "commitment_usd")),
     Rule("contracts-award-dates", ("ContractAward.added", "ContractAward.changed", "ContractAward.removed"),
          ("apply_contracts", "fill_award_dates")),

@@ -36,6 +36,18 @@ def get_projects(request: Request, scope: str = "ongoing") -> dict:
     return {"projects": views.projects(only), "scope": scope}
 
 
+@router.get("/monitoring/map")
+def get_map(request: Request, scope: str = "ongoing") -> dict:
+    """The projects of get_projects with their places for the map (country level today: see procintel.monitoring.places)."""
+    from procintel.monitoring import places
+    rows = get_projects(request, scope)["projects"]
+    where = places.of_projects([p["projectId"] for p in rows])
+    points = [{"projectId": p["projectId"], "name": p["name"], "countryCode": p["countryCode"],
+               "active": p["packages"]["active"], "warnings": p["packagesWithWarnings"], "places": where.get(p["projectId"], [])}
+              for p in rows]
+    return {"points": points, "unplaced": [p["projectId"] for p in points if not p["places"]], "scope": scope}
+
+
 @router.get("/monitoring/projects/{project_id}")
 def get_project(project_id: str) -> dict:
     p = views.project(project_id)
