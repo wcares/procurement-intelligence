@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Citation, ResponseMeta, RiskLevel, TimelineBenchmark } from "@/lib/api/types";
+import { API_BASE } from "@/lib/api/client";
 
 const RISK_STYLE: Record<RiskLevel, string> = {
   high: "bg-risk-high-soft text-risk-high",
@@ -23,9 +24,17 @@ export function CitationCard({ c, index, highlight, action }: { c: Citation; ind
           {c.projectId} · {c.countryCode}
         </span>
       </header>
-      <blockquote className="border-l-2 border-brand pl-3 text-sm leading-relaxed">
-        {highlight ? <Highlighted text={c.quote} needle={highlight} /> : c.quote}
-      </blockquote>
+      {c.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`${API_BASE}${c.imageUrl}`} alt={c.section} loading="lazy" className="mb-2 max-h-80 max-w-full rounded border border-line bg-white" />
+      )}
+      {c.kind === "grid" ? (
+        <MarkdownTable text={c.quote} />
+      ) : (
+        <blockquote className="border-l-2 border-brand pl-3 text-sm leading-relaxed whitespace-pre-line">
+          {highlight ? <Highlighted text={c.quote} needle={highlight} /> : c.quote}
+        </blockquote>
+      )}
       <footer className="mt-2 flex flex-wrap items-center gap-x-1 text-xs text-ink-muted">
         {c.docType} · <span className="italic">{c.section}</span> ·{" "}
         <a href={c.url} target="_blank" rel="noreferrer" className="text-brand underline-offset-2 hover:underline">
@@ -34,6 +43,33 @@ export function CitationCard({ c, index, highlight, action }: { c: Citation; ind
         {action && <span className="ml-auto">{action}</span>}
       </footer>
     </article>
+  );
+}
+
+/** A table passage (markdown rows) as a table; a caption line above the first row is shown above it. */
+function MarkdownTable({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const first = lines.findIndex((l) => l.startsWith("|"));
+  const caption = lines.slice(0, Math.max(first, 0)).join(" ").trim();
+  const rows = lines.slice(Math.max(first, 0)).filter((l) => l.startsWith("|") && !/^\|[-| ]+\|$/.test(l))
+    .map((l) => l.replace(/^\||\|$/g, "").split("|").map((c) => c.trim()));
+  if (!rows.length) return <blockquote className="border-l-2 border-brand pl-3 text-sm">{text}</blockquote>;
+  return (
+    <div>
+      {caption && <p className="mb-1 text-sm font-medium">{caption}</p>}
+      <div className="max-h-72 overflow-auto rounded border border-line">
+        <table className="w-full border-collapse text-xs">
+          <thead className="sticky top-0 bg-subtle">
+            <tr>{rows[0].map((c, j) => <th key={j} className="border-b border-line px-2 py-1 text-left font-medium">{c}</th>)}</tr>
+          </thead>
+          <tbody>
+            {rows.slice(1).map((r, i) => (
+              <tr key={i} className="odd:bg-background">{r.map((c, j) => <td key={j} className="border-b border-line px-2 py-1 align-top">{c}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 

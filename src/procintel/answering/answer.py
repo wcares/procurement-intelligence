@@ -69,9 +69,28 @@ def meta(caveats: list[str]) -> dict:
 
 def citation(h: Hit) -> dict:
     section = f"{h.section} ¶{h.para}" if h.para else h.section
-    return {"id": h.chunk_id, "docId": h.doc_id, "docType": h.doc_type, "title": h.title, "section": section,
-            "quote": h.text, "url": h.url, "projectId": h.project_id, "projectName": h.project_name,
-            "countryCode": h.country_code}
+    out = {"id": h.chunk_id, "docId": h.doc_id, "docType": h.doc_type, "title": h.title, "section": section,
+           "quote": h.text, "url": h.url, "projectId": h.project_id, "projectName": h.project_name,
+           "countryCode": h.country_code, "kind": h.kind}
+    if h.kind == "figure" and h.para and h.para.startswith("p."):
+        out["imageUrl"] = _figure_url(h)
+    return out
+
+
+def _figure_url(h: Hit) -> str | None:
+    """Where the figure's image is served (GET /figures/<doc>/<n>), found by its page and caption."""
+    from procintel.core import db
+    from procintel.ingestion import doc_figures
+    caption = None if h.section.startswith("Figure, page ") else h.section
+    try:
+        con = db.connect(read_only=True)
+        try:
+            n = doc_figures.index_of(con, h.doc_id, int(h.para[2:]), caption)
+        finally:
+            con.close()
+    except Exception:  # noqa: BLE001 - a citation without its image is still a citation
+        return None
+    return f"/figures/{h.doc_id}/{n}" if n is not None else None
 
 
 def llm_gate(question: str, hits: list[Hit]) -> list[Hit]:

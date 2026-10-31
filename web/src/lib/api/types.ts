@@ -35,6 +35,10 @@ export interface Citation {
   projectId: string;
   projectName: string;
   countryCode: string;
+  /** what the passage is: running text, a table read from the PDF ("grid", markdown), or a figure (caption and description) */
+  kind?: "text" | "table" | "grid" | "figure";
+  /** a figure's image, served by the backend (GET /figures/<doc>/<n>) */
+  imageUrl?: string | null;
 }
 
 export interface AssessRequest {

@@ -123,6 +123,15 @@ def describe_pending(db_path: Path = DB_PATH, limit: int | None = None) -> dict:
     return {"described": done, "failed": failed}
 
 
+def index_of(con, doc_id: str, page: int, caption: str | None) -> int | None:
+    """The fseq of the figure of `doc_id` on `page` with this caption (None when there is none), for a citation's image."""
+    if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'doc_figure'").fetchone():
+        return None
+    r = con.execute("""SELECT fseq FROM doc_figure WHERE doc_id = ? AND page = ? AND caption IS NOT DISTINCT FROM ?
+                       ORDER BY fseq LIMIT 1""", [doc_id, page, caption]).fetchone()
+    return r[0] if r else None
+
+
 def for_chunks(con) -> dict[str, list[dict]]:
     """doc_id -> its figures in page order, for the chunk build; {} before any read."""
     if not con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'doc_figure'").fetchone():
