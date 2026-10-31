@@ -39,3 +39,5 @@ assessment.md
 
 # a local API key file: never commit
 /api
+data/figures/
+data/media/
