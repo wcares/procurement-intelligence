@@ -154,6 +154,14 @@ def rebuild_firms(keys, events, ctx):
     return [DATA]
 
 
+def read_tables(keys, events, ctx):
+    """Read the tables of reports whose PDF has not been read yet (downloaded once; a report that fails is retried at
+    the next run). The passages follow in chunk_documents."""
+    from procintel.ingestion import doc_tables
+    doc_tables.build()
+    return []
+
+
 def chunk_documents(keys, events, ctx):
     """Re-cut the passages (the whole corpus takes about 2 s, and unchanged texts keep their ids, vectors and tags);
     reports Passages.changed when any passage text changed."""
@@ -244,6 +252,8 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("fill_award_dates", "Fill award dates from contract signing dates", fill_award_dates,
            ("Data.updated", "Package.award_changed")),
     Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms,
+           ("Data.updated",)),
+    Action("read_tables", "Read the tables of new reports from their PDFs (procintel.ingestion.doc_tables)", read_tables,
            ("Data.updated",)),
     Action("chunk_documents", "Cut report texts into passages", chunk_documents,
            ("Data.updated", "Passages.changed")),

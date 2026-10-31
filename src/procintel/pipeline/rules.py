@@ -37,7 +37,7 @@ DEFAULT_RULES = [
     Rule("notices-update-packages", ("Notice.added", "Notice.changed"),
          ("apply_notices", "rebuild_tables", "rebuild_firms")),
     Rule("documents-ingest", ("Document.added", "Document.changed", "SupervisionDoc.added", "SupervisionDoc.changed"),
-         ("ingest_documents", "rebuild_tables", "rebuild_firms", "chunk_documents")),
+         ("ingest_documents", "read_tables", "rebuild_tables", "rebuild_firms", "chunk_documents")),
     Rule("uploads-add", ("Upload.ingested", "Upload.removed"), ("rebuild_tables", "rebuild_firms", "chunk_documents")),
     Rule("documents-recut", ("Documents.changed",), ("chunk_documents",)),
     Rule("passages-index", ("Passages.changed",), ("index_passages", "document_checks")),
