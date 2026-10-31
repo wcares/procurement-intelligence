@@ -17,6 +17,7 @@ data/pipeline_rules.json
 data/auth_salt
 # uploaded files (procintel.intake)
 data/uploads/
+data/pdfs/
 
 # Next.js (web/ also has its own .gitignore)
 web/node_modules/
