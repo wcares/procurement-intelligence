@@ -55,3 +55,11 @@ def test_passages_get_their_own_language_and_short_ones_their_reports():
     language.build(con=db)
     assert language.build_chunks(db) == {"en": 2, "fr": 1}
     assert dict(db.execute("SELECT chunk_id, lang FROM chunk_lang").fetchall()) == {"d:0": "en", "d:1": "fr", "d:2": "en"}
+
+
+def test_keyword_text_pairs_characters_of_scripts_without_spaces_and_keeps_others():
+    import re
+    assert language.keyword_text("土建工程 delays") == " 土建 建工 工程  delays"
+    assert language.keyword_text("Delays in civil works") == "Delays in civil works"
+    words = re.findall(language.TOKEN_PATTERN, "सिविल कार्यों में देरी, civil works")
+    assert words == ["सिविल", "कार्यों", "में", "देरी", "civil", "works"]               # vowel signs stay in the word

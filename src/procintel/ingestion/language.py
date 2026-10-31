@@ -24,6 +24,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 
 from procintel.core import db, paths
@@ -58,6 +59,17 @@ LANGUAGES: dict[str, dict] = {
     "ko": {"name": "Korean", "stem": None, "sentence": ".?!", "cjk": False},
 }
 _loaded: dict[str, dict] | None = None
+
+# Keyword search: a word is a run of letters, digits and the combining vowel signs of Indic, Arabic and Hebrew scripts
+# (the default \w pattern cuts Hindi words at every vowel sign). Scripts written without spaces between words
+# (Chinese, Japanese, Thai, and Korean syllable runs) are indexed as overlapping character pairs.
+TOKEN_PATTERN = r"(?u)[\w\u0300-\u036f\u0591-\u05c7\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0900-\u0dff\u0e00-\u0e7f]{2,}"
+_NO_SPACES = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0e00-\u0e7f]{2,}")
+
+
+def keyword_text(text: str) -> str:
+    """The text as keyword search should index it: runs of a script without spaces become overlapping character pairs."""
+    return _NO_SPACES.sub(lambda m: " " + " ".join(m.group(0)[i:i + 2] for i in range(len(m.group(0)) - 1)) + " ", text)
 
 
 def languages() -> dict[str, dict]:

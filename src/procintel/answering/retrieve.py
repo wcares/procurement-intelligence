@@ -28,7 +28,7 @@ from llama_index.core.schema import TextNode
 from llama_index.retrievers.bm25 import BM25Retriever
 
 from procintel.core import db, embed, paths, vector_index
-from procintel.ingestion import sectors
+from procintel.ingestion import language, sectors
 from procintel.prediction import procurement_rating, ratings
 from procintel.prediction.stats import GROUP_TERMS
 
@@ -118,12 +118,12 @@ class Retriever:
         for r in self.records:
             meta = {"chunk_id": r["chunk_id"], "doc_id": r["doc_id"], "section": r["section"], "para": r["para"]}
             nodes.append(TextNode(
-                id_=r["chunk_id"], text=r["text"], metadata=meta,
+                id_=r["chunk_id"], text=language.keyword_text(r["text"]), metadata=meta,
                 excluded_embed_metadata_keys=["chunk_id", "doc_id", "para"],
                 excluded_llm_metadata_keys=["chunk_id", "doc_id", "para"],
             ))
         self._index = {r["chunk_id"]: i for i, r in enumerate(self.records)}
-        self._bm25 = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=10)
+        self._bm25 = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=10, token_pattern=language.TOKEN_PATTERN)
 
     def search(self, query: str, k: int = 8, country: str | None = None, proc_group: str | None = None,
                kinds: tuple[str, ...] = ("text", "grid", "figure")) -> list[Hit]:
@@ -167,7 +167,7 @@ class Retriever:
         r.corpus_weight_mask = mask.astype(int).tolist()
         r.similarity_top_k = min(POOL, len(mask))
         # zero score = masked out or no term overlap; bm25s still fills the k slots with them
-        return [self._index[n.node.node_id] for n in r.retrieve(query) if n.score > 0]
+        return [self._index[n.node.node_id] for n in r.retrieve(language.keyword_text(query)) if n.score > 0]
 
     def _vector_ranking(self, query: str, mask: np.ndarray) -> list[int]:
         q = embed.embed([embed.format_query(query)])[0]
