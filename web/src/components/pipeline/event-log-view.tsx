@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { EventBatch } from "@/lib/api/types";
+import type { EventBatch, ReadFailure } from "@/lib/api/types";
 import { when } from "./when";
 
 const STATUS_CLASS: Record<string, string> = { done: "text-risk-low", failed: "text-risk-high", running: "text-brand" };
@@ -14,12 +14,14 @@ export function EventLogView() {
   const [types, setTypes] = useState<string[]>([]);
   const [batches, setBatches] = useState<EventBatch[] | null>(null);
   const [more, setMore] = useState(false);
+  const [failed, setFailed] = useState<ReadFailure[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback((filter: string, before?: string) => api.events(filter || undefined, before).then((r) => {
     setTypes((t) => (t.length ? t : r.types));
     setBatches((b) => (before && b ? [...b, ...r.batches] : r.batches));
     setMore(r.more);
+    if (!before) setFailed(r.failedReads);
   }).catch((e) => setError((e as Error).message)), []);
   useEffect(() => {
     load("");
@@ -30,6 +32,11 @@ export function EventLogView() {
     load(t);
   };
 
+  // failed reads sit in the timeline between the batches by time; while older batches are still unloaded, only the
+  // failures newer than the oldest loaded batch are shown, so none appears out of its place
+  const oldest = more && batches?.length ? batches[batches.length - 1].at : "";
+  const timeline = [...(batches ?? []), ...failed.filter((f) => f.at >= oldest)]
+    .sort((x, y) => (y.at < x.at ? -1 : y.at > x.at ? 1 : 0));
   const entityTypes = [...new Set(types.map((t) => t.split(".")[0]))];
   if (error) return <p className="text-sm text-risk-high">{error}</p>;
   return (
@@ -38,6 +45,7 @@ export function EventLogView() {
         <span className="text-ink-muted">Show</span>
         <select className="rounded-md border border-line bg-surface px-2 py-1" value={type} onChange={(e) => choose(e.target.value)}>
           <option value="">all events</option>
+          <option value="errors">read errors only</option>
           {entityTypes.map((t) => (
             <optgroup key={t} label={t}>
               <option value={t}>all {t}</option>
@@ -46,15 +54,32 @@ export function EventLogView() {
           ))}
         </select>
       </label>
-      {batches === null ? <p className="text-sm text-ink-muted">Loading…</p> : batches.length === 0 ? (
-        <p className="text-sm text-ink-muted">No events{type ? ` of type ${type}` : ""} yet.</p>
+      {batches === null ? <p className="text-sm text-ink-muted">Loading…</p> : timeline.length === 0 ? (
+        <p className="text-sm text-ink-muted">No {type === "errors" ? "read errors" : `events${type ? ` of type ${type}` : ""}`} yet.</p>
       ) : (
-        <ol className="space-y-3">{batches.map((b) => <Batch key={b.batch} b={b} />)}</ol>
+        <ol className="space-y-3">
+          {timeline.map((t) => "batch" in t
+            ? <Batch key={t.batch} b={t} />
+            : <ReadError key={`${t.entity}:${t.at}`} f={t} />)}
+        </ol>
       )}
       {more && batches && (
         <button className="rounded-md border border-line px-3 py-1.5 text-sm" onClick={() => load(type, batches[batches.length - 1].at)}>Older batches</button>
       )}
     </div>
+  );
+}
+
+function ReadError({ f }: { f: ReadFailure }) {
+  return (
+    <li className="rounded-xl border border-risk-high/50 bg-surface p-4 text-sm">
+      <header className="flex flex-wrap items-baseline gap-x-3">
+        <span className="font-semibold">{when(f.at)}</span>
+        <span className="text-xs text-risk-high">read failed</span>
+        <span className="font-mono text-xs text-ink-muted">{f.entity}</span>
+      </header>
+      <p className="mt-1 break-all text-xs text-risk-high">{f.message}</p>
+    </li>
   );
 }
 

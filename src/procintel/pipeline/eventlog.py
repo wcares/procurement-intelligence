@@ -12,6 +12,9 @@ from procintel.jobs import store as jobs_store
 from procintel.pipeline import store
 
 EVENTS_PER_BATCH = 100
+FAILED_READS = 30   # failed source reads shown with the batches
+ERRORS = "errors"   # the filter that shows only failed reads (and no batches)
+ERRORS_ONLY_LIMIT = 100
 
 
 def _iso(t: datetime) -> str:
@@ -22,8 +25,9 @@ def batches(type_filter: str | None = None, limit: int = 20, before: str | None 
             db_path: Path | None = None, jobs_db: Path | None = None) -> dict:
     con = store.connect(db_path)
     try:
+        only_errors = type_filter == ERRORS
         where, args = [], []
-        if type_filter:
+        if type_filter and not only_errors:
             where.append("(type = ? OR type LIKE ?)")
             args += [type_filter, type_filter + ".%"]
         if before:
@@ -31,7 +35,7 @@ def batches(type_filter: str | None = None, limit: int = 20, before: str | None 
             args.append(datetime.fromisoformat(before.rstrip("Z")))
         sql = ("SELECT batch_id, max(detected_at) AS last_at FROM event_log"
                + (" WHERE " + " AND ".join(where) if where else "") + " GROUP BY 1 ORDER BY last_at DESC LIMIT ?")
-        ids = con.execute(sql, args + [limit]).fetchall()
+        ids = [] if only_errors else con.execute(sql, args + [limit]).fetchall()
         out = []
         for batch, at in ids:
             counts = dict(con.execute("SELECT type, count(*) FROM event_log WHERE batch_id = ? GROUP BY 1 ORDER BY 1",
@@ -51,10 +55,16 @@ def batches(type_filter: str | None = None, limit: int = 20, before: str | None 
             out.append({"batch": batch, "at": _iso(at), "counts": counts, "events": events, "firings": firings,
                         "actionsRun": ran})
         types = [t for (t,) in con.execute("SELECT DISTINCT type FROM event_log ORDER BY 1").fetchall()]
+        # reads that failed leave no events, so they are not in a batch: listed apart, newest first
+        entity = type_filter.split(".")[0] if type_filter and not only_errors else None
+        failed = [{"entity": e, "at": _iso(t), "message": m} for e, t, m in con.execute(
+            "SELECT entity_type, ran_at, error FROM detection WHERE error IS NOT NULL AND error <> '' "
+            + ("AND entity_type = ? " if entity else "") + "ORDER BY ran_at DESC LIMIT ?",
+            ([entity] if entity else []) + [ERRORS_ONLY_LIMIT if only_errors else FAILED_READS]).fetchall()]
     finally:
         con.close()
     jobs = jobs_store.statuses(sorted({f["job"] for b in out for f in b["firings"] if f["job"]}), jobs_db)
     for b in out:
         for f in b["firings"]:
             f["jobStatus"] = jobs.get(f["job"]) if f["job"] else None
-    return {"batches": out, "types": types, "more": len(out) == limit}
+    return {"batches": out, "types": types, "more": len(out) == limit, "failedReads": failed}

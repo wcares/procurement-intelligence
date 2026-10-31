@@ -614,10 +614,15 @@ export interface EventBatch {
   actionsRun: { action: string; outcome: string; at: string }[];
 }
 
+/** A source read that failed (shown in the event log). */
+export interface ReadFailure { entity: string; at: string; message: string }
+
 export interface EventLogResponse {
   batches: EventBatch[];
   types: string[];
   more: boolean;
+  /** Source reads that failed, newest first (they leave no events, so no batch). */
+  failedReads: ReadFailure[];
 }
 
 /** An uploaded file and how far it got (GET /intake/uploads). */

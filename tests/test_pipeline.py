@@ -220,6 +220,24 @@ def test_connector_settings_change_interval_on_off_and_reset(tmp_path, monkeypat
         connector_config.save("Nope", {})
 
 
+def test_a_recovered_read_error_leaves_the_connector_card_and_stays_in_the_event_log(tmp_path, monkeypatch):
+    from procintel.pipeline import connectors, eventlog
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
+    et = entities.EntityType("Notice", timedelta(hours=1), ["v"], lambda ctx: ({}, False), lambda: {}, "src")
+    monkeypatch.setattr(entities, "ENTITY_TYPES", {"Notice": et})
+    store.log_detection("b1", "Notice", 0, 0, error="RuntimeError: GET failed")
+    card = connectors.status()[0]
+    assert card["failures"] == 1 and card["lastError"]["message"] == "RuntimeError: GET failed"   # failing now: on the card
+    store.log_detection("b2", "Notice", 5, 0)
+    card = connectors.status()[0]
+    assert card["failures"] == 0 and card["lastError"] is None                                    # recovered: not on the card
+    failed = eventlog.batches()["failedReads"]
+    assert [f["message"] for f in failed] == ["RuntimeError: GET failed"] and failed[0]["entity"] == "Notice"
+    assert eventlog.batches("Project.changed")["failedReads"] == []                               # filtered with the batches
+    only = eventlog.batches("errors")
+    assert only["batches"] == [] and len(only["failedReads"]) == 1                                # the "errors" filter
+
+
 def test_missing_dates_in_source_rows_are_logged_as_null_and_old_nat_text_reads_as_missing(tmp_path, monkeypatch):
     import json as _json
     monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")

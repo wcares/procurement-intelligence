@@ -32,6 +32,13 @@ def is_admin_client(request: Request) -> bool:
     return any(ip in net for net in allowed())
 
 
+def is_admin(request: Request) -> bool:
+    """An admin's session, or a request from an administrative client address (the refresh script)."""
+    from procintel.api import security   # not at the top: security imports are heavier and not needed to check an address
+    user = security.current_user(request)
+    return bool(user and user["role"] == "admin") or is_admin_client(request)
+
+
 def refuse(what: str) -> JSONResponse:
     return JSONResponse({"error": f"{what} is only accepted from an administrative client (PROCINTEL_ADMIN_CLIENTS)"},
                         status_code=403)

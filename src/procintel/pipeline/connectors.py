@@ -84,8 +84,8 @@ def status(db_path: Path | None = None) -> list[dict]:
     for et in entities.ENTITY_TYPES.values():
         reads = _reads(et.name, db_path)
         ok = next((r for r in reads if not r[4]), None)
-        bad = next((r for r in reads if r[4]), None)
         failures = _failures(reads)
+        bad = next((r for r in reads if r[4]), None)
         cfg = connector_config.settings(et.name)
         out.append({
             "name": et.name, "source": et.source, "mode": cfg["mode"], "every": words(connector_config.every(et)),
@@ -96,7 +96,7 @@ def status(db_path: Path | None = None) -> list[dict]:
             "cursor": cursor(et.name, db_path),
             "lastRead": _iso(reads[0][0]) if reads else None,
             "lastSuccess": {"at": _iso(ok[0]), "items": ok[1], "events": ok[2], "note": ok[3]} if ok else None,
-            "lastError": {"at": _iso(bad[0]), "message": bad[4]} if bad else None,
+            "lastError": {"at": _iso(bad[0]), "message": bad[4]} if bad and failures else None,   # recovered errors: Event log
             "failures": failures,
             "nextRead": _iso(reads[0][0] + wait(et, failures)) if reads else None,
             "due": cfg["enabled"] and (not reads or entities.now() >= reads[0][0] + wait(et, failures)),

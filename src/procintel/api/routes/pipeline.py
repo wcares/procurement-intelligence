@@ -33,7 +33,7 @@ def get_connectors() -> dict:
 @router.put("/pipeline/connectors/{name}")
 def put_connector(name: str, change: dict, request: Request) -> dict:
     """Change a source's mode, interval (everyHours) or on/off; equal to the defaults means reset."""
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("changing a connector")
     try:
         connector_config.save(name, change)
@@ -62,7 +62,7 @@ def post_dry_run(req: RuleSet) -> dict:
 
 @router.put("/pipeline/rules")
 def put_rules(req: RuleSet, request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("changing pipeline rules")
     errors = rules.save([rules.from_dict(r) for r in req.rules], entities.ENTITY_TYPES, actions.ACTIONS)
     if errors:
@@ -72,7 +72,7 @@ def put_rules(req: RuleSet, request: Request) -> dict:
 
 @router.post("/pipeline/rules/reset")
 def reset_rules(request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("resetting pipeline rules")
     rules.reset()
     return get_pipeline()
@@ -81,7 +81,7 @@ def reset_rules(request: Request) -> dict:
 @router.post("/pipeline/detect")
 def post_detect(request: Request, types: str | None = None) -> dict:
     """Queue a detection run now, regardless of the intervals: every entity type, or ?types=Document,Notice."""
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("starting change detection")
     chosen = [t for t in (types or "").split(",") if t]
     unknown = [t for t in chosen if t not in entities.ENTITY_TYPES]
