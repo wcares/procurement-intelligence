@@ -250,3 +250,24 @@ def test_scanned_pdf_pages_are_read_by_ocr_and_the_engine_is_a_setting(tmp_path,
     monkeypatch.setattr(ocr, "MAX_PAGES", 1)
     monkeypatch.setenv("PROCINTEL_OCR", "fake")
     assert extract.pages_ocr(scan, "pdf")[1] == 1                       # at most MAX_PAGES a file
+
+
+def test_an_uploaded_pdfs_tables_are_read_and_removed_with_the_upload(tmp_path, monkeypatch):
+    from pathlib import Path
+    _setup(tmp_path, monkeypatch)
+    pdf = (Path(__file__).parent / "fixtures" / "icr_financing_page.pdf").read_bytes()
+    up = store.save("report.pdf", pdf, "pdf", "u1")
+    doc_id = f"upload-{up['upload_id']}"
+    process._read_tables(doc_id, store.get(up["upload_id"]))
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    n = con.execute("SELECT count(*) FROM doc_table WHERE doc_id = ?", [doc_id]).fetchone()[0]
+    con.close()
+    assert n >= 1
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    con.execute("INSERT INTO documents (doc_id) VALUES (?)", [doc_id])
+    con.close()
+    store.advance(up["upload_id"], "add", "added", "added", doc_id=doc_id)
+    process.remove(up["upload_id"])
+    con = duckdb.connect(str(tmp_path / "main.duckdb"))
+    assert con.execute("SELECT count(*) FROM doc_table WHERE doc_id = ?", [doc_id]).fetchone()[0] == 0
+    con.close()

@@ -132,10 +132,11 @@ def _add(up: dict, text: str, known: list[str], doc_type: str, db_path: Path | N
     doc_id = f"upload-{upload_id}"
     title = next((ln.strip() for ln in text.splitlines() if len(ln.strip()) > 10), up["filename"])[:200]
     _add_document(doc_id, ",".join(known), title, text, doc_type)
+    tables = _read_tables(doc_id, up)
     batch = pipeline_store.new_batch()
     pipeline_store.log_derived(batch, [{"type": "Upload.ingested", "key": doc_id}], db_path)
     job = detect.queue_batch(batch, "uploaded report(s)", jobs_db, priority="high")
-    store.advance(upload_id, "add", f"added to the evidence as {doc_id}; its passages are cut and indexed by job "
+    store.advance(upload_id, "add", f"added to the evidence as {doc_id}{f' ({tables} tables read)' if tables else ''}; its passages are cut and indexed by job "
                   f"{job} (runs when the app is next idle)" if job else f"added as {doc_id}; no rule asked for indexing",
                   "added", db_path, doc_id=doc_id)
     return store.get(upload_id, db_path)
@@ -152,6 +153,9 @@ def remove(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = N
         con = db.connect()
         try:
             con.execute("DELETE FROM documents WHERE doc_id = ?", [up["doc_id"]])
+            for t in ("doc_table", "doc_table_read"):
+                if con.execute("SELECT 1 FROM information_schema.tables WHERE table_name = ?", [t]).fetchone():
+                    con.execute(f"DELETE FROM {t} WHERE doc_id = ?", [up["doc_id"]])
         finally:
             con.close()
         batch = pipeline_store.new_batch()
@@ -167,6 +171,22 @@ def remove(upload_id: str, db_path: Path | None = None, jobs_db: Path | None = N
     store.advance(upload_id, "removed", "; ".join(notes) or "nothing stored to delete (a duplicate)", "removed",
                   db_path, path=None)
     return store.get(upload_id, db_path)
+
+
+def _read_tables(doc_id: str, up: dict) -> int:
+    """Tables of an uploaded PDF, read from its layout into doc_table (procintel.ingestion.doc_tables), which the
+    chunk build turns into passages. Never stops the upload: a PDF whose tables cannot be read just has none."""
+    if up["format"] != "pdf" or up["path"].startswith("/"):
+        return 0
+    from procintel.ingestion import doc_tables
+    try:
+        con = db.connect()
+        try:
+            return doc_tables.read_key(con, doc_id, up["path"])
+        finally:
+            con.close()
+    except Exception:  # noqa: BLE001
+        return 0
 
 
 def _add_document(doc_id: str, project_ids: str, title: str, text: str, doc_type: str = ICR_TYPE) -> None:
