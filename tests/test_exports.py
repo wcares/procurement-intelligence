@@ -40,6 +40,9 @@ def test_the_plan_file_has_the_summary_deadline_check_and_every_package():
     assert "15 Jul 2027" in text and "Supervision consultant" in text and "Re-tendering (high)" in text
     assert "Typical award date after the deadline: Supervision consultant." in text
     assert "no slow-case estimate" in text and "not commitments" in text
+    assert "121 days to spare, slow case 31 days to spare" in text          # lot 1 vs 30 Jun 2027
+    assert "Why this number: A model trained on past World Bank packages (215 packages, KE): 120 days typical" in text
+    assert "Treat the project dates as a planning aid" in text
 
 
 def test_the_assessment_file_has_the_forecast_risks_and_quoted_lessons_with_their_source():

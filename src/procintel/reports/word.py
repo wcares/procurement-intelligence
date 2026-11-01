@@ -66,6 +66,52 @@ def deadline_check(rows: list[dict], deadline: str) -> tuple[list[str], list[str
     return late, at_risk
 
 
+PLAN_NOTE = ("Each forecast comes from comparable past packages; the project dates combine them in the order set. Treat the "
+             "project dates as a planning aid: the system has not learned how packages depend on each other.")
+
+
+def _days(n: int) -> str:
+    return f"{abs(n)} day{'' if abs(n) == 1 else 's'}"
+
+
+def _between(a: str, b: str) -> int:
+    return (date.fromisoformat(b[:10]) - date.fromisoformat(a[:10])).days
+
+
+def slack(row: dict, deadline: str) -> str:
+    """Days to spare or late against the deadline, typical and slow case, worded as on the plan page."""
+    t = _between(row["award50"], deadline)
+    out = f"{_days(t)} late" if t < 0 else f"{_days(t)} to spare"
+    if not row.get("p90Missing"):
+        s = _between(row["award90"], deadline)
+        out += f", slow case {_days(s)} late" if s < 0 else f", slow case {_days(s)} to spare"
+    return out
+
+
+def why(f: dict) -> str:
+    """Where a forecast comes from, worded as the plan page's "why this number?"."""
+    src = "A model trained on past World Bank packages" if f.get("basis") == "model" else "The median of comparable past packages"
+    n = f" ({f['n']} packages{', ' + f['scope'] if f.get('scope') else ''})" if f.get("n") else ""
+    text = f"{src}{n}: {f.get('p50')} days typical" + (f", {f['p90']} in the slow case (1 in 10)" if f.get("p90") else "")
+    if f.get("pLong") is not None:
+        text += f"; {round(f['pLong'] * 100)}% chance of more than 180 days"
+    text += "."
+    if f.get("risks"):
+        text += f" Risks: {'; '.join(f['risks'])}."
+    return text
+
+
+def _freshness_line(only: tuple[str, ...]) -> str | None:
+    """"Data read: ..." as under the plan on the page; None when the pipeline store cannot be read."""
+    try:
+        from procintel.pipeline import freshness
+        rows = [s for s in freshness.sources() if s["entity"] in only]
+    except Exception:  # noqa: BLE001
+        return None
+    ago = lambda h: "never" if h is None else f"{max(1, round(h * 60))} min ago" if h < 1 else f"{round(h)} h ago" if h < 48 else f"{round(h / 24)} days ago"  # noqa: E731
+    return "Data read: " + " · ".join(f"{s['label']} {ago(s['hoursAgo'])}{' (late)' if s['late'] else ''}" for s in rows)
+
+
 def plan_docx(body: dict, who: str | None = None) -> bytes:
     packages = {p["id"]: p for p in body.get("packages", [])}
     plan, forecasts = body.get("plan") or {}, body.get("forecasts") or {}
@@ -102,6 +148,20 @@ def plan_docx(body: dict, who: str | None = None) -> bytes:
     _table(doc, ["Package", "Method", "Tender", "Typical award", "Slow-case award", "Days", "Basis", "Risks", "Waits for"], out)
     if any(r.get("p90Missing") for r in rows):
         doc.add_paragraph("* no slow-case estimate: the typical date stands in for it.")
+    doc.add_heading("Each package", level=1)
+    for r in rows:
+        f = forecasts.get(r["id"]) or {}
+        doc.add_paragraph(name(r["id"]) + (f" · after {name(r['waitsFor'])}" if r.get("waitsFor") else ""), style="List Bullet")
+        lines = [f"Award {_d(r.get('award50'))}" + (f" ({f.get('p50')} days)" if f else "") + ("" if r.get("p90Missing") else f" · slow {_d(r.get('award90'))}")]
+        if body.get("deadline"):
+            lines.append(slack(r, body["deadline"]))
+        if f:
+            lines.append("Why this number: " + why(f))
+        for line in lines:
+            doc.add_paragraph(line).paragraph_format.left_indent = Pt(18)
+    if (fresh := _freshness_line(("Notice", "ContractAward", "Project"))):
+        doc.add_paragraph(fresh)
+    _note(doc, PLAN_NOTE)
     _note(doc)
     return _bytes(doc)
 

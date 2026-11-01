@@ -29,12 +29,20 @@ export function ExportButtons({ kind, body }: { kind: "plan" | "assessment"; bod
     }
   }
 
+  /** Print with every "why this number?" open, so the PDF holds the same text as the Word file; closed again after. */
+  function printAll() {
+    const closed = [...document.querySelectorAll("details:not([open])")] as HTMLDetailsElement[];
+    closed.forEach((d) => (d.open = true));
+    window.addEventListener("afterprint", () => closed.forEach((d) => (d.open = false)), { once: true });
+    window.print();
+  }
+
   const btn = "rounded-lg border border-line px-2.5 py-1 text-xs font-medium hover:bg-subtle disabled:opacity-50";
   return (
     <div className="flex flex-wrap items-center gap-2 print:hidden">
       <span className="text-xs text-ink-muted">Export {kind === "plan" ? "the plan" : "this assessment"}:</span>
       <button type="button" onClick={word} disabled={busy} className={btn}>{busy ? "Making…" : "Word (.docx)"}</button>
-      <button type="button" onClick={() => window.print()} className={btn}>PDF (print)</button>
+      <button type="button" onClick={printAll} className={btn}>PDF (print)</button>
       {error && <span className="text-xs text-risk-high">{error}</span>}
     </div>
   );
