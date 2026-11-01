@@ -6,7 +6,6 @@ import { api } from "@/lib/api/client";
 import type { AlertsResponse } from "@/lib/api/types";
 import { AlertsList } from "./alerts-list";
 import { WatchListEditor } from "./watch-list";
-import { PastRecommendations } from "./past-recommendations";
 import { ConfigureDrawer } from "./configure-drawer";
 import { OngoingWork } from "@/components/monitoring/ongoing-work";
 import { SlidersHorizontal } from "lucide-react";
@@ -62,11 +61,6 @@ export function InsightsView() {
         <Panel title="Ongoing work" hint="Every package has a status (active, finished, replaced or stale) from what has been published so far; active ones are forecast from where they are now. Open a project for its packages, a package for its live timeline.">
           <OngoingWork openProject={openProject} />
         </Panel>
-        <div>
-          <Panel title="Past recommendations" hint="The recommendations you asked for on Assess and what you decided; the counts are over everyone's, so a kind people keep dismissing shows.">
-            <PastRecommendations />
-          </Panel>
-        </div>
       </div>
     </div>
   );
