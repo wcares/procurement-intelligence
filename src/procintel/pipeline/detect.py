@@ -19,8 +19,8 @@ DERIVED_PREFIXES = ("Package.", "Data.", "Documents.", "Passages.", "Upload.")
 
 
 def _context(name: str) -> dict:
-    if name == "Document":
-        return {"tracked": list(store.states("Document"))}
+    if name in ("Document", "McpDocument"):
+        return {"tracked": list(store.states(name))}
     if name != "Notice":
         return {}
     dates = [f.get("notice_date") for _, f in store.states("Notice").values() if f.get("notice_date")]

@@ -62,6 +62,9 @@ def cursor(name: str, db_path: Path | None = None) -> str:
         if name == "Document":
             n = con.execute("SELECT count(*) FROM entity_state WHERE entity_type = 'Document'").fetchone()[0]
             return f"reports newest first until all {n} tracked ones are seen (the newest {entities.DOCUMENT_SCOPE} are in scope)"
+        if name == "McpDocument":
+            from procintel.pipeline import mcp_source
+            return mcp_source.describe()
         return "full read each time, compared with the stored state"
     finally:
         con.close()

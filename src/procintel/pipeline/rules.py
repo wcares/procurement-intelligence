@@ -38,6 +38,7 @@ DEFAULT_RULES = [
          ("apply_notices", "rebuild_tables", "rebuild_firms")),
     Rule("documents-ingest", ("Document.added", "Document.changed", "SupervisionDoc.added", "SupervisionDoc.changed"),
          ("ingest_documents", "read_tables", "read_figures", "rebuild_tables", "rebuild_firms", "chunk_documents")),
+    Rule("mcp-documents", ("McpDocument.added", "McpDocument.changed", "McpDocument.removed"), ("ingest_mcp_documents",)),
     Rule("uploads-add", ("Upload.ingested", "Upload.removed"),
          ("rebuild_tables", "rebuild_firms", "read_figures", "chunk_documents")),
     Rule("documents-recut", ("Documents.changed",), ("chunk_documents",)),

@@ -15,6 +15,7 @@ from typing import Callable
 import pandas as pd
 
 from procintel.core import db
+from procintel.pipeline import mcp_source
 
 NOTICE_WINDOW = timedelta(days=30)   # notices read newest first back to this long before the newest one known
 NOTICE_MAX_PAGES = 20                # at most 2,000 notices per run
@@ -231,6 +232,8 @@ ENTITY_TYPES: dict[str, EntityType] = {e.name: e for e in [
     EntityType("SupervisionDoc", timedelta(days=1), DOCUMENT_FIELDS, supervision_from_source, supervision_from_db,
                "World Bank documents API: the newest ISR and restructuring paper of each tracked project",
                key=lambda r: r["doc_id"]),
+    EntityType(mcp_source.TYPE, timedelta(hours=1), mcp_source.WATCHED, mcp_source.read_source, mcp_source.read_db,
+               mcp_source.SOURCE, key=lambda r: mcp_source.key(r["server"], r["uri"])),
 ]}
 
 

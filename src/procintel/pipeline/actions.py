@@ -257,9 +257,16 @@ def reload_backend(keys, events, ctx):
     return []
 
 
+def _mcp():
+    from procintel.pipeline import mcp_source
+    return mcp_source
+
+
 ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("ingest_documents", "Fetch and write new or changed reports (and new projects' records and notices)",
            ingest_documents, ("Data.updated", "Documents.changed")),
+    Action("ingest_mcp_documents", "Read new or changed documents from MCP servers and take them in as uploads "
+           "(procintel.pipeline.mcp_source)", lambda keys, events, ctx: _mcp().ingest(keys, events, ctx)),
     Action("apply_notices", "Write new and changed procurement notices", apply_notices, ("Data.updated",)),
     Action("apply_projects", "Write changed project records", apply_projects, ("Data.updated",)),
     Action("apply_contracts", "Write new and changed contract awards", apply_contracts, ("Data.updated",)),

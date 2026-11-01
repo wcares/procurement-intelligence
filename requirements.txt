@@ -23,6 +23,7 @@ rapidocr>=3.10           # uploads: OCR on any platform (PROCINTEL_OCR=rapidocr)
 onnxruntime>=1.31        # runs rapidocr's models
 ocrmac>=1.0.1; sys_platform == "darwin"   # uploads: OCR with Apple Vision (PROCINTEL_OCR=vision, macOS)
 python-multipart>=0.0.9  # uploads: FastAPI form files
+mcp>=2.3,<3              # MCP servers as a source (procintel.pipeline.mcp_source, scripts/demo_mcp_server.py)
 pytest
 moto>=5.2                # tests: an in-memory S3 for procintel.core.blob (boto3 itself comes with litellm)
 httpx>=0.27              # FastAPI TestClient in tests/test_api.py

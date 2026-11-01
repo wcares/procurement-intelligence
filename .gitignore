@@ -41,3 +41,5 @@ assessment.md
 /api
 data/figures/
 data/media/
+data/mcp_sources.json
+data/mcp_demo/

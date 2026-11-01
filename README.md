@@ -160,6 +160,12 @@ package  ──► statistics of comparable packages + gradient-boosted trees �
   follow-up are used, because recent tenders are awarded only if fast (see `src/procintel/prediction/predict.py`).
 - **Conflicting evidence:** an ICR outcome rating that disagrees with the project's last supervision (ISR) rating is
   stated as a caveat with both ratings and dates; the ICR is treated as the later verdict, never averaged.
+- **MCP servers as a source:** the documents an MCP server offers as resources are read like uploads. List the servers in
+  `data/mcp_sources.json` (a local `command` or a remote `url`, headers named by environment variable, `trusted` for
+  completion reports to join the evidence without an admin); each read compares every resource's size and
+  last-modified time with the last read, and new or changed documents go through intake (`procintel.pipeline.mcp_source`).
+  Only resources are read, never tools. `scripts/demo_mcp_server.py` is a small server for trying it: the files of a
+  folder and the newest procurement plans of given projects, fetched live from the World Bank documents API.
 
 ## Evaluation (summary of [eval/report.md](eval/report.md))
 
