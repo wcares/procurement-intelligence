@@ -166,6 +166,15 @@ package  ──► statistics of comparable packages + gradient-boosted trees �
   last-modified time with the last read, and new or changed documents go through intake (`procintel.pipeline.mcp_source`).
   Only resources are read, never tools. `scripts/demo_mcp_server.py` is a small server for trying it: the files of a
   folder and the newest procurement plans of given projects, fetched live from the World Bank documents API.
+- **Records from MCP tools (Databricks):** a server entry may instead name read-only tools whose rows become records
+  (`procintel.pipeline.mcp_records`): fixed arguments, a field mapping, and `"as": "ContractAward"` to write them as
+  contract awards (award dates of their packages filled as for Finances One) or the default `"rows"` to keep them for
+  reference. For Databricks' managed MCP servers (Public Preview; an admin enables "Managed MCP Servers"), a Unity
+  Catalog function is served at `https://<workspace-host>/api/2.0/mcp/functions/<catalog>/<schema>/<function>`; put
+  that in `url`, the token in an environment variable named by `bearer_env`, and the tool name that
+  `python -m procintel.pipeline.mcp_records tools <server>` lists. A tool marked destructive or not read-only is
+  refused. Not yet tried against a Databricks workspace; the demo server's `--contracts` tool returns live Finances
+  One awards to show the path.
 - **The engine as an MCP server:** `python -m procintel.mcp_server` lets an assistant (Claude Code, Claude Desktop,
   any MCP client) call `assess_package`, `ask_evidence`, `get_passage` and `list_options`. It is a client of the
   backend API, so sign-in and the guardrails apply: set `PROCINTEL_MCP_USER` and `PROCINTEL_MCP_PASSWORD` (a planner

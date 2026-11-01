@@ -11,6 +11,8 @@ The servers are listed in data/mcp_sources.json (edited by an admin; a server is
     command     a local server started for each read (stdio), as [program, arg, ...], run from the project folder
     url         a remote server (Streamable HTTP)
     headers     HTTP headers, each named by the environment variable that holds its value (never the value itself)
+    bearer_env  the environment variable holding a token sent as "Authorization: Bearer <token>" (Databricks)
+    tools       read-only tools whose rows become records (procintel.pipeline.mcp_records); a server may have only these
     uri_prefix  only resources whose URI starts with this
     subscribe   true: also followed live (procintel.pipeline.mcp_listen): a change the server reports is read at once
     trusted     true: a completion report from this server joins the evidence at once; false (default): it waits for an
@@ -69,6 +71,21 @@ def servers() -> list[dict]:
     return out
 
 
+def document_servers() -> list[dict]:
+    """The servers read for documents: all, except one that names tools and does not ask for documents too
+    ("documents": true), since a tool-only server (a Databricks function) need not offer a resource list."""
+    return [s for s in servers() if s.get("documents", not s.get("tools"))]
+
+
+def reason(e: BaseException) -> str:
+    """An error in words: the innermost cause of an exception group (the SDK's task groups wrap the real error)."""
+    while isinstance(e, BaseExceptionGroup) and e.exceptions:
+        e = e.exceptions[0]
+    if e.__cause__ is not None and str(e) in ("", "Connection closed"):
+        return reason(e.__cause__)
+    return f"{type(e).__name__}: {e}"
+
+
 def key(server: str, uri: str) -> str:
     return f"{server}|{uri}"
 
@@ -82,6 +99,10 @@ def _client(server: dict):
     import httpx2
     from mcp.client.streamable_http import streamable_http_client
     headers = {}
+    if server.get("bearer_env"):                         # an OAuth or personal access token (Databricks)
+        if not os.environ.get(server["bearer_env"]):
+            raise ValueError(f"server {server['name']}: environment variable {server['bearer_env']} is not set")
+        headers["Authorization"] = f"Bearer {os.environ[server['bearer_env']]}"
     for header, var in (server.get("headers") or {}).items():
         if not os.environ.get(var):
             raise ValueError(f"server {server['name']}: environment variable {var} (header {header}) is not set")
@@ -163,12 +184,12 @@ def read_source(ctx: dict) -> tuple[dict[str, dict], bool]:
     back-off), so its documents are not taken for removed. Complete unless documents are known from a server that is
     no longer listed: those are kept until the server is back or an admin removes them."""
     rows: dict[str, dict] = {}
-    conf = servers()
+    conf = document_servers()
     for s in conf:
         try:
             rows.update(list_items(s))
         except Exception as e:   # noqa: BLE001 - named, then left to the detection log
-            raise RuntimeError(f"MCP server {s['name']}: {type(e).__name__}: {e}") from e
+            raise RuntimeError(f"MCP server {s['name']}: {reason(e)}") from e
     listed = {s["name"] for s in conf}
     gone = {k.split("|", 1)[0] for k in ctx.get("tracked", [])} - listed
     return rows, not gone
@@ -187,11 +208,11 @@ def read_db() -> dict[str, dict]:
 def describe() -> str:
     """For the Connectors page: what the next read covers."""
     try:
-        conf = servers()
+        conf = document_servers()
     except ValueError as e:
         return f"configuration error: {e}"
     if not conf:
-        return "no MCP server configured (data/mcp_sources.json)"
+        return "no MCP server configured for documents (data/mcp_sources.json)"
     names = ", ".join(f"{s['name']} ({'local' if s.get('command') else 'remote'})" for s in conf)
     return f"every resource of {len(conf)} server(s): {names}; compared by size and last-modified time"
 
@@ -308,7 +329,7 @@ def ingest(keys: list[str], events: dict[str, dict], ctx: dict) -> list[dict]:
         content = contents.get((row["server"], row["uri"]))
         if not isinstance(content, bytes):
             e = content or RuntimeError("not read")
-            _set(k, row, old, "failed", f"read failed: {type(e).__name__}: {e}")
+            _set(k, row, old, "failed", f"read failed: {reason(e)}")
             continue
         filename = row["name"] if "." in (row["name"] or "") else f"{row['name']}.{fmt}"
         up = intake_store.save(filename, content, fmt, f"mcp:{row['server']}")

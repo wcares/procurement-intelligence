@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { Connector, ConnectorSettings, ConnectorsResponse, McpOverview } from "@/lib/api/types";
+import type { Connector, ConnectorSettings, ConnectorsResponse, McpOverview, McpToolsOverview } from "@/lib/api/types";
 import { relative, when } from "./when";
 
 /** Each source: how it reaches us (mode), what the next read asks for (cursor), the last success and last error, and
@@ -68,6 +68,7 @@ function ConnectorCard({ c, onRead, onSaved }: { c: Connector; onRead: () => voi
           : `${when(c.nextRead)} (${relative(c.nextRead)})`}</dd>
       </dl>
       {c.mcp && <McpSection m={c.mcp} />}
+      {c.mcpTools && <McpToolsSection m={c.mcpTools} />}
       {c.settings.mode === "push" && (
         <p className="mt-2 text-xs">
           Push: the source posts to <span className="font-mono">{c.push.path}</span>, signed with{" "}
@@ -125,6 +126,33 @@ function McpSection({ m }: { m: McpOverview }) {
   );
 }
 
+/** The MCP tools source: each tool called (with fixed arguments) and what its rows become, and the latest records. */
+function McpToolsSection({ m }: { m: McpToolsOverview }) {
+  return (
+    <div className="mt-3 space-y-2 border-t border-line pt-3 text-xs">
+      {m.error && <p className="text-risk-high">Configuration: {m.error}</p>}
+      <p className="text-ink-muted">
+        Tools: {m.tools.length === 0 ? "none configured (data/mcp_sources.json)" : m.tools.map((t) => (
+          <span key={t.server + t.tool} className="mr-2 inline-block">
+            <span className="font-medium text-foreground">{t.server}.{t.tool}</span> → {t.as === "ContractAward" ? "contract awards" : "records kept"} ({t.records})
+          </span>
+        ))}
+      </p>
+      <p className="text-ink-muted">Only the tools named here are called, with fixed arguments; a tool the server marks as not read-only is refused.</p>
+      {m.records.length > 0 && (
+        <ul className="space-y-1">
+          {m.records.map((r, i) => (
+            <li key={i} className="flex flex-wrap items-baseline gap-x-2">
+              <span className="min-w-0 truncate font-medium">{r.title}</span>
+              <span className="text-ink-muted">{r.tool} · {when(r.takenAt)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** Mode, interval and on/off for one source, saved to the data folder (procintel.pipeline.connector_config). */
 function SettingsEditor({ c, onSaved }: { c: Connector; onSaved: (d: ConnectorsResponse) => void }) {
   const [open, setOpen] = useState(false);
@@ -150,7 +178,7 @@ function SettingsEditor({ c, onSaved }: { c: Connector; onSaved: (d: ConnectorsR
         <select className="rounded border border-line bg-surface px-1 py-0.5" value={draft.mode}
           onChange={(e) => setDraft({ ...draft, mode: e.target.value as ConnectorSettings["mode"] })}>
           <option value="poll">poll</option>
-          {!c.mcp && <option value="push">push (webhook)</option>}
+          {!c.mcp && !c.mcpTools && <option value="push">push (webhook)</option>}
         </select>
       </label>
       {draft.mode === "poll" && (

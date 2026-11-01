@@ -605,6 +605,14 @@ export interface Connector {
   push: { path: string; secretSet: boolean; secretVar: string };
   /** the MCP source only: its configured servers (no header values) and the latest documents taken in */
   mcp?: McpOverview;
+  /** the MCP tools source only: the tools called and the latest records */
+  mcpTools?: McpToolsOverview;
+}
+
+export interface McpToolsOverview {
+  tools: { server: string; tool: string; as: string; records: number }[];
+  records: { server: string; tool: string; kind: string; title: string; takenAt: string }[];
+  error: string | null;
 }
 
 export interface McpOverview {

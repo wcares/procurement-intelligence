@@ -52,7 +52,7 @@ def validate(name: str, change: dict) -> str | None:
         return f"unknown settings {sorted(unknown)}"
     if "mode" in change and change["mode"] not in MODES:
         return f"mode must be one of {', '.join(MODES)}"
-    if name == "McpDocument" and change.get("mode") == "push":
+    if name in ("McpDocument", "McpRecord") and change.get("mode") == "push":
         return "MCP servers are read by the connector; they cannot push to the webhook"
     if "everyHours" in change:
         try:

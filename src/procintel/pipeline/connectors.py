@@ -65,6 +65,13 @@ def cursor(name: str, db_path: Path | None = None) -> str:
         if name == "McpDocument":
             from procintel.pipeline import mcp_source
             return mcp_source.describe()
+        if name == "McpRecord":
+            from procintel.pipeline import mcp_records
+            try:
+                n = len(mcp_records.tool_sources())
+            except ValueError as e:
+                return f"configuration error: {e}"
+            return f"{n} tool(s) called with fixed arguments; each result compared row by row" if n else "no MCP tool configured"
         return "full read each time, compared with the stored state"
     finally:
         con.close()
@@ -107,5 +114,8 @@ def status(db_path: Path | None = None) -> list[dict]:
         if et.name == "McpDocument":
             from procintel.pipeline import mcp_source
             row["mcp"] = mcp_source.overview(db_path)
+        if et.name == "McpRecord":
+            from procintel.pipeline import mcp_records
+            row["mcpTools"] = mcp_records.overview(db_path)
         out.append(row)
     return out

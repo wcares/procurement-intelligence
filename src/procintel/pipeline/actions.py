@@ -263,6 +263,11 @@ def _mcp():
     return mcp_source
 
 
+def _mcp_records():
+    from procintel.pipeline import mcp_records
+    return mcp_records
+
+
 ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("ingest_documents", "Fetch and write new or changed reports (and new projects' records and notices)",
            ingest_documents, ("Data.updated", "Documents.changed")),
@@ -271,11 +276,14 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("apply_notices", "Write new and changed procurement notices", apply_notices, ("Data.updated",)),
     Action("apply_projects", "Write changed project records", apply_projects, ("Data.updated",)),
     Action("apply_contracts", "Write new and changed contract awards", apply_contracts, ("Data.updated",)),
+    Action("apply_mcp_records", "Keep records from MCP tools; write those that are contract awards "
+           "(procintel.pipeline.mcp_records)", lambda keys, events, ctx: _mcp_records().apply(keys, events, ctx),
+           ("Data.updated",), light=True),
     Action("apply_indicators", "Write CPIA and WGI values", apply_indicators, ("Data.updated",)),
     Action("rebuild_tables", "Rebuild packages, suppliers and links (procintel.ingestion.tables)", rebuild_tables,
            ("Data.updated", "Package.award_changed")),
     Action("fill_award_dates", "Fill award dates from contract signing dates", fill_award_dates,
-           ("Data.updated", "Package.award_changed")),
+           ("Data.updated", "Package.award_changed"), light=True),
     Action("rebuild_firms", "Merge supplier firm ids of the same firm (procintel.ingestion.entities)", rebuild_firms,
            ("Data.updated",)),
     Action("place_projects", "Pin projects on the map by country (procintel.monitoring.places)", place_projects),

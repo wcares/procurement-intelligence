@@ -5,6 +5,9 @@ Two kinds of document, either or both:
   --wb-projects IDS    the newest procurement plans of these World Bank projects, fetched live from the World Bank
                        documents API (search.worldbank.org/api/v3/wds) when the server starts; their text is fetched
                        when a resource is read
+  --contracts          a read-only tool, contract_awards(project_id), returning the project's contract awards fetched
+                       live from World Bank Finances One with that dataset's own column names: a stand-in for a table a
+                       client would offer as a tool (a Databricks Unity Catalog function)
 
 The folder is listed afresh on every request, and watched: when a file is added, changed or removed, the server tells
 every client listening (MCP subscriptions/listen) that the list or that resource changed, so a subscribed connector
@@ -23,15 +26,18 @@ import asyncio
 import mimetypes
 import sys
 from contextlib import asynccontextmanager
+from typing import Any
 from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))   # procintel, for the Finances One reader
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.resources.resource_manager import ResourceManager
 from mcp.server.mcpserver.resources.types import FunctionResource
 from mcp.shared.subscriptions import ResourcesListChanged, ResourceUpdated
-from mcp_types import Annotations
+from mcp_types import Annotations, ToolAnnotations
 
 WDS = "https://search.worldbank.org/api/v3/wds"
 PLANS_PER_PROJECT = 2
@@ -124,7 +130,16 @@ def _text(url: str) -> str:
     return r.text
 
 
-def build(folder: Path | None, projects: list[str]) -> MCPServer:
+def add_contracts_tool(server: MCPServer) -> None:
+    @server.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True),
+                 structured_output=True)
+    def contract_awards(project_id: str) -> dict[str, Any]:
+        """A World Bank project's contract awards from Finances One (live), with that dataset's column names."""
+        from procintel.ingestion import contract_awards as fone
+        return {"rows": fone.fetch_project(project_id)}
+
+
+def build(folder: Path | None, projects: list[str], contracts: bool = False) -> MCPServer:
     @asynccontextmanager
     async def lifespan(server: MCPServer):
         task = asyncio.create_task(watch(server, folder)) if folder else None
@@ -138,6 +153,8 @@ def build(folder: Path | None, projects: list[str]) -> MCPServer:
                        "from a folder and live World Bank procurement plans.", lifespan=lifespan)
     plans = plan_resources(projects)
     server._resource_manager = LiveResources(plans, folder)   # the folder listed live (see LiveResources)
+    if contracts:
+        add_contracts_tool(server)
     n = len(plans) + (len(folder_resources(folder)) if folder else 0)
     print(f"demo MCP server: {n} document(s){', watching ' + str(folder) if folder else ''}", file=sys.stderr)
     return server
@@ -147,11 +164,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--folder", type=Path, help="offer every file in this folder")
     ap.add_argument("--wb-projects", default="", help="comma-separated World Bank project ids: their newest procurement plans")
+    ap.add_argument("--contracts", action="store_true", help="offer the contract_awards tool")
     ap.add_argument("--http", type=int, metavar="PORT", help="serve over Streamable HTTP on 127.0.0.1:PORT/mcp instead of stdio")
     args = ap.parse_args()
     if args.folder:
         args.folder.mkdir(parents=True, exist_ok=True)
-    server = build(args.folder, [p.strip() for p in args.wb_projects.split(",") if p.strip()])
+    server = build(args.folder, [p.strip() for p in args.wb_projects.split(",") if p.strip()], args.contracts)
     if args.http:
         server.run("streamable-http", host="127.0.0.1", port=args.http)
     else:

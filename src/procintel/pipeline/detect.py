@@ -19,7 +19,7 @@ DERIVED_PREFIXES = ("Package.", "Data.", "Documents.", "Passages.", "Upload.")
 
 
 def _context(name: str) -> dict:
-    if name in ("Document", "McpDocument"):
+    if name in ("Document", "McpDocument", "McpRecord"):
         return {"tracked": list(store.states(name))}
     if name != "Notice":
         return {}

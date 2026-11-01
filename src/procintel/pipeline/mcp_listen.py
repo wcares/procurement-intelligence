@@ -40,7 +40,7 @@ def state() -> dict[str, dict]:
 
 def followed() -> list[dict]:
     try:
-        return [s for s in mcp_source.servers() if s.get("subscribe")]
+        return [s for s in mcp_source.document_servers() if s.get("subscribe")]
     except ValueError:
         return []
 
@@ -97,7 +97,7 @@ async def follow(server: dict, on_change=queue_read, stop: asyncio.Event | None 
             st.update(state="not supported", error="the server does not offer subscriptions; read on schedule only")
             return
         except Exception as e:   # noqa: BLE001 - logged, shown on the Connectors page, retried
-            st.update(state="reconnecting", error=f"{type(e).__name__}: {e}"[:300])
+            st.update(state="reconnecting", error=mcp_source.reason(e)[:300])
             log.warning("MCP server %s: %s; retrying in %.0f s", name, e, wait)
         try:
             await asyncio.wait_for(stop.wait(), wait)
