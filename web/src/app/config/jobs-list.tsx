@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { Job } from "@/lib/api/types";
+import type { Job, JobsResponse } from "@/lib/api/types";
 import { jobLabel, jobState } from "@/components/job-status";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -10,8 +10,9 @@ const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "nume
 /** The work the app does in the background, newest first: what it is, why it ran, and how it went. */
 export function JobsList() {
   const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [queue, setQueue] = useState<JobsResponse | null>(null);
   useEffect(() => {
-    const load = () => api.jobs().then((r) => setJobs(r.jobs)).catch(() => setJobs([]));
+    const load = () => api.jobs().then((r) => { setJobs(r.jobs); setQueue(r); }).catch(() => setJobs([]));
     void load();
     const t = setInterval(load, 10000);
     return () => clearInterval(t);
@@ -21,7 +22,9 @@ export function JobsList() {
       <h3 className="font-semibold">Recent jobs</h3>
       <p className="mt-1 mb-4 text-sm text-ink-muted">
         Work the app does on its own: checking the World Bank sources, updating the data, measuring quality, retraining
-        the forecast. A job waits until nobody is using the app, so it never slows anyone down. Updates every 10 seconds.
+        the forecast. Light jobs (checking sources, taking in documents and records) start at once; heavier ones wait
+        until the app has had no requests for {queue ? Math.round(queue.runAfterIdleSeconds / 60) : 5} minutes, so they
+        never slow anyone down. Updates every 10 seconds.
       </p>
       {jobs === null ? <p className="text-sm text-ink-muted">Loading…</p> : jobs.length === 0 ? <p className="text-sm text-ink-muted">No jobs yet.</p> : (
         <div className="overflow-x-auto">
@@ -31,7 +34,7 @@ export function JobsList() {
             </thead>
             <tbody className="divide-y divide-line">
               {jobs.map((j) => {
-                const s = jobState(j);
+                const s = jobState(j, queue);
                 return (
                   <tr key={j.id} className="align-top">
                     <td className="py-2 pr-4">{jobLabel(j.kind)}</td>

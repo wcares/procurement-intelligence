@@ -30,7 +30,8 @@ def get_jobs() -> dict:
     names = {v: k for k, v in jobs_store.PRIORITIES.items()}
     jobs = [j | {"priority": names.get(j.get("priority"), "normal")} for j in jobs_store.recent()]
     kinds = {k: jobs_store.DEFAULT_PRIORITY.get(k, "normal") for k in sorted(jobs_store.DEFAULT_PRIORITY)}
-    return {"jobs": jobs, "kinds": kinds} | background.status()
+    from procintel.jobs import worker
+    return {"jobs": jobs, "kinds": kinds, "lightKinds": sorted(worker.LIGHT)} | background.status()
 
 
 @router.post("/jobs", dependencies=admin)

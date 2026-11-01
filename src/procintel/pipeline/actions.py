@@ -140,7 +140,8 @@ def fill_award_dates(keys, events, ctx):
     from procintel.ingestion import contract_awards
     before = _award_stats()
     contract_awards.fill_award_dates()
-    return [DATA] + ([{"type": "Package.award_changed", "key": "all"}] if _award_stats() != before else [])
+    # data changed only when award dates did (the awards themselves are reported by the action that wrote them)
+    return [DATA, {"type": "Package.award_changed", "key": "all"}] if _award_stats() != before else []
 
 
 def sector_links(keys, events, ctx):
@@ -300,6 +301,6 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("sector_links", "Rebuild contract-to-report links by sector and time", sector_links, ("Data.updated",)),
     Action("drift_check", "Queue a prediction drift check", drift_check, min_hours=6),
     Action("watch_alerts", "Alert planners whose watch-list covers the changes", watch_alerts),
-    Action("reload_backend", "Reload the backend's data", reload_backend),
+    Action("reload_backend", "Reload the backend's data", reload_backend, light=True),   # no model; a few seconds
 ]}
 ORDER = list(ACTIONS)

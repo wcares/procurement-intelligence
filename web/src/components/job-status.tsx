@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { Job } from "@/lib/api/types";
+import type { Job, JobsResponse } from "@/lib/api/types";
 
 /** What a background job is, in plain words. */
 export const JOB_LABEL: Record<string, string> = {
@@ -27,9 +27,16 @@ const mins = (from: string, to?: string | null) => {
   return m < 1 ? "under a minute" : `${m} min`;
 };
 
-/** One line: where a job is (waiting, running, done, failed) and, when done or failed, how long it took or why. */
-export function jobState(j: Job): { text: string; tone: "muted" | "ok" | "bad" } {
-  if (j.status === "pending") return { text: "Waiting: it starts when nobody is using the app", tone: "muted" };
+/** One line: where a job is (waiting, running, done, failed) and, when done or failed, how long it took or why. With the
+ * queue's state it says why a waiting job waits: a light one starts within seconds; a heavier one waits until the app
+ * has had no requests for a while, and how long is left. */
+export function jobState(j: Job, q?: Pick<JobsResponse, "idleSeconds" | "runAfterIdleSeconds" | "lightKinds"> | null): { text: string; tone: "muted" | "ok" | "bad" } {
+  if (j.status === "pending") {
+    if (!q) return { text: "Waiting to start", tone: "muted" };
+    if (q.lightKinds?.includes(j.kind) || q.idleSeconds >= q.runAfterIdleSeconds) return { text: "Starting within seconds", tone: "muted" };
+    const left = q.runAfterIdleSeconds - q.idleSeconds;
+    return { text: `Waiting for a quiet moment: starts after ${Math.ceil(left / 60)} more min without requests (the app was last used ${q.idleSeconds} s ago)`, tone: "muted" };
+  }
   if (j.status === "running") return { text: `Running for ${mins(j.started_at ?? j.created_at)}`, tone: "muted" };
   if (j.status === "done") return { text: `Done in ${mins(j.started_at ?? j.created_at, j.finished_at)}`, tone: "ok" };
   return { text: `Failed: ${j.error ?? "no reason given"}`, tone: "bad" };
@@ -38,12 +45,14 @@ export function jobState(j: Job): { text: string; tone: "muted" | "ok" | "bad" }
 /** The live state of one job (checked every 5 seconds until it is done or failed); onDone runs once when it finishes. */
 export function JobStatus({ id, onDone }: { id: string; onDone?: () => void }) {
   const [job, setJob] = useState<Job | null>(null);
+  const [queue, setQueue] = useState<JobsResponse | null>(null);
   useEffect(() => {
     let live = true;
     const check = () => api.jobs().then((r) => {
       if (!live) return;
       const j = r.jobs.find((x) => x.id === id) ?? null;
       setJob(j);
+      setQueue(r);
       if (j && (j.status === "done" || j.status === "failed")) {
         clearInterval(t);
         if (j.status === "done") onDone?.();
@@ -54,6 +63,6 @@ export function JobStatus({ id, onDone }: { id: string; onDone?: () => void }) {
     return () => { live = false; clearInterval(t); };
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!job) return <span className="text-ink-muted">Queued.</span>;
-  const s = jobState(job);
+  const s = jobState(job, queue);
   return <span className={s.tone === "bad" ? "text-risk-high" : s.tone === "ok" ? "text-risk-low" : "text-ink-muted"}>{jobLabel(job.kind)}: {s.text}.</span>;
 }

@@ -291,6 +291,8 @@ export interface JobsResponse {
   kinds: Record<string, JobPriority>;
   idleSeconds: number;
   runAfterIdleSeconds: number;
+  /** kinds that run while the app is in use (no answer or embedding model) */
+  lightKinds?: string[];
   running: string | null;
   workerOn: boolean;
   /** thread: worker inside the backend; external: separate worker processes; off */
