@@ -71,8 +71,11 @@ def queue_batch(batch: str, why: str, jobs_db=None, priority: str | None = None)
     job = None
     if steps:
         from procintel.jobs import store as jobs_store
-        job = jobs_store.enqueue("pipeline_batch", f"{len(events)} {why}", {"batch": batch}, dedupe=False,
-                                 db_path=jobs_db, priority=priority)
+        # only light actions (no answer or embedding model, e.g. taking MCP documents in): it need not wait for an idle
+        # app (procintel.jobs.worker.LIGHT); anything heavier the batch comes to is handed to a normal batch
+        light = all(actions.ACTIONS[a].light for a, _ in steps)
+        job = jobs_store.enqueue("pipeline_batch_light" if light else "pipeline_batch", f"{len(events)} {why}",
+                                 {"batch": batch}, dedupe=False, db_path=jobs_db, priority=priority)
     for rule_id, n in fired.items():
         rule = next(r for r in rules.active() if r.id == rule_id)
         store.log_firing(batch, rule_id, n, list(rule.do), job)
@@ -81,7 +84,7 @@ def queue_batch(batch: str, why: str, jobs_db=None, priority: str | None = None)
 
 def batch_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     batch = params["batch"]
-    cur = cursor or {"done": [], "derived": []}
+    cur = cursor or {"done": list(params.get("skip", [])), "derived": []}
     while True:
         events = store.batch_events(batch)  # includes the derived events logged so far
         plan, _ = rules.plan(events, rules.active(), actions.ORDER)
@@ -91,6 +94,11 @@ def batch_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
             return {"actions": cur["done"], "derived": sorted({e["type"] for e in cur["derived"]})}
         name, keys = todo[0]
         action = actions.ACTIONS[name]
+        if params.get("light") and not action.light:   # a light batch never runs a heavy action: hand the rest over
+            from procintel.jobs import store as jobs_store
+            job = jobs_store.enqueue("pipeline_batch", "the rest of a light batch", {"batch": batch, "skip": cur["done"]},
+                                     dedupe=False, db_path=ctx.get("jobs_db"))
+            return {"actions": cur["done"], "derived": sorted({e["type"] for e in cur["derived"]}), "handedOver": job}
         since = store.hours_since_action(name) if action.min_hours else None
         if since is not None and since < action.min_hours:  # costly action that ran recently: skip, and say so
             store.log_action(batch, name, f"skipped: ran {since:.1f} h ago (at most every {action.min_hours:g} h)")

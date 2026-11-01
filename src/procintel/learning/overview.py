@@ -22,7 +22,7 @@ from procintel.learning import evaluate, shadows
 from procintel.prediction import predict
 
 CHANGE_KINDS = {"refresh": "data refresh", "retrain": "timeline model retrained", "shadow_promote": "shadow promoted",
-                "pipeline_batch": "pipeline changes applied"}
+                "pipeline_batch": "pipeline changes applied", "pipeline_batch_light": "pipeline changes applied"}
 
 
 def _t(s: str) -> datetime:

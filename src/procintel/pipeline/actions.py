@@ -22,6 +22,7 @@ class Action:
     run: Callable[[list[str], dict[str, dict], dict], list[dict]]   # (keys, events by key, ctx) -> derived events
     emits: tuple[str, ...] = ()        # derived event types it may report (checked for cycles when rules are saved)
     min_hours: float = 0               # costly actions: skipped when they ran less than this long ago
+    light: bool = False                # uses neither the answer nor the embedding model: may run while the app is in use
 
 
 def _upsert(table: str, key_sql: str, rows: list[dict], removed: list[str]) -> int:
@@ -266,7 +267,7 @@ ACTIONS: dict[str, Action] = {a.name: a for a in [
     Action("ingest_documents", "Fetch and write new or changed reports (and new projects' records and notices)",
            ingest_documents, ("Data.updated", "Documents.changed")),
     Action("ingest_mcp_documents", "Read new or changed documents from MCP servers and take them in as uploads "
-           "(procintel.pipeline.mcp_source)", lambda keys, events, ctx: _mcp().ingest(keys, events, ctx)),
+           "(procintel.pipeline.mcp_source)", lambda keys, events, ctx: _mcp().ingest(keys, events, ctx), light=True),
     Action("apply_notices", "Write new and changed procurement notices", apply_notices, ("Data.updated",)),
     Action("apply_projects", "Write changed project records", apply_projects, ("Data.updated",)),
     Action("apply_contracts", "Write new and changed contract awards", apply_contracts, ("Data.updated",)),

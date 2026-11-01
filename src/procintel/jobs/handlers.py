@@ -180,6 +180,13 @@ def pipeline_batch(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dic
     return (yield from detect.batch_steps(params, cursor, ctx))
 
 
+@handler("pipeline_batch_light")
+def pipeline_batch_light(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
+    """A batch of light actions only (procintel.pipeline.detect.queue_batch): runs while the app is in use."""
+    from procintel.pipeline import detect
+    return (yield from detect.batch_steps(params | {"light": True}, cursor, ctx))
+
+
 @handler("retention", priority="background")
 def retention(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]:
     from procintel.jobs import retention as r

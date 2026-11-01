@@ -9,6 +9,7 @@ export const JOB_LABEL: Record<string, string> = {
   evaluate: "Measure quality",
   detect_changes: "Check the sources for changes",
   pipeline_batch: "Update the data after a change",
+  pipeline_batch_light: "Take in new documents",
   drift_check: "Check whether the forecast model needs retraining",
   retrain: "Retrain the forecast model",
   refresh: "Weekly full refresh of the data",

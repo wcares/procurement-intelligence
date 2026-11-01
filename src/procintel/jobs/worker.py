@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 IDLE_SECONDS = 300  # tunable on the Settings page
 # Jobs that use neither the answer model nor the embedding model never compete with a user's request, so they do not wait for
 # quiet (and are not paused by a request); the rest wait for IDLE_SECONDS without a request.
-LIGHT = {"detect_changes", "drift_check", "retention", "retrain"}
+LIGHT = {"detect_changes", "drift_check", "retention", "retrain", "pipeline_batch_light"}
 # Busy all day means quiet never comes: a job that has waited this long runs anyway (background jobs: BACKGROUND_WAIT times as long).
 MAX_WAIT_SECONDS = 3600  # tunable on the Settings page
 BACKGROUND_WAIT = 12

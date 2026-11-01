@@ -167,4 +167,23 @@ def test_a_subscribed_server_reports_changes_and_each_queues_a_read_that_runs_at
             next(steps)
     except StopIteration as stop:
         batch_job = stop.value["job"]
-    assert batch_job and next(j for j in jobs_store.recent() if j["id"] == batch_job)["priority"] in (0, "high")   # its batch runs at once too
+    batch = next(j for j in jobs_store.recent() if j["id"] == batch_job)
+    assert batch["kind"] == "pipeline_batch_light"                          # only light actions: runs while the app is busy
+    from procintel.jobs import worker
+    assert "pipeline_batch_light" in worker.LIGHT
+
+
+def test_a_light_batch_hands_a_heavy_action_over_to_a_normal_batch(tmp_path, monkeypatch):
+    _setup(tmp_path, monkeypatch)
+    batch = store.new_batch()
+    store.log_derived(batch, [{"type": "Passages.changed", "key": "x"}])       # asks for indexing: heavy
+    out = None
+    steps = detect.batch_steps({"batch": batch, "light": True}, None, {})
+    try:
+        while True:
+            next(steps)
+    except StopIteration as stop:
+        out = stop.value
+    assert out["actions"] == [] and out["handedOver"]
+    queued = jobs_store.next_pending()
+    assert queued["kind"] == "pipeline_batch" and queued["params"]["batch"] == batch

@@ -20,6 +20,7 @@ const OTHER_LABELS: Record<string, string> = {
   prompt_evaluate: "Evaluate a prompt version",
   detect_changes: "Check sources for changes",
   pipeline_batch: "Process detected changes",
+  pipeline_batch_light: "Take in new documents (runs while the app is in use)",
 };
 const label = (kind: string) => JOB_LABELS[kind] ?? OTHER_LABELS[kind] ?? kind;
 
