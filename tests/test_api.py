@@ -158,3 +158,11 @@ def test_a_pages_automatic_recheck_does_not_postpone_background_jobs(client, mon
     assert touched == []
     client.get("/shares/nope")                                        # someone opening it
     assert touched == [1]
+
+
+def test_a_cited_passage_can_be_fetched_by_its_id(client):
+    from procintel.api.state import state
+    rec = state().retriever.records[0]
+    r = client.get(f"/passages/{rec['chunk_id']}")
+    assert r.status_code == 200 and r.json()["id"] == rec["chunk_id"] and r.json()["quote"] == rec["text"]
+    assert client.get("/passages/no-such-passage").status_code == 404

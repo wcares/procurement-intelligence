@@ -5,9 +5,9 @@ import json
 import time
 
 from fastapi import APIRouter, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from procintel.answering.answer import ask as run_ask, ask_events
+from procintel.answering.answer import ask as run_ask, ask_events, citation
 from procintel.api import security
 from procintel.api.schemas import AskRequest, AskResponse
 from procintel.api.state import state
@@ -47,3 +47,12 @@ def post_ask_stream(req: AskRequest, request: Request) -> StreamingResponse:
     # no-transform and X-Accel-Buffering: proxies (Cloudflare, nginx) must pass each event on at once, not collect them
     return StreamingResponse(events(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"})
+
+
+@router.get("/passages/{chunk_id}")
+def get_passage(chunk_id: str) -> dict:
+    """One passage by its id (a citation's id), with its report, section and link: what an answer cites, in full."""
+    hit = state().retriever.passage(chunk_id)
+    if hit is None:
+        return JSONResponse({"error": f"no passage {chunk_id}"}, status_code=404)
+    return citation(hit)

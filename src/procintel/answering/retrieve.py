@@ -161,6 +161,18 @@ class Retriever:
             ))
         return hits
 
+    def passage(self, chunk_id: str) -> Hit | None:
+        """One passage by its id (a citation's id), as a hit with no score; None when there is no such passage."""
+        i = self._index.get(chunk_id)
+        if i is None:
+            return None
+        rec = self.records[i]
+        return Hit(chunk_id=rec["chunk_id"], doc_id=rec["doc_id"], title=rec["title"], doc_type=rec["doc_type"],
+                   url=rec["pdf_url"], section=rec["section"], para=rec["para"], kind=rec["kind"], text=rec["text"],
+                   project_id=rec["project_ids"][0], project_name=rec["project_names"][0] or "",
+                   country_code=rec["country_codes"][0], score=0.0, via="id", tag=rec["tag"],
+                   tag_confidence=rec["tag_confidence"], problem=rec["problem"])
+
     def _bm25_ranking(self, query: str, mask: np.ndarray) -> list[int]:
         # shallow copy shares the index and corpus; only the mask and k differ per query
         r = copy.copy(self._bm25)

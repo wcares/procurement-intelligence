@@ -166,6 +166,13 @@ package  ──► statistics of comparable packages + gradient-boosted trees �
   last-modified time with the last read, and new or changed documents go through intake (`procintel.pipeline.mcp_source`).
   Only resources are read, never tools. `scripts/demo_mcp_server.py` is a small server for trying it: the files of a
   folder and the newest procurement plans of given projects, fetched live from the World Bank documents API.
+- **The engine as an MCP server:** `python -m procintel.mcp_server` lets an assistant (Claude Code, Claude Desktop,
+  any MCP client) call `assess_package`, `ask_evidence`, `get_passage` and `list_options`. It is a client of the
+  backend API, so sign-in and the guardrails apply: set `PROCINTEL_MCP_USER` and `PROCINTEL_MCP_PASSWORD` (a planner
+  account) and, if the backend is elsewhere, `PROCINTEL_MCP_API`. Every tool is read-only and answers keep their
+  citations (sentence `citations` are the numbers `n` of the citation list). For Claude Code:
+  `claude mcp add procintel --env PYTHONPATH=src --env PROCINTEL_MCP_USER=... --env PROCINTEL_MCP_PASSWORD=... -- .venv/bin/python -m procintel.mcp_server`
+  (run from the project folder); `--http PORT` serves it over Streamable HTTP instead.
 
 ## Evaluation (summary of [eval/report.md](eval/report.md))
 
