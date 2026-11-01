@@ -49,7 +49,7 @@ export default function ProjectMapView({ points, focus, onOpen }: { points: MapP
         const warn = s.projects.some((p) => p.warnings > 0);
         return (
           <CircleMarker key={s.key} center={[s.lat, s.lon]} radius={6 + Math.min(10, s.projects.length * 2)}
-            pathOptions={{ color: warn ? "#b45309" : "#3550c8", fillOpacity: 0.55, weight: 2 }}>
+            pathOptions={{ color: warn ? "#b27c00" : "#004370", fillOpacity: 0.55, weight: 2 }}>
             <Tooltip>{s.place}: {s.projects.length} project{s.projects.length > 1 ? "s" : ""}</Tooltip>
             <Popup>
               <div className="space-y-1 text-xs">

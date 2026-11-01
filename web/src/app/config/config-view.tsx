@@ -24,6 +24,7 @@ export function ConfigView() {
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [comparison, setComparison] = useState<CompareResponse | null>(null);
+  const [section, setSection] = useState("accounts");
 
   useEffect(() => {
     api.config().then((r) => setSettings(r.settings)).catch((e: Error) => setStatus(e.message));
@@ -73,99 +74,121 @@ export function ConfigView() {
     }
   }
 
-  if (!settings) return <p className="mx-auto max-w-3xl text-sm text-ink-muted">{status ?? "Loading settings…"}</p>;
+  if (!settings) return <p className="text-sm text-ink-muted">{status ?? "Loading settings…"}</p>;
 
-  const input = "w-full rounded-md border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-brand";
+  // Sections down the left, as in Vercel's settings: accounts first, then each group of backend settings.
+  const sections = [{ id: "accounts", label: "Accounts" }, ...groups.map(([g]) => ({ id: slug(g), label: g })),
+    ...(SHOW_ADVANCED ? [{ id: "advanced", label: "Advanced" }] : [])];
+  const current = sections.some((x) => x.id === section) ? section : sections[0].id;
+  const input = "w-full max-w-md rounded-md border bg-surface px-3 py-2 font-mono text-sm outline-none focus:border-brand-2";
+
+  async function saveOne(key: string) {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const r = await api.updateConfig({ values: { [key]: draft[key] }, save: true });
+      if ("errors" in r) setErrors(r.errors);
+      else {
+        setSettings(r.settings);
+        setDraft((d) => omit(d, key));
+        setErrors((d) => omit(d, key));
+        setStatus("Saved.");
+      }
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <Users />
-      {SHOW_ADVANCED && <Jobs />}
-      {SHOW_ADVANCED && <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Data pipeline</h2>
-        <p className="rounded-xl border border-line bg-surface p-4 text-sm">
-          Sources, change events and rules have their own pages: <Link className="underline" href="/pipeline">connectors</Link>,{" "}
-          <Link className="underline" href="/pipeline/events">event log</Link>, <Link className="underline" href="/pipeline/rules">rules</Link>.
-        </p>
-      </section>}
-      {SHOW_ADVANCED && <FeedbackReview />}
-      {SHOW_ADVANCED && <Prompts />}
-      {SHOW_ADVANCED && <Profiles
-        disabled={busy}
-        onApplied={(s) => (setSettings(s), setDraft({}), setErrors({}), setComparison(null))}
-        onStatus={setStatus}
-      />}
-      {groups.map(([group, items]) => (
-        <section key={group}>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">{group}</h2>
-          <div className="divide-y divide-line rounded-xl border border-line bg-surface">
-            {items.map((s) => {
-              const value = draft[s.key] ?? String(s.value);
-              const err = errors[s.key];
-              return (
-                <div key={s.key} className="grid gap-2 p-4 sm:grid-cols-[1fr_16rem] sm:items-start">
-                  <div>
-                    <label htmlFor={`cfg-${s.key}`} className="text-sm font-medium">
-                      {s.label}
-                    </label>
-                    {!s.editable && <span className="ml-2 rounded bg-subtle px-1.5 py-0.5 text-xs text-ink-muted">read-only</span>}
-                    <p className="mt-1 text-xs text-ink-muted">{s.note}</p>
-                    <p className="mt-1 text-xs text-ink-muted">
-                      At startup: <span className="font-mono">{show(s.default)}</span>
-                      {s.min !== null && s.max !== null && <> · range {s.min}–{s.max}</>}
-                    </p>
-                  </div>
-                  <div>
-                    <input
-                      id={`cfg-${s.key}`}
-                      className={`${input} ${err ? "border-risk-high" : "border-line"} disabled:opacity-60`}
-                      value={value}
-                      disabled={!s.editable || busy}
-                      inputMode={s.type === "int" || s.type === "float" ? "decimal" : undefined}
-                      placeholder="(not set)"
-                      onChange={(e) => setDraft((d) => ({ ...d, [s.key]: e.target.value }))}
-                    />
-                    {err && <p className="mt-1 text-xs text-risk-high">{err}</p>}
-                  </div>
-                </div>
-              );
-            })}
+    <div className="grid gap-10 md:grid-cols-[200px_minmax(0,1fr)]">
+      <nav className="md:sticky md:top-24 md:self-start" aria-label="Settings sections">
+        <ul className="flex gap-1 overflow-x-auto md:flex-col">
+          {sections.map((x) => (
+            <li key={x.id}>
+              <button type="button" onClick={() => setSection(x.id)} aria-current={current === x.id ? "page" : undefined}
+                className={`w-full whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${current === x.id ? "bg-subtle font-semibold text-foreground" : "text-ink-muted hover:text-foreground"}`}>
+                {x.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="min-w-0 space-y-6">
+        {status && <p className="text-sm text-ink-muted">{status}</p>}
+        {current === "accounts" && <Users />}
+        {current === "advanced" && (
+          <div className="space-y-8">
+            <Jobs />
+            <p className="text-sm">Sources, change events and rules have their own pages: <Link className="underline" href="/pipeline">connectors</Link>,{" "}
+              <Link className="underline" href="/pipeline/events">event log</Link>, <Link className="underline" href="/pipeline/rules">rules</Link>.</p>
+            <FeedbackReview />
+            <Prompts />
+            <Profiles disabled={busy} onApplied={(x) => (setSettings(x), setDraft({}), setErrors({}), setComparison(null))} onStatus={setStatus} />
           </div>
-        </section>
-      ))}
-      <div className="sticky bottom-4 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface p-3 shadow-sm">
-        <button
-          className="rounded-md bg-brand px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-          disabled={busy || changed.length === 0}
-          onClick={() => apply(false)}
-        >
-          Apply {changed.length > 0 && `(${changed.length})`}
-        </button>
-        <button
-          className="rounded-md border border-line px-4 py-1.5 text-sm disabled:opacity-50"
-          disabled={busy || changed.length === 0}
-          onClick={() => apply(true)}
-        >
-          Apply and save
-        </button>
-        <button
-          className="rounded-md border border-line px-4 py-1.5 text-sm disabled:opacity-50"
-          disabled={busy || changed.length === 0}
-          onClick={check}
-          title="Search quality over the evaluation questions, before and after the change; nothing is applied"
-        >
-          Check search quality
-        </button>
-        {changed.length > 0 && (
-          <button className="text-sm text-ink-muted hover:underline" disabled={busy} onClick={() => (setDraft({}), setErrors({}))}>
-            Discard
-          </button>
         )}
-        {status && <span className="text-sm text-ink-muted">{status}</span>}
-        {comparison && <Comparison c={comparison} />}
+        {groups.filter(([g]) => slug(g) === current).map(([group, items]) => {
+          const pending = items.filter((x) => changed.includes(x.key));
+          return (
+            <div key={group} className="space-y-6">
+              <h2 className="text-xl font-semibold">{group}</h2>
+              {items.map((x) => {
+                const value = draft[x.key] ?? String(x.value);
+                const err = errors[x.key];
+                const dirty = changed.includes(x.key);
+                return (
+                  <section key={x.key} className="overflow-hidden rounded-lg border border-line bg-surface">
+                    <div className="space-y-3 p-5">
+                      <div>
+                        <label htmlFor={`cfg-${x.key}`} className="font-semibold">{x.label}</label>
+                        <p className="mt-1 text-sm text-ink-muted">{x.note}</p>
+                      </div>
+                      <input id={`cfg-${x.key}`} className={`${input} ${err ? "border-risk-high" : "border-line"} disabled:opacity-60`}
+                        value={value} disabled={!x.editable || busy} placeholder="(not set)"
+                        inputMode={x.type === "int" || x.type === "float" ? "decimal" : undefined}
+                        onChange={(e) => setDraft((d) => ({ ...d, [x.key]: e.target.value }))} />
+                      {err && <p className="text-sm text-risk-high">{err}</p>}
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-subtle px-5 py-3 text-xs text-ink-muted">
+                      <span>
+                        {x.editable ? <>At startup: <span className="font-mono">{show(x.default)}</span></> : "Set in the environment; read-only here."}
+                        {x.min !== null && x.max !== null && <> · range {x.min}–{x.max}</>}
+                      </span>
+                      {x.editable && (
+                        <span className="flex gap-2">
+                          {dirty && <button type="button" className="rounded-md px-2 py-1 hover:text-foreground" onClick={() => setDraft((d) => omit(d, x.key))}>Cancel</button>}
+                          <button type="button" disabled={!dirty || busy} onClick={() => void saveOne(x.key)}
+                            className="rounded-md bg-brand px-3 py-1.5 text-xs font-medium transition-opacity disabled:opacity-40">Save</button>
+                        </span>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+              {pending.length > 0 && (
+                <section className="space-y-3 rounded-lg border border-line p-5">
+                  <div>
+                    <p className="font-semibold">Check before saving</p>
+                    <p className="mt-1 text-sm text-ink-muted">Measure search quality on the evaluation questions with the {pending.length} unsaved change{pending.length > 1 ? "s" : ""}, or try them until the next restart without saving.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" className="rounded-md border border-line px-3 py-1.5 text-sm disabled:opacity-50" disabled={busy} onClick={check}>Check search quality</button>
+                    <button type="button" className="rounded-md border border-line px-3 py-1.5 text-sm disabled:opacity-50" disabled={busy} onClick={() => apply(false)}>Try without saving</button>
+                  </div>
+                  {comparison && <Comparison c={comparison} />}
+                </section>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
+
+const omit = <T,>(o: Record<string, T>, k: string): Record<string, T> => Object.fromEntries(Object.entries(o).filter(([x]) => x !== k));
+const slug = (g: string) => g.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 const METRICS: [keyof RetrievalMetrics, string][] = [
   ["hybrid_p5", "Hybrid precision@5"],
@@ -232,7 +255,7 @@ function Profiles({
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Profiles</h2>
+      <h2 className="mb-3 text-lg font-semibold">Profiles</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-ink-muted">A profile stores every editable setting as it is now, so a tested setup can be restored in one step.</p>
         {profiles.length === 0 ? (

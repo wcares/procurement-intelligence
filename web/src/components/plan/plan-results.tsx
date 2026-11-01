@@ -83,7 +83,7 @@ export function PlanResults({ packages, plan, forecasts, projectStart, deadline,
 function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="rounded-xl border-t-2 border-t-risk-low bg-subtle p-3.5">
-      <p className="text-[11px] uppercase tracking-wider text-ink-muted">{label}</p>
+      <p className="text-xs text-ink-muted">{label}</p>
       <p className="mt-1 text-base font-semibold leading-snug">{value}</p>
       {note && <p className="text-xs text-ink-muted">{note}</p>}
     </div>

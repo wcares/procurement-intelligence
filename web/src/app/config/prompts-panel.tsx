@@ -51,7 +51,7 @@ export function Prompts() {
   if (!list) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Prompts</h2>
+      <h2 className="mb-3 text-lg font-semibold">Prompts</h2>
       <div className="space-y-2 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-ink-muted">
           What each model is told. An edit is saved as a new version; prompts used in answering are first compared with

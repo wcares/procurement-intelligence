@@ -29,8 +29,8 @@ export function Users() {
   if (user?.mode !== "local" || !list) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Users</h2>
-      <div className="space-y-3 rounded-xl border border-line bg-surface p-4 text-xs">
+      <h2 className="mb-4 text-xl font-semibold">Accounts</h2>
+      <div className="space-y-3 rounded-lg border border-line bg-surface p-5 text-xs">
         <p className="text-ink-muted">Planners use Assess and Ask; admins also see Settings. A change signs the person out.</p>
         <table className="w-full text-left">
           <thead className="text-ink-muted"><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>

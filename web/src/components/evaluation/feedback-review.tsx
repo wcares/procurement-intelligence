@@ -18,7 +18,7 @@ export function FeedbackReview() {
   if (!data) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Feedback to review</h2>
+      <h2 className="mb-3 text-lg font-semibold">Feedback to review</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-ink-muted">
           Built by the feedback review job. Refused and not-useful questions are candidates for the evaluation set; a

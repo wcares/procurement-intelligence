@@ -24,10 +24,10 @@ export function OngoingWork({ openProject }: { openProject?: string | null }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2 text-xs">
+      <div className="flex gap-5 border-b border-line text-sm">
         {(["ongoing", "watched"] as const).map((s) => (
           <button key={s} onClick={() => (setProjects(null), setScope(s))}
-            className={`rounded-full border px-2 py-0.5 ${scope === s ? "border-brand bg-brand-soft" : "border-line"}`}>
+            className={`-mb-px border-b-2 pb-2 ${scope === s ? "border-brand-2 font-semibold text-brand-strong" : "border-transparent text-ink-muted hover:text-foreground"}`}>
             {s === "ongoing" ? "all ongoing projects" : "projects on my watch-list"}
           </button>
         ))}
@@ -36,7 +36,7 @@ export function OngoingWork({ openProject }: { openProject?: string | null }) {
       {projects === null ? <p className="text-xs text-ink-muted">Loading…</p> : projects.length === 0 ? (
         <p className="text-xs text-ink-muted">{scope === "watched" ? "No project on your watch-list yet: add project ids below." : "No ongoing projects."}</p>
       ) : (
-        <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
+        <ul className="divide-y divide-line border-y border-line">
           {projects.map((p) => (
             <li key={p.projectId} className="px-3 py-2 text-sm">
               <button className="flex w-full flex-wrap items-baseline gap-x-3 text-left" onClick={() => setOpen(open === p.projectId ? null : p.projectId)}>

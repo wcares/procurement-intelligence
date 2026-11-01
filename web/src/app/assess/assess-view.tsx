@@ -95,7 +95,7 @@ export function AssessView() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(380px,460px)_1fr] print:block">
       <div className="self-start lg:sticky lg:top-0 print:hidden">
-      <form onSubmit={submit} className="grid gap-3 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-2">
+      <form onSubmit={submit} className="grid gap-3 rounded-lg border border-line bg-surface p-5 sm:grid-cols-2">
         <h2 className="font-semibold sm:col-span-2">Describe the package</h2>
         <Label text="Country" wide>
           <select className={field} value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} disabled={!opts}>

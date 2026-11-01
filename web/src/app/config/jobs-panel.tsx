@@ -64,7 +64,7 @@ export function Jobs() {
   if (!data) return null;
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Background jobs</h2>
+      <h2 className="mb-3 text-lg font-semibold">Background jobs</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-ink-muted">
           Jobs run only after {data.runAfterIdleSeconds} s without requests and pause when someone uses the app. Idle now:{" "}

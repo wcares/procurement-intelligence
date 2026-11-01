@@ -10,7 +10,7 @@ const RISK_STYLE: Record<RiskLevel, string> = {
 
 export function RiskBadge({ level }: { level: RiskLevel }) {
   return (
-    <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${RISK_STYLE[level]}`}>{level}</span>
+    <span className={`rounded px-2 py-0.5 text-xs font-medium capitalize ${RISK_STYLE[level]}`}>{level}</span>
   );
 }
 

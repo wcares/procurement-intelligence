@@ -70,7 +70,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   return (
     <section>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">{title}</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
         {action}
       </div>
       {children}
