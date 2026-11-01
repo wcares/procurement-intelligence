@@ -38,7 +38,7 @@ export function PackageView() {
           <ForecastSummary f={p.forecast} />
         </section>
       ) : (
-        <p className="text-sm text-ink-muted">{p.status === "stale" ? "No forecast for a stale package: its outcome is unknown." : "Not active: nothing to forecast."}</p>
+        <p className="text-sm text-ink-muted">{p.status === "stale" ? "No forecast for a stalled package: no award was recorded, so its outcome is unknown." : "Not active: nothing to forecast."}</p>
       )}
       {p.isr && (
         <section className="text-sm">

@@ -8,6 +8,14 @@ import { ProjectMap } from "./project-map";
 import { ProjectMediaPanel } from "./project-media";
 import { StatusBadge } from "./status-badge";
 
+/** Short, plain names of the forecast's warnings (the full sentence shows on hover). */
+const WARNING: Record<string, string> = {
+  slow: "already slower than most",
+  reissued: "notice re-issued",
+  after_closing: "may end after the project closes",
+  isr_downgrade: "latest status report downgraded",
+};
+
 /** Ongoing projects (the ones you follow, or all with active packages) and, opened, their packages with status and
  * forecast; warnings first. */
 export function OngoingWork({ openProject }: { openProject?: string | null }) {
@@ -43,7 +51,7 @@ export function OngoingWork({ openProject }: { openProject?: string | null }) {
                 <span className="font-medium">{p.name}</span>
                 <span className="text-xs text-ink-muted">{p.projectId} · {p.countryCode}{p.closingDate ? ` · closes ${p.closingDate.slice(0, 10)}` : ""}</span>
                 <span className="ml-auto text-xs">
-                  {p.packages.active} active ({p.bidding} in bidding) · {p.packages.finished} finished · {p.packages.stale} stale
+                  {p.packages.active} active ({p.bidding} in bidding) · {p.packages.finished} awarded · {p.packages.stale} stalled
                   {p.packagesWithWarnings ? <span className="ml-2 text-risk-medium">⚠ {p.packagesWithWarnings} with warnings</span> : null}
                 </span>
               </button>
@@ -57,10 +65,10 @@ export function OngoingWork({ openProject }: { openProject?: string | null }) {
                         <Link href={`/package?id=${encodeURIComponent(k.packageId)}`} className="underline">{k.description.slice(0, 80)}</Link>
                         <span className="text-ink-muted">{k.methodCode}{k.ageDays != null && k.phase === "bidding" ? ` · open ${k.ageDays} days` : ""}</span>
                         {k.forecast?.award && <span>award ~{k.forecast.award.date}</span>}
-                        {k.forecast?.warnings.map((w) => <span key={w.kind} className="text-risk-medium" title={w.text}>⚠ {w.kind.replace("_", " ")}</span>)}
+                        {k.forecast?.warnings.map((w) => <span key={w.kind} className="text-risk-medium" title={w.text}>⚠ {WARNING[w.kind] ?? w.kind.replace(/_/g, " ")}</span>)}
                       </li>
                     ))}
-                    <li className="text-ink-muted">{detail[p.projectId].packages.finished} finished packages not listed.</li>
+                    <li className="text-ink-muted">{detail[p.projectId].packages.finished} awarded packages not listed.</li>
                   </ul>
                 ) : <p className="mt-1 text-xs text-ink-muted">Loading packages…</p>
               )}

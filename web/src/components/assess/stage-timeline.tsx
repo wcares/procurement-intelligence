@@ -120,7 +120,7 @@ function estimateBars(timed: Stage[], prediction: Prediction | null | undefined,
         out.push({ type: "bar" as const, stack: "estimate", barWidth: 22, name: "This package (slow case)",
           itemStyle: { color: shades[i % shades.length], opacity: 0.35 },
           data: row(slow, { stage: `${s.label}: this package, slow case`, days: prediction.days_p90, n: null,
-            scope: prediction.p90_basis === "model" ? "model" : "historical 90th percentile" }) });
+            scope: prediction.p90_basis === "model" ? "model" : "slow case from past packages" }) });
       }
     } else if (i > bid) {
       out.push({ type: "bar" as const, stack: "estimate", barWidth: 22, name: `${s.label} (typical)`,

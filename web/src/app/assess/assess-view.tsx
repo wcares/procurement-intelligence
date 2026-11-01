@@ -248,7 +248,8 @@ export function AssessResults({ r }: { r: AssessResponse }) {
         </Card>
       </div>
       {r.governance.length > 0 && (
-        <Card title="Country governance (CPIA, 1 = low, 6 = high)">
+        <Card title="How well the country's public institutions work">
+          <p className="mb-3 text-xs text-ink-muted">The World Bank&apos;s own rating of the country (CPIA), from 1 (weak) to 6 (strong). Weak institutions often go with slower, riskier procurement.</p>
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {r.governance.map((g) => (
               <div key={g.indicator}>
@@ -262,7 +263,8 @@ export function AssessResults({ r }: { r: AssessResponse }) {
         </Card>
       )}
       {r.governance.length === 0 && (r.wgi?.length ?? 0) > 0 && (
-        <Card title="Country governance (WGI, 0 = world average, about −2.5 to +2.5)">
+        <Card title="How well the country's public institutions work">
+          <p className="mb-3 text-xs text-ink-muted">Worldwide Governance Indicators (this country has no World Bank CPIA rating). 0 is the world average: below 0 is weaker than average, above 0 stronger (from about −2.5 to +2.5).</p>
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {r.wgi!.map((g) => (
               <div key={g.indicator}>

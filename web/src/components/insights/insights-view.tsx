@@ -58,7 +58,7 @@ export function InsightsView() {
           ) : undefined}>
           {data ? <AlertsList alerts={data.alerts} onRead={(id) => api.markAlertsRead([id]).then(setData)} /> : <p className="text-sm text-ink-muted">Loading…</p>}
         </Panel>
-        <Panel title="Ongoing work" hint="Every package has a status (active, finished, replaced or stale) from what has been published so far; active ones are forecast from where they are now. Open a project for its packages, a package for its live timeline.">
+        <Panel title="Ongoing work" hint="Every package has a status from what has been published so far: active, awarded, re-tendered (a newer notice continues it) or stalled (no award long after similar tenders were awarded); active ones are forecast from where they are now. Open a project for its packages, a package for its live timeline.">
           <OngoingWork openProject={openProject} />
         </Panel>
       </div>

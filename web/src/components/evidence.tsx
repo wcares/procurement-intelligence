@@ -111,20 +111,20 @@ export function TimelineBar({ t }: { t: TimelineBenchmark }) {
     <div>
       <div className="flex items-baseline gap-2">
         <span className="text-4xl font-semibold tabular-nums">{Math.round(t.median)}</span>
-        <span className="text-ink-muted">days, median tender notice → award</span>
+        <span className="text-ink-muted">days from tender notice to contract award, for a typical package</span>
       </div>
-      <div className="relative mt-5 h-8" role="img" aria-label={`Middle half ${Math.round(t.p25)} to ${Math.round(t.p75)} days, median ${Math.round(t.median)}, 90th percentile ${Math.round(t.p90)}`}>
+      <div className="relative mt-5 h-8" role="img" aria-label={`Most packages ${Math.round(t.p25)} to ${Math.round(t.p75)} days, typical ${Math.round(t.median)}, 1 in 10 take longer than ${Math.round(t.p90)}`}>
         <div className="absolute top-3.5 h-1 w-full rounded bg-subtle" />
         <div className="absolute top-2 h-4 rounded bg-brand-soft" style={{ left: pct(t.p25), width: pct(t.p75 - t.p25) }} />
         <div className="absolute top-0 h-8 w-0.5 bg-brand" style={{ left: pct(t.median) }} />
         <div className="absolute top-1.5 h-5 w-0.5 bg-risk-high" style={{ left: pct(t.p90) }} />
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
-        <Stat label="Middle half" value={`${Math.round(t.p25)}–${Math.round(t.p75)} d`} />
-        <Stat label="Slowest 10% over" value={`${Math.round(t.p90)} d`} tone="text-risk-high" />
-        <Stat label="Based on" value={`${t.n} packages`} />
+        <Stat label="Half of all packages" value={`${Math.round(t.p25)}–${Math.round(t.p75)} days`} />
+        <Stat label="Slow case: 1 in 10 take longer than" value={`${Math.round(t.p90)} days`} tone="text-risk-high" />
+        <Stat label="Based on" value={`${t.n} past packages`} />
       </dl>
-      <p className="mt-2 text-xs text-ink-muted">Comparison set: {t.scope}.</p>
+      <p className="mt-2 text-xs text-ink-muted">Compared with: {t.scope}. The bar shows the half of packages in the middle, the typical one (dark line) and the slow case (red line).</p>
     </div>
   );
 }
