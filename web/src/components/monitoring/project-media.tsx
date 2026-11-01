@@ -66,7 +66,7 @@ export function ProjectMediaPanel({ projectId, packages }: { projectId: string; 
         <p className="text-xs text-ink-muted">None attached yet.</p>
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {items.map((m) => <MediaTile key={m.id} m={m} onRemove={() => api.removeMedia(m.id).then(load).catch(() => setError("only the uploader or an admin can remove it"))} />)}
+          {items.map((m) => <MediaTile key={m.id} m={m} onRemove={m.synthetic ? undefined : () => api.removeMedia(m.id).then(load).catch(() => setError("only the uploader or an admin can remove it"))} />)}
         </div>
       )}
       <form onSubmit={submit} className="flex flex-wrap items-end gap-2 text-xs">

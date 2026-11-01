@@ -287,7 +287,7 @@ function PlanLink({ r, text }: { r: Extract<Rich, { kind: "plan" }>; text: strin
         </span>
         <span className="shrink-0 text-xs font-medium text-brand">Open, edit or export →</span>
       </a>
-      <p className="text-[11px] text-ink-muted">The link shows the latest version of this plan until {new Date(r.expiresAt).toLocaleDateString("en-GB")}.</p>
+      <p className="text-[11px] text-ink-muted">The link shows the latest version of this plan until {new Date(r.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.</p>
     </div>
   );
 }
