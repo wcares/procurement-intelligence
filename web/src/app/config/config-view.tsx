@@ -6,6 +6,7 @@ import type { CompareResponse, ConfigProfile, ConfigSetting, RetrievalMetrics } 
 import { FeedbackReview } from "@/components/evaluation/feedback-review";
 import { Jobs } from "./jobs-panel";
 import { JobsList } from "./jobs-list";
+import { Info } from "lucide-react";
 import Link from "next/link";
 import { Prompts } from "./prompts-panel";
 import { Users } from "./users-panel";
@@ -26,6 +27,7 @@ export function ConfigView() {
   const [busy, setBusy] = useState(false);
   const [comparison, setComparison] = useState<CompareResponse | null>(null);
   const [section, setSection] = useState("accounts");
+  const [open, setOpen] = useState<Record<string, boolean>>({});   // settings whose technical detail is shown
 
   useEffect(() => {
     api.config().then((r) => setSettings(r.settings)).catch((e: Error) => setStatus(e.message));
@@ -78,7 +80,7 @@ export function ConfigView() {
   if (!settings) return <p className="text-sm text-ink-muted">{status ?? "Loading settings…"}</p>;
 
   // Sections down the left, as in Vercel's settings: accounts first, then each group of backend settings.
-  const sections = [{ id: "accounts", label: "Accounts" }, ...groups.map(([g]) => ({ id: slug(g), label: g })), { id: "jobs", label: "Background jobs" },
+  const sections = [{ id: "accounts", label: "Accounts" }, ...groups.map(([g]) => ({ id: slug(g), label: g })),
     ...(SHOW_ADVANCED ? [{ id: "advanced", label: "Advanced" }] : [])];
   const current = sections.some((x) => x.id === section) ? section : sections[0].id;
   const input = "w-full max-w-md rounded-md border bg-surface px-3 py-2 font-mono text-sm outline-none focus:border-brand-2";
@@ -119,7 +121,6 @@ export function ConfigView() {
       <div className="min-w-0 space-y-6">
         {status && <p className="text-sm text-ink-muted">{status}</p>}
         {current === "accounts" && <Users />}
-        {current === "jobs" && <JobsList />}
         {current === "advanced" && (
           <div className="space-y-8">
             <Jobs />
@@ -135,6 +136,7 @@ export function ConfigView() {
           return (
             <div key={group} className="space-y-6">
               <h2 className="text-xl font-semibold">{group}</h2>
+              {slug(group) === "background-work" && <JobsList />}
               {items.map((x) => {
                 const value = draft[x.key] ?? String(x.value);
                 const err = errors[x.key];
@@ -143,8 +145,18 @@ export function ConfigView() {
                   <section key={x.key} className="overflow-hidden rounded-lg border border-line bg-surface">
                     <div className="space-y-3 p-5">
                       <div>
-                        <label htmlFor={`cfg-${x.key}`} className="font-semibold">{x.label}</label>
+                        <div className="flex items-center gap-1.5">
+                          <label htmlFor={`cfg-${x.key}`} className="font-semibold">{x.label}</label>
+                          {x.detail && x.detail !== x.note && (
+                            <button type="button" aria-label={`Technical detail: ${x.label}`} aria-expanded={!!open[x.key]}
+                              onClick={() => setOpen((o) => ({ ...o, [x.key]: !o[x.key] }))}
+                              className={`rounded p-0.5 transition-colors hover:text-brand ${open[x.key] ? "text-brand" : "text-ink-muted"}`}>
+                              <Info size={15} aria-hidden />
+                            </button>
+                          )}
+                        </div>
                         <p className="mt-1 text-sm text-ink-muted">{x.note}</p>
+                        {open[x.key] && <p className="mt-2 border-l-2 border-line pl-3 font-mono text-xs text-ink-muted">{x.detail}</p>}
                       </div>
                       <input id={`cfg-${x.key}`} className={`${input} ${err ? "border-risk-high" : "border-line"} disabled:opacity-60`}
                         value={value} disabled={!x.editable || busy} placeholder="(not set)"

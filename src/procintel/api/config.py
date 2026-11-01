@@ -182,9 +182,16 @@ def _coerce(s: Setting, v: Any) -> Any:
 
 
 def listing() -> list[dict]:
-    return [{"key": s.key, "label": s.label, "group": s.group, "type": s.type, "value": s.get(),
-             "default": _DEFAULTS[s.key], "editable": s.set is not None, "note": s.note, "min": s.min, "max": s.max}
-            for s in _settings()]
+    """Every setting as the settings page shows it: the plain label, group and note (procintel.api.config_text), with the
+    technical description as `detail`."""
+    from procintel.api.config_text import PLAIN
+    out = []
+    for s in _settings():
+        label, group, note = PLAIN.get(s.key, (s.label, s.group, s.note))
+        out.append({"key": s.key, "label": label, "group": group, "type": s.type, "value": s.get(),
+                    "default": _DEFAULTS[s.key], "editable": s.set is not None, "note": note, "detail": s.note,
+                    "min": s.min, "max": s.max})
+    return out
 
 
 def update(values: dict[str, Any], save: bool = False) -> dict[str, str]:

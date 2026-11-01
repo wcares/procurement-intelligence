@@ -147,7 +147,10 @@ export interface ConfigSetting {
   /** value when the backend started */
   default: string | number;
   editable: boolean;
+  /** what it does, in plain words */
   note: string;
+  /** the technical description (shown behind the (i) button) */
+  detail?: string;
   min: number | null;
   max: number | null;
 }

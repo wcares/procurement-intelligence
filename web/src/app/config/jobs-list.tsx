@@ -18,7 +18,7 @@ export function JobsList() {
   }, []);
   return (
     <section>
-      <h2 className="text-xl font-semibold">Background jobs</h2>
+      <h3 className="font-semibold">Recent jobs</h3>
       <p className="mt-1 mb-4 text-sm text-ink-muted">
         Work the app does on its own: checking the World Bank sources, updating the data, measuring quality, retraining
         the forecast. A job waits until nobody is using the app, so it never slows anyone down. Updates every 10 seconds.
