@@ -102,6 +102,13 @@ function McpSection({ m }: { m: McpOverview }) {
           </span>
         ))}
       </p>
+      {m.servers.filter((s) => s.subscribe).map((s) => (
+        <p key={s.name} className={s.listen?.state === "reconnecting" ? "text-risk-high" : "text-ink-muted"}>
+          {s.name} live: {!s.listen ? "starting" : s.listen.state === "listening"
+            ? `listening since ${when(s.listen.since)}; ${s.listen.changes} change${s.listen.changes === 1 ? "" : "s"} reported${s.listen.lastChange ? `, last ${when(s.listen.lastChange)}` : ""} (each read at once)`
+            : `${s.listen.state}${s.listen.error ? `: ${s.listen.error}` : ""}`}
+        </p>
+      ))}
       <p className="text-ink-muted">Only resources are read, never tools. Completion reports from a server that is not trusted wait for an admin.</p>
       {m.documents.length > 0 && (
         <ul className="space-y-1">

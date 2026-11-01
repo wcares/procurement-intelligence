@@ -121,7 +121,48 @@ def test_the_connectors_page_shows_the_servers_and_the_documents_taken_in(tmp_pa
     (folder / "report.txt").write_text(ICR)
     _read_and_run()
     card = next(c for c in connectors.status() if c["name"] == "McpDocument")
-    assert card["mcp"]["servers"] == [{"name": "demo", "kind": "local", "where": "demo_mcp_server.py", "trusted": False}]
+    assert card["mcp"]["servers"] == [{"name": "demo", "kind": "local", "where": "demo_mcp_server.py", "trusted": False,
+                                       "subscribe": False, "listen": None}]
     assert card["mcp"]["documents"][0]["title"] == "report.txt" and card["mcp"]["documents"][0]["status"] == "awaiting_approval"
     assert card["cursor"].startswith("every resource of 1 server(s): demo (local)")
     assert "cannot push" in connector_config.validate("McpDocument", {"mode": "push"})
+
+
+def test_a_subscribed_server_reports_changes_and_each_queues_a_read_that_runs_at_once(tmp_path, monkeypatch):
+    import asyncio
+    from procintel.pipeline import mcp_listen
+    folder = _setup(tmp_path, monkeypatch)
+    (folder / "report.txt").write_text(ICR)
+    monkeypatch.setattr(mcp_listen, "DEBOUNCE", 0.1)
+    server = {"name": "demo", "command": [sys.executable, SERVER, "--folder", str(folder)], "subscribe": True}
+    changes = []
+
+    async def go():
+        stop = asyncio.Event()
+        task = asyncio.create_task(mcp_listen.follow(server, on_change=changes.append, stop=stop))
+        for _ in range(100):                                     # wait until it listens
+            if mcp_listen.state().get("demo", {}).get("state") == "listening":
+                break
+            await asyncio.sleep(0.1)
+        (folder / "report.txt").write_text(ICR + " changed")     # a change to a followed resource
+        for _ in range(100):
+            if changes:
+                break
+            await asyncio.sleep(0.1)
+        stop.set()
+        await asyncio.wait_for(task, 10)
+
+    asyncio.run(go())
+    assert changes and changes[0] == "demo"
+    assert mcp_listen.state()["demo"]["changes"] >= 1
+
+    job = mcp_listen.queue_read("demo")                         # what a change queues: a high-priority read
+    queued = jobs_store.next_pending()
+    assert queued["id"] == job and queued["priority"] == 0 and queued["params"]["batchPriority"] == "high"
+    steps = detect.detect_steps(queued["params"], None, {})
+    try:
+        while True:
+            next(steps)
+    except StopIteration as stop:
+        batch_job = stop.value["job"]
+    assert batch_job and next(j for j in jobs_store.recent() if j["id"] == batch_job)["priority"] in (0, "high")   # its batch runs at once too

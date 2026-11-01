@@ -608,7 +608,12 @@ export interface Connector {
 }
 
 export interface McpOverview {
-  servers: { name: string; kind: "local" | "remote"; where: string; trusted: boolean }[];
+  servers: {
+    name: string; kind: "local" | "remote"; where: string; trusted: boolean;
+    /** followed live (subscriptions): a change it reports is read at once */
+    subscribe: boolean;
+    listen: { state: "connecting" | "listening" | "reconnecting" | "not supported" | "stopped"; since: string; changes: number; lastChange: string | null; error: string | null } | null;
+  }[];
   documents: { server: string; uri: string; title: string; status: string; note: string | null; takenAt: string; uploadId: string | null }[];
   /** data/mcp_sources.json could not be used */
   error: string | null;

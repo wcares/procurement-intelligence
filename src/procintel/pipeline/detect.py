@@ -56,7 +56,8 @@ def detect_steps(params: dict, cursor: dict | None, ctx: dict) -> Iterator[dict]
                 cur["counts"][name] = len(events)
         cur["done"].append(name)
         yield cur
-    job = queue_batch(cur["batch"], "changes detected", ctx.get("jobs_db"))
+    # a read asked for by an MCP subscription (procintel.pipeline.mcp_listen) has its batch run at once too
+    job = queue_batch(cur["batch"], "changes detected", ctx.get("jobs_db"), priority=params.get("batchPriority"))
     return {"batch": cur["batch"], "events": cur["counts"], "job": job}
 
 

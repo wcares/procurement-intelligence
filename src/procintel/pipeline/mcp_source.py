@@ -12,6 +12,7 @@ The servers are listed in data/mcp_sources.json (edited by an admin; a server is
     url         a remote server (Streamable HTTP)
     headers     HTTP headers, each named by the environment variable that holds its value (never the value itself)
     uri_prefix  only resources whose URI starts with this
+    subscribe   true: also followed live (procintel.pipeline.mcp_listen): a change the server reports is read at once
     trusted     true: a completion report from this server joins the evidence at once; false (default): it waits for an
                 admin, as a planner's upload does (procintel.intake.process)
     enabled     false: skipped
@@ -225,6 +226,11 @@ def items(db_path: Path | None = None) -> list[dict]:
     return out
 
 
+def _listen_state() -> dict:
+    from procintel.pipeline import mcp_listen
+    return mcp_listen.state()
+
+
 def overview(db_path: Path | None = None, latest: int = 12) -> dict:
     """For the Connectors page: the configured servers (never a header value) and the latest documents taken in."""
     from urllib.parse import urlparse
@@ -235,7 +241,8 @@ def overview(db_path: Path | None = None, latest: int = 12) -> dict:
     listed = [{"name": s["name"], "kind": "local" if s.get("command") else "remote",
                "where": Path(s["command"][1]).name if s.get("command") and len(s["command"]) > 1
                else (s["command"][0] if s.get("command") else urlparse(s["url"]).netloc),
-               "trusted": bool(s.get("trusted"))} for s in conf]
+               "trusted": bool(s.get("trusted")), "subscribe": bool(s.get("subscribe")),
+               "listen": _listen_state().get(s["name"])} for s in conf]
     docs = [{"server": i["server"], "uri": i["uri"], "title": (i["item"] or {}).get("title") or i["uri"],
              "status": i["status"], "note": i["note"], "takenAt": i["taken_at"], "uploadId": i["upload_id"]}
             for i in items(db_path)[:latest]]

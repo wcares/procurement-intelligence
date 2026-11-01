@@ -37,6 +37,12 @@ def start() -> None:
         job_worker.start()
     elif MODE == "external":
         threading.Thread(target=_watch_data_version, name="procintel-data-version", daemon=True).start()
+    if MODE != "0":
+        from procintel.pipeline import mcp_listen
+        try:
+            mcp_listen.start()   # MCP servers marked subscribe: followed live (their changes queue reads)
+        except Exception as e:   # noqa: BLE001 - a bad MCP configuration must not stop the API
+            log.warning("MCP subscriptions not started: %s", e)
 
 
 def stop() -> None:

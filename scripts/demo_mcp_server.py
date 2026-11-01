@@ -6,6 +6,10 @@ Two kinds of document, either or both:
                        documents API (search.worldbank.org/api/v3/wds) when the server starts; their text is fetched
                        when a resource is read
 
+The folder is listed afresh on every request, and watched: when a file is added, changed or removed, the server tells
+every client listening (MCP subscriptions/listen) that the list or that resource changed, so a subscribed connector
+takes the change in at once instead of on its next scheduled read.
+
 It is a stand-in for a client's own system (an e-procurement platform, a document store) that offers its documents
 over MCP; the connector (procintel.pipeline.mcp_source) reads it like any other MCP server. Each resource carries its
 size and last-modified time, so the connector sees a change without reading every document.
@@ -15,19 +19,67 @@ size and last-modified time, so the connector sees a change without reading ever
 from __future__ import annotations
 
 import argparse
+import asyncio
 import mimetypes
 import sys
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.resources.resource_manager import ResourceManager
 from mcp.server.mcpserver.resources.types import FunctionResource
+from mcp.shared.subscriptions import ResourcesListChanged, ResourceUpdated
 from mcp_types import Annotations
 
 WDS = "https://search.worldbank.org/api/v3/wds"
 PLANS_PER_PROJECT = 2
 TIMEOUT = 30
+WATCH_SECONDS = 2
+
+
+class LiveResources(ResourceManager):
+    """The fixed resources (procurement plans) plus the folder as it is now: the SDK's manager keeps the list from
+    startup and has no removal, so the folder part is listed afresh each time."""
+
+    def __init__(self, fixed: list[FunctionResource], folder: Path | None):
+        super().__init__()
+        self.fixed, self.folder = fixed, folder
+
+    def _all(self) -> list[FunctionResource]:
+        return (folder_resources(self.folder) if self.folder else []) + self.fixed
+
+    def list_resources(self):
+        return self._all()
+
+    async def get_resource(self, uri, context):
+        for r in self._all():
+            if r.uri == str(uri):
+                return r
+        return await super().get_resource(uri, context)
+
+
+def snapshot(folder: Path) -> dict[str, tuple[float, int]]:
+    return {f"file:///{f.name}": (f.stat().st_mtime, f.stat().st_size)
+            for f in folder.iterdir() if f.is_file() and not f.name.startswith(".")}
+
+
+async def watch(server: MCPServer, folder: Path) -> None:
+    """Publish a change event for every file added, changed or removed (subscriptions/listen)."""
+    bus = server._subscriptions   # the server's event bus; MCPServer has no public publish outside a request
+    last = snapshot(folder)
+    while True:
+        await asyncio.sleep(WATCH_SECONDS)
+        now = snapshot(folder)
+        if set(now) != set(last):
+            await bus.publish(ResourcesListChanged())
+        for uri in set(now) & set(last):
+            if now[uri] != last[uri]:
+                await bus.publish(ResourceUpdated(uri))
+        for uri in set(now) ^ set(last):
+            await bus.publish(ResourceUpdated(uri))
+        last = now
 
 
 def folder_resources(folder: Path) -> list[FunctionResource]:
@@ -73,12 +125,21 @@ def _text(url: str) -> str:
 
 
 def build(folder: Path | None, projects: list[str]) -> MCPServer:
+    @asynccontextmanager
+    async def lifespan(server: MCPServer):
+        task = asyncio.create_task(watch(server, folder)) if folder else None
+        try:
+            yield {}
+        finally:
+            if task:
+                task.cancel()
+
     server = MCPServer("procintel-demo-source", instructions="Documents for the Procurement Intelligence demo: files "
-                       "from a folder and live World Bank procurement plans.")
-    resources = (folder_resources(folder) if folder else []) + plan_resources(projects)
-    for res in resources:
-        server.add_resource(res)
-    print(f"demo MCP server: {len(resources)} document(s)", file=sys.stderr)
+                       "from a folder and live World Bank procurement plans.", lifespan=lifespan)
+    plans = plan_resources(projects)
+    server._resource_manager = LiveResources(plans, folder)   # the folder listed live (see LiveResources)
+    n = len(plans) + (len(folder_resources(folder)) if folder else 0)
+    print(f"demo MCP server: {n} document(s){', watching ' + str(folder) if folder else ''}", file=sys.stderr)
     return server
 
 
@@ -86,10 +147,15 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--folder", type=Path, help="offer every file in this folder")
     ap.add_argument("--wb-projects", default="", help="comma-separated World Bank project ids: their newest procurement plans")
+    ap.add_argument("--http", type=int, metavar="PORT", help="serve over Streamable HTTP on 127.0.0.1:PORT/mcp instead of stdio")
     args = ap.parse_args()
     if args.folder:
         args.folder.mkdir(parents=True, exist_ok=True)
-    build(args.folder, [p.strip() for p in args.wb_projects.split(",") if p.strip()]).run("stdio")
+    server = build(args.folder, [p.strip() for p in args.wb_projects.split(",") if p.strip()])
+    if args.http:
+        server.run("streamable-http", host="127.0.0.1", port=args.http)
+    else:
+        server.run("stdio")
 
 
 if __name__ == "__main__":
