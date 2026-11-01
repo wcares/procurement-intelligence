@@ -785,6 +785,17 @@ export interface PlanChatResponse {
 export interface SavedConversation { id: string; title: string; updatedAt: string; messages: number }
 
 /** A photo or video attached to a project (or one of its packages) as evidence (GET /media). */
+/** When a source was last read without an error (GET /freshness). */
+export interface SourceFreshness {
+  entity: string;
+  label: string;
+  lastRead: string | null;
+  hoursAgo: number | null;
+  everyHours: number;
+  /** last good read older than twice the interval */
+  late: boolean;
+}
+
 export interface ProjectMedia {
   id: string;
   projectId: string;

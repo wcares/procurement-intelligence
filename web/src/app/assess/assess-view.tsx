@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { ExportButtons } from "@/components/export-buttons";
+import { Freshness } from "@/components/freshness";
 import type { AssessRequest, AssessResponse, FlagEvidenceItem, Options, ProcGroup } from "@/lib/api/types";
 import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
@@ -45,6 +47,19 @@ export function AssessView() {
   useEffect(() => {
     api.options().then(setOpts).catch((e: Error) => setError(e.message));
   }, []);
+
+  // opened from a plan's "why this number?": the package's country, group, method and description, assessed at once
+  const params = useSearchParams();
+  useEffect(() => {
+    const country = params.get("country"), group = params.get("group") as ProcGroup | null, method = params.get("method");
+    if (!country || !group || !method) return;
+    const req: AssessRequest = { countryCode: country, procGroup: group, methodCode: method, description: params.get("desc") ?? "" };
+    setForm(req); // eslint-disable-line react-hooks/set-state-in-effect -- the form follows the link it was opened with
+    if (params.get("run") === "1") {
+      setLoading(true);
+      api.assess(req).then((r) => (setResult(r), setAssessed(req))).catch((e: Error) => setError(e.message)).finally(() => setLoading(false));
+    }
+  }, [params]);
 
   const methods = useMemo(
     () => opts?.methods.filter((m) => m.procGroups.includes(form.procGroup)) ?? [],
@@ -185,6 +200,7 @@ export function AssessView() {
         {result && assessed && <GoalPanel request={assessed} />}
         {result && assessed && <ExportButtons kind="assessment" body={{ request: assessed, response: result }} />}
         {result && <Results r={result} />}
+        {result && <Freshness only={["Notice", "ContractAward", "Document", "SupervisionDoc", "Indicator"]} />}
         <InsightsPanel wide procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
       </section>
     </div>

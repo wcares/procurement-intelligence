@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AssessView } from "@/app/assess/assess-view";
 import { ExportButtons } from "@/components/export-buttons";
+import { Freshness } from "@/components/freshness";
 import { ManualPlan } from "./manual-plan";
 import { PlanChat } from "./plan-chat";
 import { PlanResults } from "./plan-results";
@@ -90,7 +91,8 @@ function PlanPanel({ s }: { s: PlanState }) {
           {s.ran && !s.running && (
             <>
               <ExportButtons kind="plan" body={{ packages: s.packages, forecasts: s.forecasts, plan: s.plan, projectStart: s.projectStart, deadline: s.deadline }} />
-              <PlanResults packages={s.packages} plan={s.plan} forecasts={s.forecasts} projectStart={s.projectStart} deadline={s.deadline} />
+              <PlanResults packages={s.packages} plan={s.plan} forecasts={s.forecasts} projectStart={s.projectStart} deadline={s.deadline} countryCode={s.countryCode} />
+              <Freshness only={["Notice", "ContractAward", "Project"]} />
               <p className="text-xs text-ink-muted">
                 Each forecast comes from comparable past packages; the project dates combine them in the order set. The system has not
                 learned how packages depend on each other, so treat the project dates as a planning aid. The Procurement Regulations

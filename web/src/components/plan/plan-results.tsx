@@ -7,7 +7,8 @@ const fmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", y
 const date = (iso: string) => fmt.format(new Date(`${iso}T00:00:00Z`));
 
 /** Project summary, deadline check and a bar per package: solid to the typical award date, pale to the slow case. */
-export function PlanResults({ packages, plan, forecasts, projectStart, deadline }: {
+export function PlanResults({ packages, plan, forecasts, projectStart, deadline, countryCode }: {
+  countryCode?: string;
   packages: PlanPackage[];
   plan: ProjectPlan;
   forecasts: Record<string, Forecast | undefined>;
@@ -56,6 +57,8 @@ export function PlanResults({ packages, plan, forecasts, projectStart, deadline 
                     {date(r.award50)} ({f?.p50} days){r.p90Missing ? "" : ` · slow ${date(r.award90)}`}
                   </span>
                 </div>
+                <PackageWhy f={f} p={packages.find((x) => x.id === r.id)} countryCode={countryCode}
+                  slack={deadline ? { typical: daysBetween(r.award50, deadline), slow: r.p90Missing ? null : daysBetween(r.award90, deadline) } : null} />
                 <div className="relative mt-1 h-3 rounded bg-background">
                   <div className="absolute inset-y-0 rounded bg-risk-medium/40" style={{ left: pct(r.start50), width: `calc(${pct(r.award90)} - ${pct(r.start50)})` }} />
                   <div className="absolute inset-y-0 rounded bg-gradient-to-r from-brand-strong to-teal-500" style={{ left: pct(r.start50), width: `calc(${pct(r.award50)} - ${pct(r.start50)})` }} />
@@ -83,6 +86,38 @@ function Tile({ label, value, note }: { label: string; value: string; note?: str
       <p className="text-[11px] uppercase tracking-wider text-ink-muted">{label}</p>
       <p className="mt-1 text-base font-semibold leading-snug">{value}</p>
       {note && <p className="text-xs text-ink-muted">{note}</p>}
+    </div>
+  );
+}
+
+const days = (n: number) => `${Math.abs(n)} day${Math.abs(n) === 1 ? "" : "s"}`;
+
+/** Under a package's bar: the slack to the deadline, and "why this number" (where the forecast comes from, with a link
+ * to the comparable packages and quoted lessons behind it). */
+function PackageWhy({ f, p, countryCode, slack }: { f?: Forecast; p?: PlanPackage; countryCode?: string; slack: { typical: number; slow: number | null } | null }) {
+  const assess = p && countryCode
+    ? `/plan?${new URLSearchParams({ tab: "assess", country: countryCode, group: p.procGroup, method: p.methodCode, ...(p.description || p.name ? { desc: p.description || p.name } : {}), run: "1" })}`
+    : null;
+  return (
+    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-3 text-[11px] text-ink-muted">
+      {slack && (
+        <span className={slack.typical < 0 ? "text-risk-high" : slack.slow != null && slack.slow < 0 ? "text-risk-medium" : undefined}>
+          {slack.typical < 0 ? `${days(slack.typical)} late` : `${days(slack.typical)} to spare`}
+          {slack.slow != null && (slack.slow < 0 ? `, slow case ${days(slack.slow)} late` : `, slow case ${days(slack.slow)} to spare`)}
+        </span>
+      )}
+      {f && (
+        <details className="inline">
+          <summary className="cursor-pointer underline">why this number?</summary>
+          <span className="block">
+            {f.basis === "model" ? "A model trained on past World Bank packages" : "The median of comparable past packages"}
+            {f.n ? ` (${f.n} packages${f.scope ? `, ${f.scope}` : ""})` : ""}: {f.p50} days typical{f.p90 ? `, ${f.p90} in the slow case (1 in 10)` : ""}
+            {f.pLong != null ? `; ${Math.round(f.pLong * 100)}% chance of more than 180 days` : ""}.
+            {f.risks?.length ? ` Risks: ${f.risks.join("; ")}.` : ""}
+            {assess && <> <a href={assess} className="underline">See the comparable packages and lessons</a></>}
+          </span>
+        </details>
+      )}
     </div>
   );
 }

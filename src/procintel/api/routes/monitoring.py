@@ -36,6 +36,13 @@ def get_projects(request: Request, scope: str = "ongoing") -> dict:
     return {"projects": views.projects(only), "scope": scope}
 
 
+@router.get("/freshness")
+def get_freshness() -> dict:
+    """When each source was last read without an error, how often it is read, and whether it is late."""
+    from procintel.pipeline import freshness
+    return {"sources": freshness.sources()}
+
+
 @router.get("/monitoring/map")
 def get_map(request: Request, scope: str = "ongoing") -> dict:
     """The projects of get_projects with their places for the map (country level today: see procintel.monitoring.places)."""
