@@ -12,6 +12,7 @@ Paths other than the three known databases (tests, scratch copies) always open a
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 
 import duckdb
@@ -34,8 +35,28 @@ def connect(path: Path | str | None = None, read_only: bool = False) -> duckdb.D
     p = Path(path) if path is not None else paths.DB_PATH
     schema = SCHEMAS.get(p)
     if schema is None or backend() == "duckdb":
-        return duckdb.connect(str(p), read_only=read_only)
+        return _duckdb(p, read_only)
     return _postgres(schema, read_only)
+
+
+CLASH = "different configuration"   # DuckDB: one process opens a file either read-only or read-write at a time
+
+
+def _duckdb(p: Path, read_only: bool, tries: int = 40) -> duckdb.DuckDBPyConnection:
+    """A read-only connection while this process holds the file for writing (a background job) is refused; it then
+    reads through a read-write connection (seen 2026-11-01: the Quality page failed while a job ran). A writer that
+    meets a read-only reader in this process waits for it to close (readers are short), up to about 20 s."""
+    for attempt in range(tries):
+        try:
+            return duckdb.connect(str(p), read_only=read_only)
+        except duckdb.ConnectionException as e:
+            if CLASH not in str(e):
+                raise
+            if read_only:
+                read_only = False
+                continue
+            time.sleep(min(0.05 * (attempt + 1), 1.0))
+    return duckdb.connect(str(p), read_only=read_only)
 
 
 def _postgres(schema: str, read_only: bool) -> duckdb.DuckDBPyConnection:
