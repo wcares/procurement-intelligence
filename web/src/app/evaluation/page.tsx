@@ -4,10 +4,10 @@ import { EvaluationView } from "@/components/evaluation/evaluation-view";
 export default function EvaluationPage() {
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-semibold tracking-tight">Evaluation</h1>
-      <p className="mt-2 mb-6 text-ink-muted">
-        How good search, answers and predictions are, how that changed after each refresh, retrain or promotion, and
-        alternatives measured against what is live.
+      <h1 className="text-3xl font-semibold text-brand-strong">Quality</h1>
+      <p className="mt-2 mb-8 max-w-prose text-ink-muted">
+        How well the system works, measured on a fixed set of 80 planner questions with judged answers and on the award times
+        of past packages. The numbers update after each refresh, retrain or change.
       </p>
       <RoleOnly role="reviewer">
         <EvaluationView />

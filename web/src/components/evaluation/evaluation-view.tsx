@@ -10,6 +10,7 @@ import { FeedbackReview } from "./feedback-review";
 import { Labelling } from "./labelling";
 import { ModelsView } from "./models-view";
 import { QualityChart } from "./quality-chart";
+import { QualitySummary } from "./quality-summary";
 import { RunsTable } from "./runs-table";
 
 // Hidden 2026-10-28, not removed: the queue for labelling evaluation data is a tool for the people who maintain the
@@ -40,28 +41,35 @@ export function EvaluationView() {
   if (!data) return <p className="text-sm text-ink-muted">Loading…</p>;
   return (
     <div className="space-y-10">
-      <Section title="Quality over time" action={admin &&
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <Button variant="outline" size="xs" className="border-line" onClick={() => run(false)}>Run search-quality check</Button>
-          <Button variant="outline" size="xs" className="border-line" onClick={() => run(true)}>Run full evaluation</Button>
+      <QualitySummary data={data} />
+      {admin && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <Button variant="outline" size="sm" className="border-line" onClick={() => run(false)}>Measure search again</Button>
+          <Button variant="outline" size="sm" className="border-line" onClick={() => run(true)}>Measure everything again (about 10 minutes)</Button>
           {note && <span className="text-ink-muted">{note}</span>}
         </div>
-      }>
-        <p className="mb-2 text-xs text-ink-muted">
-          Each run scores the evaluation questions (eval/questions.jsonl): search against judged passages, answers for
-          support by their cited passages, and trap questions that must be refused. Dashed lines: a change made between
-          runs (hover a run to see which).
-        </p>
-        <QualityChart runs={data.quality} />
-        <details className="mt-3">
-          <summary className="cursor-pointer text-xs text-ink-muted">Every run as a table ({data.quality.length})</summary>
-          <div className="mt-2"><RunsTable runs={data.quality} /></div>
-        </details>
-      </Section>
-      <Section title="Comparisons"><ComparisonsView data={data.comparisons} onChanged={load} /></Section>
-      <Section title="Prediction model"><ModelsView data={data.models} /></Section>
-      {SHOW_LABELLING && <Section title="Labelling queue"><Labelling /></Section>}
-      <FeedbackReview />
+      )}
+      <details className="border-t border-line pt-6">
+        <summary className="cursor-pointer text-sm text-ink-muted">Details for engineers: every run, experiments, model retrains, feedback to review</summary>
+        <div className="mt-6 space-y-10">
+          <Section title="Quality over time">
+            <p className="mb-2 text-xs text-ink-muted">
+              Each run scores the evaluation questions (eval/questions.jsonl): search against judged passages, answers for
+              support by their cited passages, and trap questions that must be refused. Dashed lines: a change made between
+              runs (hover a run to see which).
+            </p>
+            <QualityChart runs={data.quality} />
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs text-ink-muted">Every run as a table ({data.quality.length})</summary>
+              <div className="mt-2"><RunsTable runs={data.quality} /></div>
+            </details>
+          </Section>
+          <Section title="Comparisons"><ComparisonsView data={data.comparisons} onChanged={load} /></Section>
+          <Section title="Prediction model"><ModelsView data={data.models} /></Section>
+          {SHOW_LABELLING && <Section title="Labelling queue"><Labelling /></Section>}
+          <FeedbackReview />
+        </div>
+      </details>
     </div>
   );
 }
