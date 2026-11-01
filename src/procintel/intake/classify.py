@@ -16,6 +16,7 @@ TYPES = {
     "procurement_notice": "a procurement notice: invitation for bids, request for expressions of interest, award notice",
     "contract": "a contract or contract agreement between a purchaser and a supplier or contractor",
     "amendment": "a contract amendment, variation order or project restructuring paper",
+    "procurement_plan": "a project procurement plan: the packages to be procured, their methods and dates",
     "other": "something else",
 }
 QUESTION = "What kind of World Bank project document is this? " + "; ".join(f"{k}: {v}" for k, v in TYPES.items())
@@ -28,6 +29,9 @@ KEYWORDS = [            # (type, title phrase in the opening); the earliest matc
     ("procurement_notice", r"invitation for bids|request for (?:bids|proposals|expressions? of interest)|"
                            r"specific procurement notice|contract award notice"),
     ("contract", r"\bcontract agreement\b|this contract is made|form of contract"),
+    # a line that starts with the words, as plans exported from STEP open ("PROCUREMENT PLAN (Textual Part)"): reports
+    # mention their procurement plan in passing (0 of 379 in the corpus had such a line in the opening, 2026-11-01)
+    ("procurement_plan", r"(?m)^\s*procurement plan\b"),
 ]
 
 

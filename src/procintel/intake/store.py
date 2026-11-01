@@ -1,7 +1,7 @@
 """Uploaded files and how far each got: stored by key under "uploads/" (procintel.core.blob: the data folder or object
 storage), recorded in the pipeline store (table upload),
 with every stage it passed and what it found. The same content twice (same SHA-256) is recorded as a duplicate of the
-first and not processed again."""
+first and not processed again, unless the first was removed."""
 from __future__ import annotations
 
 import hashlib
@@ -44,7 +44,8 @@ def save(filename: str, content: bytes, fmt: str, uploaded_by: str | None, db_pa
     digest = hashlib.sha256(content).hexdigest()
     con = connect(db_path)
     try:
-        first = con.execute("SELECT upload_id FROM upload WHERE sha256 = ? AND status <> 'duplicate' "
+        # a removed upload no longer holds the content: the same file again is processed afresh
+        first = con.execute("SELECT upload_id FROM upload WHERE sha256 = ? AND status NOT IN ('duplicate', 'removed') "
                             "ORDER BY uploaded_at LIMIT 1", [digest]).fetchone()
         uid = uuid.uuid4().hex[:12]
         key = f"{UPLOAD_PREFIX}/{uid}.{fmt}"      # procintel.core.blob: data folder or object storage

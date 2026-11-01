@@ -271,3 +271,18 @@ def test_an_uploaded_pdfs_tables_are_read_and_removed_with_the_upload(tmp_path, 
     con = duckdb.connect(str(tmp_path / "main.duckdb"))
     assert con.execute("SELECT count(*) FROM doc_table WHERE doc_id = ?", [doc_id]).fetchone()[0] == 0
     con.close()
+
+
+def test_a_procurement_plan_is_recognised_by_its_opening_line_not_by_a_mention():
+    plan = "               PROCUREMENT PLAN (Textual Part)\r\nProject information: KENYA (P163035)\r\n" + "Packages and methods. " * 40
+    assert classify.by_keywords(plan) == "procurement_plan"
+    report = ICR + "\nThe procurement plan was updated twice."                   # a mention, not a title
+    assert classify.by_keywords(report) == "completion_report"
+
+
+def test_a_file_sent_again_after_its_upload_was_removed_is_processed_again(tmp_path, monkeypatch):
+    _setup(tmp_path, monkeypatch)
+    first = process.run(store.save("report.txt", ICR.encode(), "txt", "u1")["upload_id"])
+    process.remove(first["upload_id"])
+    again = store.save("report.txt", ICR.encode(), "txt", "u1")
+    assert again["status"] == "received" and process.run(again["upload_id"])["status"] == "added"
