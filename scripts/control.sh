@@ -73,7 +73,7 @@ wait_state() {   # service, up|down, seconds
   echo "   ${R}still not $2 after $3 s${N}; check its log"; return 1
 }
 confirm() { local a; read -r -p "   $1 [y/N] " a; [ "$a" = y ] || [ "$a" = Y ]; }
-watchdog_note() { pgrep -f "demo-watchdog.sh" > /dev/null && echo "   ${Y}note:${N} the watchdog is running and will start the backend and models 8080-8082 again within a minute"; }
+watchdog_note() { pgrep -f "demo-watchdog.sh" > /dev/null && echo "   ${Y}note:${N} the watchdog is running and will start the backend and models 8080-8082 again within a minute"; return 0; }
 
 start_svc() {
   case "$1" in
@@ -103,7 +103,7 @@ stop_svc() {
     backend|web|m80*)
       pid=$(pid_on "$(port "$1")")
       [ -n "$pid" ] || { echo "   not running"; return; }
-      kill "$pid"; wait_state "$1" down 20; [ "$1" = web ] || watchdog_note;;
+      kill "$pid"; wait_state "$1" down 20 || return 1; [ "$1" = web ] || watchdog_note; return 0;;
     tunnel)
       echo "   the public site stops working until a new tunnel is started (start = new address + redeploy)"
       confirm "Stop the tunnel?" && { pkill -f "cloudflared tunnel"; wait_state tunnel down 10; };;
