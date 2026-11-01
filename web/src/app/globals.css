@@ -2,7 +2,7 @@
 
 /* Colours follow the World Bank's own web design system ("The Loop", as worldbank.org's stylesheet defines it, read
    2026-11-01): navy and blue for text and actions, its neutral greys, and its red / yellow / green states for risk.
-   Light by default; dark when the system asks for it or data-theme="dark". No gradients, glows or coloured shadows. */
+   Light by default, as the World Bank's sites are; dark only when chosen in the user menu (data-theme="dark"). No gradients, glows or coloured shadows. */
 :root {
   color-scheme: light;
   --background: #ffffff;
@@ -49,34 +49,6 @@
   --radius: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --background: #0c0f12;
-    --foreground: #e7edf3;
-    --surface: #12171c;
-    --subtle: #181f25;
-    --line: #252e37;
-    --ink-muted: #8a9db1;
-    --brand: #169af3;
-    --brand-strong: #7fd8ff;
-    --brand-2: #47c4eb;
-    --brand-soft: #053657;
-    --on-brand: #ffffff;
-    --risk-high: #ec747a;
-    --risk-high-soft: #3a1416;
-    --risk-medium: #fed881;
-    --risk-medium-soft: #3b2c08;
-    --risk-low: #59c090;
-    --risk-low-soft: #10291d;
-    --series-1: #169af3;
-    --series-2: #f17f6a;
-    --series-3: #59c090;
-    --series-4: #fed881;
-    --series-5: #7fd8ff;
-    --series-6: #8a9db1;
-  }
-}
 :root[data-theme="dark"] {
   color-scheme: dark;
   --background: #0c0f12;

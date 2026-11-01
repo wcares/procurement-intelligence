@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "@/lib/api/client";
 import type { Role } from "@/lib/api/types";
-import { ChartNoAxesGantt, ChevronDown, LogOut } from "lucide-react";
+import { ChartNoAxesGantt, ChevronDown, LogOut, Moon, Sun } from "lucide-react";
 import { useAuth } from "./auth";
 
 // Planner pages are for planners (and reviewers, who also read Evaluation); an admin sees only the admin pages.
@@ -35,6 +35,18 @@ export function HeaderBar() {
     document.addEventListener("keydown", esc);
     return () => { document.removeEventListener("mousedown", away); document.removeEventListener("keydown", esc); };
   }, [open]);
+  const [dark, setDark] = useState(false);
+  useEffect(() => {   // the theme chosen before, in this browser
+    let saved: string | null = null;
+    try { saved = localStorage.getItem("procintel.theme"); } catch { /* storage blocked */ }
+    if (saved === "dark") { document.documentElement.dataset.theme = "dark"; setDark(true); } // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
+  function toggleTheme() {
+    const next = !dark;
+    document.documentElement.dataset.theme = next ? "dark" : "light";
+    try { localStorage.setItem("procintel.theme", next ? "dark" : "light"); } catch { /* storage blocked */ }
+    setDark(next);
+  }
   async function signOut() {
     await api.logout().catch(() => null);
     setOpen(false);
@@ -74,6 +86,9 @@ export function HeaderBar() {
             {open && (
               <div role="menu" className="absolute right-0 z-30 mt-1 w-56 rounded-md border border-line bg-surface p-1 shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
                 <div className="px-3 py-2 text-xs text-ink-muted">Signed in as <span className="font-medium text-foreground">{user.username}</span> · <span className="capitalize">{user.role}</span></div>
+                <button role="menuitem" onClick={toggleTheme} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors hover:bg-subtle">
+                  {dark ? <Sun size={14} aria-hidden /> : <Moon size={14} aria-hidden />} {dark ? "Light theme" : "Dark theme"}
+                </button>
                 {user.mode === "local" ? (
                   <button role="menuitem" onClick={signOut} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors hover:bg-subtle">
                     <LogOut size={14} aria-hidden /> Sign out
