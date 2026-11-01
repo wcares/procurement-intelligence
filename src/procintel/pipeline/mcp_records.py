@@ -17,6 +17,7 @@ Genie). Entity type McpRecord.
                 award dates of their packages are filled from them); rows (the default): kept for reference only
     fields      our column <- the tool's column; ContractAward needs at least wb_contract_number and supplier_id
     key         for "rows": the tool's column, or list of columns, that identifies a row
+    title       for "rows": the columns that name a row on the Connectors page (default: its first non-date columns)
 
 Only tools named here are called. A tool the server marks as destructive, or as not read-only, is refused. Each
 call's rows are the complete set for that tool, so a row that disappears is a removal; a server or tool that fails
@@ -208,9 +209,11 @@ def _award_columns() -> list[str]:
 def overview(db_path: Path | None = None, latest: int = 10) -> dict:
     """For the Connectors page: the tools called and the latest records."""
     try:
-        tools, error = [{"server": s["name"], "tool": t["name"], "as": t.get("as", "rows")} for s, t in tool_sources()], None
+        conf = tool_sources()
+        tools, error = [{"server": s["name"], "tool": t["name"], "as": t.get("as", "rows")} for s, t in conf], None
     except ValueError as e:
-        tools, error = [], str(e)
+        conf, tools, error = [], [], str(e)
+    titles = {(s["name"], t["name"]): t.get("title") for s, t in conf}
     con = _connect(db_path)
     try:
         counts = {(s, t): n for s, t, n in con.execute("SELECT server, tool, count(*) FROM mcp_record GROUP BY ALL").fetchall()}
@@ -221,11 +224,12 @@ def overview(db_path: Path | None = None, latest: int = 10) -> dict:
     for t in tools:
         t["records"] = counts.get((t["server"], t["tool"]), 0)
 
-    def title(kind, rec):
+    def title(server, tool, kind, rec):
         if kind == "ContractAward":
             return f"{rec.get('contract_ref') or rec.get('wb_contract_number')} · {rec.get('supplier') or ''}".strip(" ·")
-        return ", ".join(f"{k}: {v}" for k, v in list(rec.items())[:3])
-    records = [{"server": s, "tool": t, "kind": k, "title": title(k, json.loads(r)), "takenAt": at.isoformat() + "Z"}
+        cols = titles.get((server, tool)) or [c for c in rec if "date" not in c.lower()][:3]
+        return " · ".join(str(rec.get(c)) for c in cols if rec.get(c) not in (None, ""))
+    records = [{"server": s, "tool": t, "kind": k, "title": title(s, t, k, json.loads(r)), "takenAt": at.isoformat() + "Z"}
                for s, t, k, r, at in last]
     return {"tools": tools, "records": records, "error": error}
 
