@@ -11,6 +11,7 @@ The servers are listed in data/mcp_sources.json (edited by an admin; a server is
     command     a local server started for each read (stdio), as [program, arg, ...], run from the project folder
     url         a remote server (Streamable HTTP)
     headers     HTTP headers, each named by the environment variable that holds its value (never the value itself)
+    pass_env    for a local server: environment variables to pass to it by name (a token it needs), never their values
     bearer_env  the environment variable holding a token sent as "Authorization: Bearer <token>" (Databricks)
     tools       read-only tools whose rows become records (procintel.pipeline.mcp_records); a server may have only these
     uri_prefix  only resources whose URI starts with this
@@ -94,7 +95,9 @@ def _client(server: dict):
     from mcp import Client, StdioServerParameters
     if server.get("command"):
         cmd = list(server["command"])
-        return Client(StdioServerParameters(command=cmd[0], args=cmd[1:], cwd=str(paths.ROOT)),
+        # a local server gets a minimal environment (the SDK's default); variables it needs are passed by name
+        env = {v: os.environ[v] for v in server.get("pass_env") or [] if v in os.environ}
+        return Client(StdioServerParameters(command=cmd[0], args=cmd[1:], cwd=str(paths.ROOT), env=env or None),
                       read_timeout_seconds=TIMEOUT)
     import httpx2
     from mcp.client.streamable_http import streamable_http_client

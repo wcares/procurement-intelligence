@@ -173,8 +173,10 @@ package  ──► statistics of comparable packages + gradient-boosted trees �
   Catalog function is served at `https://<workspace-host>/api/2.0/mcp/functions/<catalog>/<schema>/<function>`; put
   that in `url`, the token in an environment variable named by `bearer_env`, and the tool name that
   `python -m procintel.pipeline.mcp_records tools <server>` lists. A tool marked destructive or not read-only is
-  refused. Not yet tried against a Databricks workspace; the demo server's `--contracts` tool returns live Finances
-  One awards to show the path.
+  refused. A Free Edition workspace cannot switch the managed servers on (tried 2026-11-01: "Databricks managed MCP
+  servers are not enabled"); `scripts/databricks_mcp_server.py` is a bridge that offers a schema's table functions as
+  the same read-only tools (named `<catalog>__<schema>__<function>`), run on a SQL warehouse with the arguments bound
+  as parameters. Run it as a local server with `"pass_env": ["PROCINTEL_DATABRICKS"]` so it gets the token.
 - **The engine as an MCP server:** `python -m procintel.mcp_server` lets an assistant (Claude Code, Claude Desktop,
   any MCP client) call `assess_package`, `ask_evidence`, `get_passage` and `list_options`. It is a client of the
   backend API, so sign-in and the guardrails apply: set `PROCINTEL_MCP_USER` and `PROCINTEL_MCP_PASSWORD` (a planner
