@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import type { CompareResponse, ConfigProfile, ConfigSetting, RetrievalMetrics } from "@/lib/api/types";
 import { FeedbackReview } from "@/components/evaluation/feedback-review";
 import { Jobs } from "./jobs-panel";
+import { JobsList } from "./jobs-list";
 import Link from "next/link";
 import { Prompts } from "./prompts-panel";
 import { Users } from "./users-panel";
@@ -77,7 +78,7 @@ export function ConfigView() {
   if (!settings) return <p className="text-sm text-ink-muted">{status ?? "Loading settings…"}</p>;
 
   // Sections down the left, as in Vercel's settings: accounts first, then each group of backend settings.
-  const sections = [{ id: "accounts", label: "Accounts" }, ...groups.map(([g]) => ({ id: slug(g), label: g })),
+  const sections = [{ id: "accounts", label: "Accounts" }, ...groups.map(([g]) => ({ id: slug(g), label: g })), { id: "jobs", label: "Background jobs" },
     ...(SHOW_ADVANCED ? [{ id: "advanced", label: "Advanced" }] : [])];
   const current = sections.some((x) => x.id === section) ? section : sections[0].id;
   const input = "w-full max-w-md rounded-md border bg-surface px-3 py-2 font-mono text-sm outline-none focus:border-brand-2";
@@ -118,6 +119,7 @@ export function ConfigView() {
       <div className="min-w-0 space-y-6">
         {status && <p className="text-sm text-ink-muted">{status}</p>}
         {current === "accounts" && <Users />}
+        {current === "jobs" && <JobsList />}
         {current === "advanced" && (
           <div className="space-y-8">
             <Jobs />
