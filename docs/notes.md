@@ -338,7 +338,7 @@ termination 412; land acquisition or resettlement 73.
 **Saluki's check:** 3,572 passages asked; 2,270 no problem, 1,301 problem (funding delays 420, weak specifications 384,
 contractor performance 345, external shock 309, land acquisition 60, another kind 45, re-tendering 38; one with no kind).
 
-**Tables in a passage.** The text export flattens a table's columns, so we do not rebuild tables. The chunker labels a block
+**Tables in a passage.** (Superseded on 2026-10-31: tables are now read from the PDF and searched, see note 8.) The text export flattens a table's columns, so we do not rebuild tables. The chunker labels a block
 `table` if most of its lines have wide column gaps, or if `is_flat_table` finds it mostly numbers (>= 30% of tokens; >= 20%
 with no sentence boundary; or a "Table 4." caption with >= 10%). Tables of words stay `text` unless the column-gap layout
 test catches them (not counted). Retrieval returns only `kind = text` by default (`retrieve.py`), and tagging, problem
@@ -346,6 +346,36 @@ tagging, evidence extraction and procurement ratings read only `text`. So a numb
 evidence, and a question answered only in a table gets the "no direct answer" fallback. Structured figures come from the
 notices, Finances One and indicators instead. Known misses: data-sheet sector tables and short lists with under 20% numbers.
 
-**Possible later improvement (not tested):** a layout parser such as Docling on the PDF (`pdfurl`) could recover table
+**Possible later improvement (done differently on 2026-10-31, see note 8):** a layout parser such as Docling on the PDF (`pdfurl`) could recover table
 rows and headers, so tables could be searched. It would need a new table-aware chunker, new citation anchors and a background
 job, and should first be compared on a sample with our labelled questions.
+
+## 8. What was added on 2026-10-31 (tables, figures, languages, media, map, export, plan links)
+
+Built, tested and deployed on 2026-10-31; numbers from `data/procintel.duckdb` that day.
+
+| Feature | How it works | Where |
+|---|---|---|
+| Tables from the PDF | Each report's PDF is downloaded once (`data/pdfs`, 197 MB) and its tables read with pdfplumber (no model): 5,037 tables from 367 reports. Each table becomes a markdown passage of kind `grid` (7,153, cut by rows with the header repeated). Tables on the first 8 pages of a completion report (data sheet, acronyms) are skipped: 1 of 22 was relevant. Search weight 0.8 (`PROCINTEL_GRID_WEIGHT`). Citations show them as tables. | `ingestion/pdf_tables.py`, `doc_tables.py`; pipeline step `read_tables` |
+| Figures and charts | Embedded images over 120 x 80 pt (not the cover) are cropped to PNG with their "Figure N" caption: 661 figures. Qwen3-VL-8B (llama-server with its projector, port 8083) describes each in two sentences, told not to state numbers, years or colours. A figure passage holds the caption and the description, marked as written by a model; the citation shows the image. | `ingestion/figures.py`, `figure_text.py`, `doc_figures.py`; `GET /figures/<doc>/<n>`; step `read_figures` |
+| Languages | py3langid (offline) gives each report and passage a language: 378 English, the Chad refugees report French-majority (347 French passages). Answers are written in the question's language with an English version of each sentence, which is what the support check reads. Keyword search reads any script; scripts without spaces are indexed as character pairs. The passage splitter cuts at sentence ends of any script. Tested: French, Spanish and Hindi questions answered in their language. | `ingestion/language.py`, `answering/answer.py`, prompts `answer`, `answer_related` |
+| Project photos and videos | A planner attaches a photo or video to a project (or a package) in Ongoing work, with a caption and date. Captioned items become `media` passages that answers can cite (the uploader's caption, not a reading of the image); the citation shows the picture or plays the video. Synthetic demo items (3 pictures and a clip for each of P181295, P171422, P180860) are labelled on the image and in the text. | `intake/media.py`, `media_evidence.py`; `scripts/demo_media.py` (`--remove`) |
+| Project map | Ongoing work shows the projects on a Leaflet map with street (OpenStreetMap) and satellite (Esri) layers. Country level only: each project is pinned at its country's capital from the World Bank country API, because no source gives site locations. | `monitoring/places.py`, `GET /monitoring/map` |
+| Word and PDF export | The plan and the package assessment export to Word (python-docx, built from what the page shows, not the chat) and to PDF (browser print, which opens every "why this number?" first). | `reports/word.py`, `POST /export/plan`, `/export/assessment` |
+| Plan as a link | The chat page is chat only. When the chat forecasts a plan, it saves it behind a link (`/shared?id=...`) and replies with a card. The plan page shows the dates, the slack to the deadline, "why this number?", when each source was last read, export, and an editor (forecast again, save to the link). Asking the chat for a change updates the same link, and an open plan page refreshes itself. Links need a signed-in user and expire after 7 days (`PROCINTEL_SHARE_DAYS`). | `reports/shares.py`, `components/plan/plan-artifact.tsx` |
+
+**Search quality** (80 lesson questions, answer model as judge): hybrid precision@5 0.698 before, 0.690 after; recall@10
+0.707 before, 0.642 after, against a relevant pool that grew by 31 table passages, so the two are not directly comparable.
+These questions ask for lessons, so they do not show what tables and figures add; tested separately, a question about
+indicator targets pulls in the indicator table, and a question about a chart is answered from the figure with its image.
+
+**Known limits:**
+- Tables without ruling lines, and tables in scanned PDFs, are not read as tables (a layout model would be the next step).
+- The map is country level only.
+- Figure descriptions are written by a model and can be wrong (in a test, a year range and a line colour were); the
+  image is always shown beside them.
+- Uploads through the Vercel site are limited to about 4.5 MB by Vercel; larger videos go through the local site or
+  the script.
+- Two `tests/test_api.py` benchmark tests fail (217 packages against the expected 215); they failed the same before this
+  work and look like data drift.
+- The Word and PDF buttons on the plan page were tested through the API, not clicked in the browser.
