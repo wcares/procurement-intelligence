@@ -202,7 +202,8 @@ class ConfigSetting(BaseModel):
     value: str | int | float
     default: str | int | float
     editable: bool
-    note: str
+    note: str          # what it does, in plain words (procintel.api.config_text)
+    detail: str = ""   # the technical description, behind the settings page's (i) button
     min: float | None
     max: float | None
 
