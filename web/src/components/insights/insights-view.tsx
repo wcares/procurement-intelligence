@@ -6,7 +6,6 @@ import { api } from "@/lib/api/client";
 import type { AlertsResponse } from "@/lib/api/types";
 import { AlertsList } from "./alerts-list";
 import { WatchListEditor } from "./watch-list";
-import { WatchTrends } from "./watch-trends";
 import { PastRecommendations } from "./past-recommendations";
 import { ConfigureDrawer } from "./configure-drawer";
 import { OngoingWork } from "@/components/monitoring/ongoing-work";
@@ -28,7 +27,6 @@ const Panel = ({ title, hint, action, children, className = "" }: { title: strin
 export function InsightsView() {
   const openProject = useSearchParams().get("project");   // from a package page's project link
   const [data, setData] = useState<AlertsResponse | null>(null);
-  const [saved, setSaved] = useState(0);
   const [configure, setConfigure] = useState(false);
   const [following, setFollowing] = useState(0);   // how many things the watch-list picks
   const load = useCallback(() => api.alerts().then(setData).catch(() => setData(null)), []);
@@ -52,7 +50,7 @@ export function InsightsView() {
         </button>
       </div>
       <ConfigureDrawer open={configure} onClose={() => setConfigure(false)} title="Your watch-list" subtitle="Alerts appear when the pipeline records changes inside what you follow.">
-        <WatchListEditor onSaved={() => { load(); loadFollowing(); setSaved((n) => n + 1); setConfigure(false); }} />
+        <WatchListEditor onSaved={() => { load(); loadFollowing(); setConfigure(false); }} />
       </ConfigureDrawer>
       <div className="space-y-6">
         <Panel title="Alerts" hint="New and re-issued notices, awards and completion reports in what you follow."
@@ -64,10 +62,7 @@ export function InsightsView() {
         <Panel title="Ongoing work" hint="Every package has a status (active, finished, replaced or stale) from what has been published so far; active ones are forecast from where they are now. Open a project for its packages, a package for its live timeline.">
           <OngoingWork openProject={openProject} />
         </Panel>
-        <div className="grid gap-x-10 gap-y-6 xl:grid-cols-2">
-          <Panel title="Trends" hint="Median days from tender to award by tender year; hollow points: years whose tenders are not all awarded yet. Recommendations for a package are on the Assess page.">
-            <WatchTrends version={saved} />
-          </Panel>
+        <div>
           <Panel title="Past recommendations" hint="The recommendations you asked for on Assess and what you decided; the counts are over everyone's, so a kind people keep dismissing shows.">
             <PastRecommendations />
           </Panel>
