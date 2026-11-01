@@ -1,7 +1,7 @@
-# Evaluation report (2026-10-31 23:00 UTC)
+# Evaluation report (2026-11-01 00:26 UTC)
 
 Models: answers and relevance judge `openai/saluki-27b`; embeddings `openai/embeddinggemma-2`; decision `http://127.0.0.1:8082`.
-80 answerable questions; 1597 judged (question, passage) pairs.
+80 answerable questions; 1620 judged (question, passage) pairs.
 Recall is against the pooled relevant set (BM25 top 10 + hybrid top 10), so it is an upper bound.
 Relevance judge vs hand checks of 60 judgments: 54/60 agree (28/30 and 26/30), 5 of the 6 misses lenient (eval/judge_check.md).
 Faithfulness is judged by the answer model and by an independent model, `openai/qwen3-vl-8b`.
@@ -10,10 +10,10 @@ Faithfulness is judged by the answer model and by an independent model, `openai/
 
 | metric | now | previous run |
 |---|---|---|
-| BM25 precision@5 | 0.54 | 0.54 |
-| Hybrid precision@5 | 0.69 | 0.68 |
-| BM25 recall@10 | 0.44 | 0.44 |
-| Hybrid recall@10 | 0.65 | 0.65 |
+| BM25 precision@5 | 0.53 | 0.54 |
+| Hybrid precision@5 | 0.69 | 0.69 |
+| BM25 recall@10 | 0.45 | 0.44 |
+| Hybrid recall@10 | 0.64 | 0.65 |
 | Evidence gate precision | 0.90 (not re-run; from 2026-10-25 10:17 UTC) | – |
 
 ## Answers
@@ -30,7 +30,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 
 ## User feedback
 
-128 responses logged.
+137 responses logged.
 
 | page | useful | not useful | citations flagged |
 |---|---|---|---|
@@ -45,23 +45,23 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 | q02 | Why were procurement processes cancelled or contracts terminated? | 16 | 1.00 | 1.00 | 0 / – | – |
 | q03 | What lessons were learned about procurement capacity of implementing agencies? | 14 | 0.60 | 1.00 | 0 / – | – |
 | q04 | How did the COVID-19 pandemic affect procurement and contract implementation? | 16 | 1.00 | 1.00 | 0 / – | – |
-| q05 | What problems did land acquisition and resettlement cause for project implementation? | 12 | 0.60 | 1.00 | 0 / – | – |
+| q05 | What problems did land acquisition and resettlement cause for project implementation? | 12 | 0.40 | 1.00 | 0 / – | – |
 | q06 | Why did tenders receive few or no responsive bids? | 3 | 0.20 | 0.40 | 0 / – | – |
 | q07 | How did delays in payments to contractors affect works? | 12 | 0.60 | 0.60 | 0 / – | – |
 | q08 | What problems were caused by weak technical specifications or terms of reference? | 7 | 0.60 | 0.80 | 0 / – | – |
 | q09 | How was the selection of consultants delayed? | 7 | 0.40 | 0.60 | 0 / – | – |
-| q10 | What role did STEP play in procurement monitoring? | 13 | 0.60 | 1.00 | 0 / – | – |
+| q10 | What role did STEP play in procurement monitoring? | 14 | 0.60 | 1.00 | 0 / – | – |
 | q11 | Why were contracts re-tendered? | 9 | 0.60 | 0.60 | 0 / – | – |
 | q12 | How did contractor performance problems affect road projects? | 12 | 0.60 | 0.80 | 0 / – | – |
 | q13 | What fiduciary or financial management weaknesses affected procurement? | 11 | 0.60 | 0.60 | 0 / – | – |
-| q14 | How did community-based or labor-based contracting work in practice? | 10 | 1.00 | 0.40 | 0 / – | – |
+| q14 | How did community-based or labor-based contracting work in practice? | 10 | 0.80 | 0.40 | 0 / – | – |
 | q15 | What were the effects of restructuring on procurement plans? | 12 | 0.20 | 0.40 | 0 / – | – |
 | q21 | How did price escalation or inflation affect contract costs? | 17 | 0.80 | 0.80 | 0 / – | – |
 | q22 | What problems did exchange rate movements cause for procurement or project costs? | 15 | 0.60 | 1.00 | 0 / – | – |
 | q23 | How did insecurity or conflict affect procurement and works? | 12 | 0.80 | 0.60 | 0 / – | – |
 | q24 | How was the contingent emergency response component (CERC) used? | 10 | 0.80 | 0.80 | 0 / – | – |
 | q25 | What role did UN agencies play in procurement or implementation? | 15 | 0.40 | 1.00 | 0 / – | – |
-| q26 | What were the benefits or problems of hands-on expanded implementation support (HEIS)? | 8 | 0.40 | 0.40 | 0 / – | – |
+| q26 | What were the benefits or problems of hands-on expanded implementation support (HEIS)? | 9 | 0.40 | 0.40 | 0 / – | – |
 | q27 | What problems were found with procurement plans? | 12 | 0.40 | 0.80 | 0 / – | – |
 | q28 | What caused delays in bid evaluation? | 11 | 0.60 | 0.60 | 0 / – | – |
 | q29 | How did a limited number of bidders or a thin local market affect procurement? | 10 | 0.80 | 0.80 | 0 / – | – |
@@ -69,17 +69,17 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 | q31 | How were direct contracting or single-source selection used? | 2 | 0.20 | 0.20 | 0 / – | – |
 | q32 | What misprocurement cases were reported? | 1 | 0.00 | 0.20 | 0 / – | – |
 | q33 | How did public-private partnership arrangements work out? | 3 | 0.20 | 0.20 | 0 / – | – |
-| q34 | What problems arose in procuring medical equipment? | 5 | 0.00 | 0.60 | 0 / – | – |
+| q34 | What problems arose in procuring medical equipment? | 6 | 0.00 | 0.60 | 0 / – | – |
 | q35 | How was vaccine procurement or delivery organised? | 14 | 0.80 | 1.00 | 0 / – | – |
 | q36 | What difficulties occurred in procuring IT systems or software? | 8 | 0.60 | 0.60 | 0 / – | – |
 | q37 | What problems affected school construction or classroom works? | 13 | 0.40 | 0.80 | 0 / – | – |
 | q38 | What issues arose with solar energy procurement or installation? | 6 | 0.00 | 0.40 | 0 / – | – |
 | q39 | What problems affected water supply works contracts? | 13 | 0.20 | 0.60 | 0 / – | – |
 | q40 | What fraud or corruption issues were found? | 4 | 0.20 | 0.20 | 0 / – | – |
-| q41 | How did grievance redress mechanisms work for project-affected people? | 17 | 0.80 | 0.80 | 0 / – | – |
+| q41 | How did grievance redress mechanisms work for project-affected people? | 18 | 0.80 | 0.80 | 0 / – | – |
 | q42 | How did results-based financing or disbursement-linked indicators affect implementation? | 13 | 0.80 | 0.60 | 0 / – | – |
 | q43 | How did staff turnover in implementing agencies affect the project? | 20 | 1.00 | 1.00 | 0 / – | – |
-| q44 | What weaknesses did project implementation units have? | 13 | 1.00 | 1.00 | 0 / – | – |
+| q44 | What weaknesses did project implementation units have? | 14 | 1.00 | 1.00 | 0 / – | – |
 | q45 | What problems did delays in counterpart funding cause? | 11 | 0.80 | 1.00 | 0 / – | – |
 | q46 | How did customs clearance affect deliveries of goods? | 9 | 0.80 | 1.00 | 0 / – | – |
 | q47 | How was retroactive financing used? | 10 | 0.80 | 1.00 | 0 / – | – |
@@ -94,7 +94,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 | q56 | What contract disputes arose and how were they resolved? | 9 | 0.40 | 0.40 | 0 / – | – |
 | q57 | How was STEP used to track procurement? | 15 | 1.00 | 1.00 | 0 / – | – |
 | q58 | What role did prior review by the World Bank play in procurement? | 10 | 0.20 | 0.60 | 0 / – | – |
-| q59 | How did supervision consultants perform? | 11 | 0.80 | 0.80 | 0 / – | – |
+| q59 | How did supervision consultants perform? | 13 | 0.80 | 0.80 | 0 / – | – |
 | q60 | How did performance-based or output-based contracts work? | 5 | 0.40 | 0.60 | 0 / – | – |
 | q61 | What lessons were learned about road maintenance contracts? | 11 | 0.60 | 0.80 | 0 / – | – |
 | q62 | How did the COVID-19 pandemic delay goods deliveries? | 11 | 0.40 | 1.00 | 0 / – | – |
@@ -106,7 +106,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 | q68 | How did the choice of procurement method affect timelines? | 13 | 0.60 | 0.80 | 0 / – | – |
 | q69 | What problems were caused by the decentralised implementation of procurement? | 3 | 0.20 | 0.00 | 0 / – | – |
 | q70 | How did procurement capacity building or training for agencies work? | 16 | 0.60 | 0.80 | 0 / – | – |
-| q71 | What problems did land compensation payments cause? | 10 | 0.80 | 1.00 | 0 / – | – |
+| q71 | What problems did land compensation payments cause? | 11 | 0.80 | 1.00 | 0 / – | – |
 | q72 | How did gender considerations affect project activities? | 16 | 0.80 | 1.00 | 0 / – | – |
 | q73 | What were the reasons for project restructuring? | 17 | 0.40 | 0.60 | 0 / – | – |
 | q74 | How were monitoring and evaluation weaknesses reported? | 15 | 0.80 | 0.80 | 0 / – | – |
@@ -117,7 +117,7 @@ Not re-run this time; figures from 2026-10-25 10:17 UTC.
 | q79 | What went wrong with hiring advisers? | 4 | 0.40 | 0.40 | 0 / – | – |
 | q80 | Why did some suppliers deliver late? | 2 | 0.00 | 0.40 | 0 / – | – |
 | q81 | What happened when contractors ran out of cash? | 6 | 0.00 | 0.80 | 0 / – | – |
-| q82 | Why did the government take so long to approve things? | 3 | 0.20 | 0.20 | 0 / – | – |
+| q82 | Why did the government take so long to approve things? | 4 | 0.20 | 0.20 | 0 / – | – |
 | q83 | What made bigger contracts harder to award? | 8 | 0.40 | 0.60 | 0 / – | – |
 | q84 | Why did prices end up higher than expected? | 8 | 0.40 | 0.60 | 0 / – | – |
 | q85 | What did the teams learn about planning purchases early? | 5 | 0.00 | 0.60 | 0 / – | – |
