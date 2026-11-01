@@ -25,7 +25,7 @@ def get_evaluation() -> dict:
 
 @router.post("/evaluation/run", dependencies=[Depends(security.require("admin"))])
 def post_run(req: EvaluationRun, request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("starting an evaluation")
     what = "full evaluation (search and answers)" if req.answers else "search-quality evaluation"
     jid = jobs_store.enqueue("evaluate", f"{what}, requested", {"answers": req.answers})

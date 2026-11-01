@@ -33,9 +33,11 @@ def is_admin_client(request: Request) -> bool:
 
 
 def is_admin(request: Request) -> bool:
-    """An admin's session, or a request from an administrative client address (the refresh script)."""
+    """A signed-in admin's session, or a request from an administrative client address (the refresh script). With sign-in
+    off every caller counts as the local admin, so then only the address decides (an open server is not run from afar)."""
     from procintel.api import security   # not at the top: security imports are heavier and not needed to check an address
-    user = security.current_user(request)
+    from procintel.auth import service
+    user = security.current_user(request) if service.mode() != "off" else None
     return bool(user and user["role"] == "admin") or is_admin_client(request)
 
 

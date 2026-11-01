@@ -22,7 +22,7 @@ def get_shadows() -> dict:
 
 @router.post("/shadows/{name}/{action}")
 def post_shadow(name: str, action: Literal["build", "evaluate", "promote", "discard"], request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse(f"{action} of a shadow build")
     if name not in shadows.SHADOWS:
         return JSONResponse({"error": f"no shadow build named {name!r}"}, status_code=404)

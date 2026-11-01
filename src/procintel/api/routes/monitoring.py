@@ -91,7 +91,7 @@ def post_dry_run(change: dict) -> dict:
 
 @router.put("/monitoring/status-rules", dependencies=admin)
 def put_rules(change: dict, request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("changing the status rules")
     try:
         status_rules.save(status_rules.active() | change)

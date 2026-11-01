@@ -17,8 +17,7 @@ admin = [Depends(security.require("admin"))]
 def post_reload(request: Request) -> dict:
     """Load refreshed data without restarting (procintel.ingestion.refresh calls this when given --reload-url): from an
     admin's session or from an administrative client address (the refresh script); about a minute of work."""
-    user = security.current_user(request)
-    if not ((user and user["role"] == "admin") or access.is_admin_client(request)):
+    if not access.is_admin(request):
         return access.refuse("reload")
     if reload_lock.locked():
         return JSONResponse({"error": "a reload is already running"}, status_code=409)
@@ -36,7 +35,7 @@ def get_jobs() -> dict:
 
 @router.post("/jobs", dependencies=admin)
 def post_job(req: JobRequest, request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("queueing a job")
     jid = jobs_store.enqueue(req.kind, req.reason, priority=req.priority)
     return {"queued": jid, "note": None if jid else "a job of this kind is already waiting or running"}

@@ -20,7 +20,7 @@ def get_prompts() -> dict:
 @router.post("/prompts/{name}")
 def post_prompt(name: str, req: PromptSave, request: Request) -> dict:
     """Save a new version as a candidate; prompts used in answering get an evaluation job against the active one."""
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("changing a prompt")
     if name not in prompts.PROMPTS:
         return JSONResponse({"error": f"no prompt named {name!r}"}, status_code=404)
@@ -37,7 +37,7 @@ def post_prompt(name: str, req: PromptSave, request: Request) -> dict:
 
 @router.post("/prompts/{name}/activate")
 def activate_prompt(name: str, req: PromptActivate, request: Request) -> dict:
-    if not access.is_admin_client(request):
+    if not access.is_admin(request):
         return access.refuse("activating a prompt")
     try:
         prompts.activate(name, req.version)
