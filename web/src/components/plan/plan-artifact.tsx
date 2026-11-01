@@ -24,7 +24,7 @@ export function PlanArtifact({ share }: { share: SharedItem }) {
   // the chat saves its changes behind this link: show them (at once, or on request while the plan is being edited here)
   useEffect(() => {
     const t = setInterval(() => {
-      api.share(link.id).then((r) => {
+      api.share(link.id, true).then((r) => {
         if (r.createdAt === link.createdAt) return;
         if (editing) setNewer(true); else window.location.reload();
       }).catch(() => null);

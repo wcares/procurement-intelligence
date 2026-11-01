@@ -113,3 +113,15 @@ def test_a_server_that_cannot_be_read_fails_the_read_without_removing_anything(t
     reads = store.connect().execute("SELECT error FROM detection WHERE entity_type = 'McpDocument' ORDER BY ran_at DESC").fetchall()
     assert reads[0][0] and "MCP server demo" in reads[0][0]
     assert mcp_source.items()[0]["status"] == "awaiting_approval"
+
+
+def test_the_connectors_page_shows_the_servers_and_the_documents_taken_in(tmp_path, monkeypatch):
+    from procintel.pipeline import connector_config, connectors
+    folder = _setup(tmp_path, monkeypatch)
+    (folder / "report.txt").write_text(ICR)
+    _read_and_run()
+    card = next(c for c in connectors.status() if c["name"] == "McpDocument")
+    assert card["mcp"]["servers"] == [{"name": "demo", "kind": "local", "where": "demo_mcp_server.py", "trusted": False}]
+    assert card["mcp"]["documents"][0]["title"] == "report.txt" and card["mcp"]["documents"][0]["status"] == "awaiting_approval"
+    assert card["cursor"].startswith("every resource of 1 server(s): demo (local)")
+    assert "cannot push" in connector_config.validate("McpDocument", {"mode": "push"})

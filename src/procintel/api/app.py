@@ -25,6 +25,7 @@ from procintel.auth import service
 
 CORS_DEFAULT = "http://localhost:3100,http://127.0.0.1:3100"
 QUIET_PATHS = {("GET", "/health"), ("GET", "/jobs"), ("GET", "/auth/me")}  # do not postpone background jobs
+POLL_HEADER = "x-procintel-poll"   # "1" on a page's automatic re-check (an open plan page): not a person using the app
 
 
 @asynccontextmanager
@@ -50,8 +51,10 @@ def create_app() -> FastAPI:
 
     @api.middleware("http")
     async def mark_activity(request: Request, call_next):
-        """Every user request postpones background jobs; health checks and the jobs list itself do not."""
-        if (request.method, request.url.path) not in QUIET_PATHS:
+        """Every user request postpones background jobs; health checks, the jobs list and a page's automatic re-checks
+        (GET with the poll header) do not: an open plan page re-checks its link every 15 s and kept jobs waiting."""
+        poll = request.method == "GET" and request.headers.get(POLL_HEADER) == "1"
+        if (request.method, request.url.path) not in QUIET_PATHS and not poll:
             background.touch()
         return await call_next(request)
 

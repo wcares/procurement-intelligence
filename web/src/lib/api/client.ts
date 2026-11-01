@@ -160,7 +160,8 @@ export const api = {
   goal: (req: AssessRequest & { targetDays: number; maxLots?: number }) =>
     call<GoalResult>("/assess/goal", { method: "POST", body: JSON.stringify(req) }),
   createShare: (kind: "plan" | "assessment", body: unknown) => send<SharedItem>(`/shares`, "POST", { kind, body }),
-  share: (id: string) => call<SharedItem>(`/shares/${encodeURIComponent(id)}`),
+  /** poll: the page's automatic re-check, which does not count as someone using the app (background jobs go on) */
+  share: (id: string, poll = false) => call<SharedItem>(`/shares/${encodeURIComponent(id)}`, poll ? { headers: { "X-Procintel-Poll": "1" } } : undefined),
   updateShare: (id: string, body: unknown) => send<SharedItem>(`/shares/${encodeURIComponent(id)}`, "PUT", { body }),
   freshness: () => call<{ sources: SourceFreshness[] }>(`/freshness`),
   monitoringMap: (scope: "ongoing" | "watched") => call<{ points: MapPoint[]; unplaced: string[] }>(`/monitoring/map?scope=${scope}`),

@@ -148,3 +148,13 @@ def test_summarize_compacts_a_conversation(client, monkeypatch):
     r = client.post("/assistant/summarize", json={"messages": [{"role": "user", "content": "Plan roads in Kenya, 5 million"},
                                                                {"role": "assistant", "content": "Got it."}]}).json()
     assert r["summary"].startswith("Roads project") and "Planner: Plan roads in Kenya" in seen["user"]
+
+
+def test_a_pages_automatic_recheck_does_not_postpone_background_jobs(client, monkeypatch):
+    from procintel.api import background
+    touched = []
+    monkeypatch.setattr(background, "touch", lambda: touched.append(1))
+    client.get("/shares/nope", headers={"X-Procintel-Poll": "1"})    # an open plan page re-checking its link
+    assert touched == []
+    client.get("/shares/nope")                                        # someone opening it
+    assert touched == [1]

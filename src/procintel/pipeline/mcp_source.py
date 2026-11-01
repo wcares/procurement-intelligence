@@ -225,6 +225,23 @@ def items(db_path: Path | None = None) -> list[dict]:
     return out
 
 
+def overview(db_path: Path | None = None, latest: int = 12) -> dict:
+    """For the Connectors page: the configured servers (never a header value) and the latest documents taken in."""
+    from urllib.parse import urlparse
+    try:
+        conf, error = servers(), None
+    except ValueError as e:
+        conf, error = [], str(e)
+    listed = [{"name": s["name"], "kind": "local" if s.get("command") else "remote",
+               "where": Path(s["command"][1]).name if s.get("command") and len(s["command"]) > 1
+               else (s["command"][0] if s.get("command") else urlparse(s["url"]).netloc),
+               "trusted": bool(s.get("trusted"))} for s in conf]
+    docs = [{"server": i["server"], "uri": i["uri"], "title": (i["item"] or {}).get("title") or i["uri"],
+             "status": i["status"], "note": i["note"], "takenAt": i["taken_at"], "uploadId": i["upload_id"]}
+            for i in items(db_path)[:latest]]
+    return {"servers": listed, "documents": docs, "error": error}
+
+
 def fmt_of(row: dict) -> str | None:
     from procintel.intake import extract
     by_name = extract.format_of(row.get("name") or "")

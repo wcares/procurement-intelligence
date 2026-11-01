@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { Connector, ConnectorSettings, ConnectorsResponse } from "@/lib/api/types";
+import type { Connector, ConnectorSettings, ConnectorsResponse, McpOverview } from "@/lib/api/types";
 import { relative, when } from "./when";
 
 /** Each source: how it reaches us (mode), what the next read asks for (cursor), the last success and last error, and
@@ -67,6 +67,7 @@ function ConnectorCard({ c, onRead, onSaved }: { c: Connector; onRead: () => voi
           ? `due since ${when(c.nextRead)}: runs when the app is next idle`
           : `${when(c.nextRead)} (${relative(c.nextRead)})`}</dd>
       </dl>
+      {c.mcp && <McpSection m={c.mcp} />}
       {c.settings.mode === "push" && (
         <p className="mt-2 text-xs">
           Push: the source posts to <span className="font-mono">{c.push.path}</span>, signed with{" "}
@@ -83,6 +84,39 @@ function ConnectorCard({ c, onRead, onSaved }: { c: Connector; onRead: () => voi
   );
 }
 
+// What intake did with a document, in words (procintel.intake.store statuses)
+const MCP_STATUS: Record<string, string> = {
+  added: "added to the evidence", kept: "kept and linked", awaiting_approval: "waiting for an admin",
+  needs_review: "needs review", duplicate: "already held", failed: "failed", skipped: "skipped", removed: "removed",
+};
+
+/** The MCP source: the servers it reads (data/mcp_sources.json) and the latest documents taken in from them. */
+function McpSection({ m }: { m: McpOverview }) {
+  return (
+    <div className="mt-3 space-y-2 border-t border-line pt-3 text-xs">
+      {m.error && <p className="text-risk-high">Configuration: {m.error}</p>}
+      <p className="text-ink-muted">
+        Servers: {m.servers.length === 0 ? "none configured (data/mcp_sources.json)" : m.servers.map((s) => (
+          <span key={s.name} className="mr-2 inline-block">
+            <span className="font-medium text-foreground">{s.name}</span> ({s.kind}, {s.where}{s.trusted ? ", trusted" : ""})
+          </span>
+        ))}
+      </p>
+      <p className="text-ink-muted">Only resources are read, never tools. Completion reports from a server that is not trusted wait for an admin.</p>
+      {m.documents.length > 0 && (
+        <ul className="space-y-1">
+          {m.documents.map((d) => (
+            <li key={d.server + d.uri} className="flex flex-wrap items-baseline gap-x-2">
+              <span className="min-w-0 truncate font-medium" title={d.uri}>{d.title}</span>
+              <span className={d.status === "failed" ? "text-risk-high" : "text-ink-muted"}>{MCP_STATUS[d.status] ?? d.status}</span>
+              <span className="text-ink-muted">· {when(d.takenAt)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 /** Mode, interval and on/off for one source, saved to the data folder (procintel.pipeline.connector_config). */
 function SettingsEditor({ c, onSaved }: { c: Connector; onSaved: (d: ConnectorsResponse) => void }) {
@@ -109,7 +143,7 @@ function SettingsEditor({ c, onSaved }: { c: Connector; onSaved: (d: ConnectorsR
         <select className="rounded border border-line bg-surface px-1 py-0.5" value={draft.mode}
           onChange={(e) => setDraft({ ...draft, mode: e.target.value as ConnectorSettings["mode"] })}>
           <option value="poll">poll</option>
-          <option value="push">push (webhook)</option>
+          {!c.mcp && <option value="push">push (webhook)</option>}
         </select>
       </label>
       {draft.mode === "poll" && (

@@ -90,7 +90,7 @@ def status(db_path: Path | None = None) -> list[dict]:
         failures = _failures(reads)
         bad = next((r for r in reads if r[4]), None)
         cfg = connector_config.settings(et.name)
-        out.append({
+        row = {
             "name": et.name, "source": et.source, "mode": cfg["mode"], "every": words(connector_config.every(et)),
             "settings": cfg, "defaults": connector_config.defaults(et.name),
             "customised": connector_config.customised(et.name),
@@ -103,5 +103,9 @@ def status(db_path: Path | None = None) -> list[dict]:
             "failures": failures,
             "nextRead": _iso(reads[0][0] + wait(et, failures)) if reads else None,
             "due": cfg["enabled"] and (not reads or entities.now() >= reads[0][0] + wait(et, failures)),
-        })
+        }
+        if et.name == "McpDocument":
+            from procintel.pipeline import mcp_source
+            row["mcp"] = mcp_source.overview(db_path)
+        out.append(row)
     return out

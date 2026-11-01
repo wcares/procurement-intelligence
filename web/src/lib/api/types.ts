@@ -603,6 +603,15 @@ export interface Connector {
   customised: boolean;
   /** push mode: where the source posts, and whether its secret is set in the environment (the secret is never sent) */
   push: { path: string; secretSet: boolean; secretVar: string };
+  /** the MCP source only: its configured servers (no header values) and the latest documents taken in */
+  mcp?: McpOverview;
+}
+
+export interface McpOverview {
+  servers: { name: string; kind: "local" | "remote"; where: string; trusted: boolean }[];
+  documents: { server: string; uri: string; title: string; status: string; note: string | null; takenAt: string; uploadId: string | null }[];
+  /** data/mcp_sources.json could not be used */
+  error: string | null;
 }
 
 export interface ConnectorSettings {
