@@ -1,7 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleMarker, LayersControl, MapContainer, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import type { MapPoint } from "@/lib/api/types";
 import { BASE_MAPS } from "@/lib/map-tiles";
@@ -30,8 +30,27 @@ function FlyTo({ spot }: { spot: Spot | null }) {
   return null;
 }
 
-/** The leaflet map itself (browser only: loaded through project-map.tsx). */
-export default function ProjectMapView({ points, focus, onOpen }: { points: MapPoint[]; focus: string | null; onOpen: (projectId: string) => void }) {
+type Props = { points: MapPoint[]; focus: string | null; onOpen: (projectId: string) => void };
+
+/** The leaflet map itself (browser only: loaded through project-map.tsx).
+ *
+ * Next keeps a page you leave mounted but hidden (cacheComponents) and runs its effects again when you come back.
+ * react-leaflet removes its map when the page is hidden and never creates it again, so coming back crashed the page
+ * ("Map container is being reused by another instance", then layers added to the removed map). So the map is taken
+ * out while the page is hidden, and each showing mounts a new one. */
+export default function ProjectMapView(props: Props) {
+  const [showing, setShowing] = useState(0);   // 0 while hidden, else this showing's number (a new map each time)
+  const count = useRef(0);
+  useEffect(() => {
+    count.current += 1;
+    setShowing(count.current);
+    return () => setShowing(0);
+  }, []);
+  if (!showing) return <div className="h-80 w-full rounded-xl border border-line bg-subtle" />;
+  return <LeafletMap key={showing} {...props} />;
+}
+
+function LeafletMap({ points, focus, onOpen }: Props) {
   const all = useMemo(() => spots(points), [points]);
   const focused = all.find((s) => s.projects.some((p) => p.projectId === focus)) ?? null;
   return (
