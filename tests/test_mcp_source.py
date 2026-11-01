@@ -16,6 +16,8 @@ SERVER = str(paths.ROOT / "scripts" / "demo_mcp_server.py")
 
 
 def _setup(tmp_path, monkeypatch, trusted=False):
+    from procintel.pipeline import mcp_listen
+    monkeypatch.setattr(mcp_listen, "_state", {})       # not the state of a listener the app started in another test
     monkeypatch.setattr(paths, "DB_PATH", tmp_path / "main.duckdb")
     monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")
     monkeypatch.setattr(jobs_store, "DB_PATH", tmp_path / "jobs.duckdb")

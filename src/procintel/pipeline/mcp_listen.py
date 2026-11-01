@@ -78,7 +78,7 @@ async def follow(server: dict, on_change=queue_read, stop: asyncio.Event | None 
     """Follow one server until stopped: listen, queue a read on each burst of changes, reopen on a drop."""
     from mcp.client.subscriptions import ListenNotSupportedError
     name = server["name"]
-    st = _state.setdefault(name, {"state": "connecting", "since": _now(), "changes": 0, "lastChange": None, "error": None})
+    st = _state[name] = {"state": "connecting", "since": _now(), "changes": 0, "lastChange": None, "error": None}
     stop = stop or asyncio.Event()
     wait = RETRY
     while not stop.is_set():
