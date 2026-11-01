@@ -3,6 +3,7 @@ import type {
   ProjectMedia,
   MapPoint,
   SourceFreshness,
+  SharedItem,
   DashboardResponse,
   RecentChanges,
   RecommendationHistory,
@@ -158,6 +159,9 @@ export const api = {
   alerts: () => call<AlertsResponse>("/insights/alerts"),
   goal: (req: AssessRequest & { targetDays: number; maxLots?: number }) =>
     call<GoalResult>("/assess/goal", { method: "POST", body: JSON.stringify(req) }),
+  createShare: (kind: "plan" | "assessment", body: unknown) => send<SharedItem>(`/shares`, "POST", { kind, body }),
+  share: (id: string) => call<SharedItem>(`/shares/${encodeURIComponent(id)}`),
+  updateShare: (id: string, body: unknown) => send<SharedItem>(`/shares/${encodeURIComponent(id)}`, "PUT", { body }),
   freshness: () => call<{ sources: SourceFreshness[] }>(`/freshness`),
   monitoringMap: (scope: "ongoing" | "watched") => call<{ points: MapPoint[]; unplaced: string[] }>(`/monitoring/map?scope=${scope}`),
   monitoredProjects: (scope: "ongoing" | "watched") => call<{ projects: MonitoredProject[] }>(`/monitoring/projects?scope=${scope}`),

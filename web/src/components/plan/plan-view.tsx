@@ -3,25 +3,19 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AssessView } from "@/app/assess/assess-view";
-import { ExportButtons } from "@/components/export-buttons";
-import { Freshness } from "@/components/freshness";
-import { ManualPlan } from "./manual-plan";
 import { PlanChat } from "./plan-chat";
-import { PlanResults } from "./plan-results";
-import { usePlan, type PlanState } from "./use-plan";
+import { usePlan } from "./use-plan";
 
 type Tab = "chat" | "assess";
 const TABS = ["chat", "assess"];
-const money = (v?: number) => (v ? (v >= 1e6 ? `US$${(v / 1e6).toFixed(1)}M` : `US$${Math.round(v / 1e3)}k`) : "");
 
-/** The planning workspace: plan a project by chat or form (questions about past projects are asked in the same chat), or assess a package. */
+/** The planning workspace: plan a project in the chat (each forecast gives a link to the plan's own page, where it is
+ * edited and exported; questions about past projects are asked in the same chat), or assess a package. */
 export function PlanView() {
   const s = usePlan();
   const [tab, setTab] = useState<Tab>(((t) => (TABS.includes(t ?? "") ? t : "chat") as Tab)(useSearchParams().get("tab")));   // /assess and /ask redirect here
-  const [pane, setPane] = useState<"chat" | "plan">("chat");   // narrow screens show one side at a time
   if (!s.ready) return <p className="text-sm text-ink-muted">Loading…</p>;
   const seg = (on: boolean) => `rounded-lg px-3.5 py-1.5 text-sm font-medium ${on ? "bg-brand" : "text-ink-muted hover:text-foreground"}`;
-  const count = s.packages.filter((p) => p.name || p.estimatedValueUsd).length;
   return (
     // fills the space between the header and the footer; the negative margins cancel the page padding
     <div className="-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[560px] flex-col lg:-mx-8 print:h-auto print:min-h-0">
@@ -30,13 +24,7 @@ export function PlanView() {
           <button type="button" onClick={() => setTab("chat")} aria-pressed={tab === "chat"} className={seg(tab === "chat")}>Chat</button>
           <button type="button" onClick={() => setTab("assess")} aria-pressed={tab === "assess"} className={seg(tab === "assess")}>Assess a package</button>
         </div>
-        {tab === "chat" && (
-          <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px] lg:hidden" role="group" aria-label="Pane">
-            <button type="button" onClick={() => setPane("chat")} aria-pressed={pane === "chat"} className={seg(pane === "chat")}>Conversation</button>
-            <button type="button" onClick={() => setPane("plan")} aria-pressed={pane === "plan"} className={seg(pane === "plan")}>Plan{count ? ` (${count})` : ""}</button>
-          </div>
-        )}
-        <p className="hidden text-xs text-ink-muted xl:block">Each package is forecast from comparable past packages and laid out on one timeline. Ask about the plan, or about past projects in any country, in the same chat.</p>
+        <p className="hidden text-xs text-ink-muted xl:block">Describe the project&apos;s packages and the chat forecasts each one and gives you a link to the plan, where you can edit and export it. Ask to change it here and the same link updates. Ask about past projects in any country in the same chat.</p>
       </div>
       {tab === "assess" ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8 print:overflow-visible">
@@ -44,64 +32,8 @@ export function PlanView() {
           <AssessView />
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] print:block">
-          <div className={`min-h-0 min-w-0 flex-col ${pane === "chat" ? "flex" : "hidden lg:flex"} print:hidden`}><PlanChat s={s} /></div>
-          <div className={`min-h-0 min-w-0 ${pane === "plan" ? "block" : "hidden lg:block"} print:block`}><PlanPanel s={s} /></div>
-        </div>
+        <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col"><PlanChat s={s} /></div>
       )}
     </div>
-  );
-}
-
-/** The plan beside the chat: what has been understood so far, and the forecast once it has run. */
-function PlanPanel({ s }: { s: PlanState }) {
-  const [side, setSide] = useState<"plan" | "manual">("plan");   // the plan as understood, or the form that edits the same plan
-  const country = s.opts?.countries.find((c) => c.code === s.countryCode)?.name;
-  const named = s.packages.filter((p) => p.name || p.estimatedValueUsd);
-  const seg = (on: boolean) => `rounded-lg px-3.5 py-1.5 text-sm font-medium ${on ? "bg-brand" : "text-ink-muted hover:text-foreground"}`;
-  return (
-    <section className="h-full min-w-0 space-y-4 overflow-y-auto border-l border-line bg-surface px-5 py-5 lg:px-6 print:h-auto print:overflow-visible print:border-0">
-      <div className="flex items-center justify-between gap-2">
-        <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px]" role="group" aria-label="Plan view">
-          <button type="button" onClick={() => setSide("plan")} aria-pressed={side === "plan"} className={seg(side === "plan")}>Your plan</button>
-          <button type="button" onClick={() => setSide("manual")} aria-pressed={side === "manual"} className={seg(side === "manual")}>Manual</button>
-        </div>
-        {side === "plan" && named.length > 0 && <button className="text-xs underline" onClick={s.clear}>Clear plan</button>}
-      </div>
-      {side === "manual" ? <ManualPlan s={s} /> : (
-        <>
-          {named.length === 0 ? (
-            <p className="text-sm text-ink-muted">Nothing yet. The plan builds up here as you talk in the chat, or add packages on the Manual tab.</p>
-          ) : (
-            <div className="space-y-2 text-sm">
-              <p className="text-xs text-ink-muted">{country ?? "Country not set"} · start {s.projectStart}{s.deadline ? ` · deadline ${s.deadline}` : ""}</p>
-              <ul className="divide-y divide-line rounded-xl border border-line bg-subtle px-3.5">
-                {named.map((p) => (
-                  <li key={p.id} className="py-2">
-                    <span className="font-medium">{p.name || "Unnamed package"}</span>
-                    <span className="text-xs text-ink-muted"> · {p.procGroup} · {p.methodCode}{p.estimatedValueUsd ? ` · ${money(p.estimatedValueUsd)}` : ""}
-                      {p.after ? ` · after ${s.packages.find((x) => x.id === p.after)?.name ?? "another package"}` : ""}</span>
-                    {s.errors[p.id] && <span className="block text-xs text-risk-high">{s.errors[p.id]}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {s.running && <p className="text-sm text-ink-muted">{s.progress || "Forecasting…"}</p>}
-          {s.ran && !s.running && (
-            <>
-              <ExportButtons kind="plan" body={{ packages: s.packages, forecasts: s.forecasts, plan: s.plan, projectStart: s.projectStart, deadline: s.deadline }} />
-              <PlanResults packages={s.packages} plan={s.plan} forecasts={s.forecasts} projectStart={s.projectStart} deadline={s.deadline} countryCode={s.countryCode} />
-              <Freshness only={["Notice", "ContractAward", "Project"]} />
-              <p className="text-xs text-ink-muted">
-                Each forecast comes from comparable past packages; the project dates combine them in the order set. The system has not
-                learned how packages depend on each other, so treat the project dates as a planning aid. The Procurement Regulations
-                decide which methods are allowed. Use the Manual tab to edit any detail.
-              </p>
-            </>
-          )}
-        </>
-      )}
-    </section>
   );
 }

@@ -9,10 +9,13 @@ const KEY = "procintel-plan";
 const today = todayLocal;
 export const newPackage = (): PlanPackage => ({ id: Math.random().toString(36).slice(2, 9), name: "", procGroup: "CW", methodCode: "RFB" });
 
-interface Saved { countryCode: string; projectStart: string; deadline?: string; packages: PlanPackage[] }
+export interface Saved { countryCode: string; projectStart: string; deadline?: string; packages: PlanPackage[] }
+/** A plan as a link keeps it: the plan with the forecasts it was shown with. */
+export interface PlanSnapshot extends Saved { forecasts?: Record<string, Forecast | undefined> }
 
-/** The plan and its forecasts, shared by the chat and the manual form: both edit the same plan. */
-export function usePlan() {
+/** The plan and its forecasts. The chat keeps its plan in this browser (local storage); the plan page behind a link
+ * starts from that link's snapshot instead and keeps nothing locally (save writes it back to the link). */
+export function usePlan(initial?: PlanSnapshot) {
   const [opts, setOpts] = useState<Options | null>(null);
   const [countryCode, setCountryCode] = useState("KE");
   const [projectStart, setProjectStart] = useState("");  // set in the effect: a date is not allowed during prerender
@@ -27,19 +30,23 @@ export function usePlan() {
 
   useEffect(() => {
     api.options().then(setOpts).catch(() => null);
-    let saved: Saved | null = null;
-    try { saved = JSON.parse(localStorage.getItem(KEY) ?? "null"); } catch { /* no saved plan, or storage blocked */ }
+    let saved: Saved | null = initial ?? null;
+    if (!initial) {
+      try { saved = JSON.parse(localStorage.getItem(KEY) ?? "null"); } catch { /* no saved plan, or storage blocked */ }
+    } else if (initial.forecasts) {
+      setForecasts(initial.forecasts); setRan(true);
+    }
     if (saved?.packages?.length) {
       setCountryCode(saved.countryCode); setProjectStart(saved.projectStart || today()); setDeadline(saved.deadline); setPackages(saved.packages);
     } else {
       setProjectStart(today()); setPackages([newPackage()]);
     }
     setReady(true);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- read once, on mount
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || initial) return;
     try { localStorage.setItem(KEY, JSON.stringify({ countryCode, projectStart, deadline, packages } satisfies Saved)); } catch { /* storage blocked */ }
-  }, [ready, countryCode, projectStart, deadline, packages]);
+  }, [ready, initial, countryCode, projectStart, deadline, packages]);
 
   const plan = useMemo(() => schedule(packages, forecasts, projectStart), [packages, forecasts, projectStart]);
 
@@ -93,3 +100,8 @@ export function usePlan() {
 }
 
 export type PlanState = ReturnType<typeof usePlan>;
+
+/** Hand a plan (from its page) to the chat in this browser, so the conversation continues from it. */
+export function keepForChat(p: Saved) {
+  try { localStorage.setItem(KEY, JSON.stringify({ countryCode: p.countryCode, projectStart: p.projectStart, deadline: p.deadline, packages: p.packages })); } catch { /* storage blocked */ }
+}

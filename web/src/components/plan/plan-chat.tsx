@@ -12,6 +12,7 @@ import { schedule, todayLocal, type PlanPackage } from "@/lib/plan";
 import type { PlanState } from "./use-plan";
 
 type Rich =
+  | { kind: "plan"; id: string; expiresAt: string; end50: string | null; end90: string | null; bottleneck?: string; packages: number }
   | { kind: "stats"; data: RankingResponse }
   | { kind: "evidence"; question: string; response: AskResponse };
 /** content is what the model sees of this message later; rich is what the person sees. */
@@ -87,7 +88,11 @@ export function PlanChat({ s }: { s: PlanState }) {
           const f = await s.run(pkgs, r.plan.countryCode);
           const p = schedule(pkgs, f, r.plan.projectStart || todayLocal());
           const name = pkgs.find((x) => x.id === p.bottleneck)?.name;
-          add({ role: "assistant", content: `Forecast ready: typical date for all awards ${p.end50 ?? "unknown"}, slow case ${p.end90 ?? "unknown"}${name ? `; bottleneck ${name}` : ""}. The plan is on the right.` });
+          const link = await publishPlan({ countryCode: r.plan.countryCode, projectStart: r.plan.projectStart || todayLocal(), deadline: r.plan.deadline ?? undefined,
+            packages: pkgs, forecasts: f, plan: p });
+          const text = `Forecast ready: typical date for all awards ${p.end50 ?? "unknown"}, slow case ${p.end90 ?? "unknown"}${name ? `; bottleneck ${name}` : ""}.`;
+          add({ role: "assistant", content: `${text} The plan is at ${link ? `/shared?id=${link.id}` : "(no link: saving it failed)"}.`,
+            rich: link ? { kind: "plan", id: link.id, expiresAt: link.expiresAt, end50: p.end50, end90: p.end90, bottleneck: name, packages: pkgs.length } : undefined });
         }
       } else if (r.intent === "ask_statistics" && r.statistic) {
         setBusy("Looking up the statistics…");
@@ -99,7 +104,7 @@ export function PlanChat({ s }: { s: PlanState }) {
         await askEvidence(r.evidenceQuestion);
       }
     } catch (e) {
-      add({ role: "assistant", content: `Sorry, that did not work (${(e as Error).message.slice(0, 160)}). You can retry, or use the Manual tab.` });
+      add({ role: "assistant", content: `Sorry, that did not work (${(e as Error).message.slice(0, 160)}). You can retry, or edit the plan on its page.` });
     } finally {
       setBusy(""); setLive(null);
     }
@@ -155,7 +160,8 @@ export function PlanChat({ s }: { s: PlanState }) {
             <div key={m.id} className="flex min-w-0 gap-3">
               <Mark />
               <div className="min-w-0 flex-1 space-y-2.5">
-                {m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
+                {m.rich?.kind === "plan" ? <PlanLink r={m.rich} text={m.content} />
+                  : m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
                   : m.rich?.kind === "evidence" ? <div className="space-y-2"><p className="text-xs text-ink-muted">{m.rich.question}</p><Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
                   : <p className="whitespace-pre-wrap">{m.content}</p>}
               </div>
@@ -241,6 +247,47 @@ function StatsTable({ data }: { data: RankingResponse }) {
         </table>
       </div>
       <p className="text-xs text-ink-muted">Greyed rows rest on fewer than 3 projects. {data.measure.note}</p>
+    </div>
+  );
+}
+
+const LINK_KEY = "procintel-plan-link";
+
+/** Save the chat's plan behind its link: the same link as before when this browser made it (so an open plan page shows
+ * the update), a new one otherwise. Returns the link, or null when saving failed. */
+async function publishPlan(body: unknown): Promise<{ id: string; expiresAt: string } | null> {
+  let id: string | null = null;
+  try { id = localStorage.getItem(LINK_KEY); } catch { /* storage blocked */ }
+  try {
+    if (id) {
+      const out = await api.updateShare(id, body);
+      if (!("error" in out)) return out;
+    }
+  } catch { /* expired or not ours: make a new one */ }
+  try {
+    const made = await api.createShare("plan", body);
+    if ("error" in made) return null;
+    try { localStorage.setItem(LINK_KEY, made.id); } catch { /* storage blocked */ }
+    return made;
+  } catch {
+    return null;
+  }
+}
+
+/** The chat's answer to a plan change: a card with the dates and the link that opens the plan on its own page. */
+function PlanLink({ r, text }: { r: Extract<Rich, { kind: "plan" }>; text: string }) {
+  return (
+    <div className="space-y-2">
+      <p className="whitespace-pre-wrap">{text.replace(/ The plan is at \S+\.$/, "")}</p>
+      <a href={`/shared?id=${r.id}`} target="_blank" rel="noreferrer"
+        className="flex items-center justify-between gap-3 rounded-xl border border-brand/40 bg-brand-soft px-4 py-3 hover:border-brand">
+        <span>
+          <span className="block font-medium">Procurement plan · {r.packages} package{r.packages === 1 ? "" : "s"}</span>
+          <span className="block text-xs text-ink-muted">All awarded by {r.end50 ?? "?"} (slow case {r.end90 ?? "?"}){r.bottleneck ? ` · bottleneck ${r.bottleneck}` : ""}</span>
+        </span>
+        <span className="shrink-0 text-xs font-medium text-brand">Open, edit or export →</span>
+      </a>
+      <p className="text-[11px] text-ink-muted">The link shows the latest version of this plan until {new Date(r.expiresAt).toLocaleDateString("en-GB")}.</p>
     </div>
   );
 }

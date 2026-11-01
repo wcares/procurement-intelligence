@@ -199,7 +199,7 @@ export function AssessView() {
         )}
         {result && assessed && <GoalPanel request={assessed} />}
         {result && assessed && <ExportButtons kind="assessment" body={{ request: assessed, response: result }} />}
-        {result && <Results r={result} />}
+        {result && <AssessResults r={result} />}
         {result && <Freshness only={["Notice", "ContractAward", "Document", "SupervisionDoc", "Indicator"]} />}
         <InsightsPanel wide procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
       </section>
@@ -207,7 +207,8 @@ export function AssessView() {
   );
 }
 
-function Results({ r }: { r: AssessResponse }) {
+/** The assessment's results (also shown on a shared link). */
+export function AssessResults({ r }: { r: AssessResponse }) {
   const show = (elementId: string) => {
     const el = document.getElementById(elementId);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });

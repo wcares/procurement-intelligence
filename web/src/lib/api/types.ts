@@ -833,3 +833,13 @@ export interface MapPoint {
   warnings: number;
   places: ProjectPlace[];
 }
+
+/** A temporary link to a plan or an assessment (GET /shares/<id>): what was shown when it was made. */
+export interface SharedItem {
+  id: string;
+  kind: "plan" | "assessment";
+  body: Record<string, unknown>;
+  createdBy?: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
