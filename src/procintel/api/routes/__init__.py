@@ -1,7 +1,7 @@
 """Endpoint groups. A new group is a module with a `router`, listed in ROUTERS with the role it needs (None: open,
 or the module guards its routes itself); roles are checked in the backend for every call (procintel.api.security)."""
 from procintel.api.routes import (ask, assess, assistant, auth, conversations, dashboard, evaluation, exports, feedback, figures, health, insights, intake, jobs, media,
-                                  monitoring, pipeline, prompts, settings, shadows, webhooks)
+                                  monitoring, pipeline, prompts, settings, shadows, shares, webhooks)
 
 ROUTERS = [
     (auth.router, None),         # sign-in is open; account management checks the admin role per route
@@ -12,6 +12,7 @@ ROUTERS = [
     (ask.router, "planner"),
     (figures.router, "planner"),  # the image of a cited figure
     (exports.router, "planner"),  # Word files of a plan or an assessment, made from what the page sends
+    (shares.router, "planner"),   # temporary read-only links to a plan or an assessment (signed-in users only)
     (media.router, "planner"),    # project photos and videos: any planner sees them; the uploader or an admin removes one
     (assistant.router, "planner"),  # the planning chat
     (conversations.router, "planner"),  # each user's saved conversations (plan chat and Ask), their own only
