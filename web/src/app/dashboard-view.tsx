@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { DashboardResponse, DashRecords, HeatmapResponse, RankingResponse, RankingRow } from "@/lib/api/types";
-import { Heatmap } from "@/components/dashboard/heatmap";
+import type { DashboardResponse, DashRecords, RankingResponse, RankingRow } from "@/lib/api/types";
 import { ProblemMix } from "@/components/dashboard/problem-mix";
 import { ProblemTrend } from "@/components/dashboard/problem-trend";
 import { RecentChangesCard } from "@/components/dashboard/recent-changes";
@@ -29,8 +28,6 @@ export function DashboardView() {
   const [measure, setMeasure] = useState("delay");
   const [group, setGroup] = useState("country");
   const [ranking, setRanking] = useState<RankingResponse | null>(null);
-  const [heat, setHeat] = useState<HeatmapResponse | null>(null);
-  const [heatMeasure, setHeatMeasure] = useState("delay");
   const [pick, setPick] = useState<{ title: string; key: string; group: string; measure: string; method?: string } | null>(null);
   const [records, setRecords] = useState<DashRecords | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +38,6 @@ export function DashboardView() {
   useEffect(() => {
     api.ranking(measure, group).then(setRanking).catch((e: Error) => setError(e.message));
   }, [measure, group]);
-  useEffect(() => {
-    api.heatmap(heatMeasure).then(setHeat).catch((e: Error) => setError(e.message));
-  }, [heatMeasure]);
   useEffect(() => {
     if (!pick) return;
     let live = true;
@@ -87,15 +81,6 @@ export function DashboardView() {
           </Card>
         </div>
       </div>
-      <Card title="Where it was slow: country by procurement method">
-        <div className="mb-2">
-          <select className={box} value={heatMeasure} onChange={(e) => setHeatMeasure(e.target.value)} aria-label="Heat map measure">
-            {dash.measures.filter((x) => x.level === "package").map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
-          </select>
-        </div>
-        {heat && <Heatmap data={heat} onSelect={(country, method, label) => select({ title: `${label} · ${method}: awarded packages`, key: country, group: "country", measure: heatMeasure, method })} />}
-        <p className="text-xs text-ink-muted">Cells with fewer than {heat?.minN ?? 5} awards are left out. Click a cell for its packages.</p>
-      </Card>
       <Card title="What the completion reports say went wrong">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <ProblemMix mix={dash.problemMix} />
