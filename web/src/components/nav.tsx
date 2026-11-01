@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "@/lib/api/client";
 import type { Role } from "@/lib/api/types";
+import { ChartNoAxesGantt, ChevronDown, LogOut } from "lucide-react";
 import { useAuth } from "./auth";
 
 // Planner pages are for planners (and reviewers, who also read Evaluation); an admin sees only the admin pages.
@@ -40,45 +41,42 @@ export function HeaderBar() {
     await refresh();
   }
   return (
-    <div className="mx-auto flex max-w-[1800px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 md:grid md:grid-cols-[1fr_auto_1fr] lg:px-8">
-      <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
-        <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-br from-brand-strong to-teal-500 text-white shadow-[0_2px_10px_rgba(74,116,214,0.25)]" aria-hidden>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-            <path d="M2.5 11V5l5.5-3 5.5 3v6L8 14z" />
-            <path d="M8 2v12M2.5 5L8 8l5.5-3" />
-          </svg>
+    <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-6 px-4 lg:px-8">
+      <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <ChartNoAxesGantt size={20} strokeWidth={1.75} className="text-brand" aria-hidden />
+        <span className="leading-tight">
+          <span className="block text-[15px] font-semibold text-brand-strong">Procurement Intelligence</span>
+          <span className="hidden text-[11px] text-ink-muted sm:block">Prototype · built on World Bank open data</span>
         </span>
-        Procurement Intelligence
       </Link>
       {user && (
         <>
-          <nav className="order-last flex w-full flex-wrap justify-center gap-1 text-sm md:order-none md:w-auto">
+          <nav className="flex h-full items-stretch gap-5 overflow-x-auto text-sm">
             {NAV.filter((n) => n.roles.includes(user.role)).map((n) => (
               <Link key={n.href} href={n.href} aria-current={on(path, n.href) ? "page" : undefined}
-                className={`rounded-md px-3 py-1.5 ${on(path, n.href) ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-subtle hover:text-foreground"}`}>
+                className={`flex items-center border-b-2 whitespace-nowrap transition-colors ${on(path, n.href) ? "border-brand-2 font-semibold text-brand-strong" : "border-transparent text-ink-muted hover:text-foreground"}`}>
                 {n.label}
               </Link>
             ))}
           </nav>
-          <div ref={menu} className="relative justify-self-end">
+          <div ref={menu} className="relative ml-auto">
             <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}
-              className="flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-2 transition hover:bg-subtle">
-              <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-brand-strong to-brand-2 text-xs font-semibold uppercase text-[#f1f4ff]" aria-hidden>
+              className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-subtle">
+              <span className="grid size-7 place-items-center rounded-full bg-brand text-[11px] font-semibold uppercase text-on-brand" aria-hidden>
                 {user.username.slice(0, 2)}
               </span>
-              <span className="text-left leading-tight">
-                <span className="block text-sm font-medium">{user.username}</span>
+              <span className="hidden text-left leading-tight sm:block">
+                <span className="block text-sm">{user.username}</span>
                 <span className="block text-[11px] capitalize text-ink-muted">{user.role}</span>
               </span>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={`text-ink-muted transition ${open ? "rotate-180" : ""}`} aria-hidden><path d="M2.5 4.5L6 8l3.5-3.5" /></svg>
+              <ChevronDown size={14} className="text-ink-muted" aria-hidden />
             </button>
             {open && (
-              <div role="menu" className="absolute right-0 z-30 mt-2 w-56 rounded-xl border border-line bg-surface p-1.5 shadow-2xl">
-                <div className="px-3 py-2 text-xs text-ink-muted">Signed in as <span className="font-medium text-foreground">{user.username}</span><br /><span className="capitalize">{user.role}</span></div>
+              <div role="menu" className="absolute right-0 z-30 mt-1 w-56 rounded-md border border-line bg-surface p-1 shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+                <div className="px-3 py-2 text-xs text-ink-muted">Signed in as <span className="font-medium text-foreground">{user.username}</span> · <span className="capitalize">{user.role}</span></div>
                 {user.mode === "local" ? (
-                  <button role="menuitem" onClick={signOut} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground transition hover:bg-subtle">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 2.5H3.5v11H6M10 5l3 3-3 3M13 8H6.5" /></svg>
-                    Sign out
+                  <button role="menuitem" onClick={signOut} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors hover:bg-subtle">
+                    <LogOut size={14} aria-hidden /> Sign out
                   </button>
                 ) : <p className="px-3 py-2 text-xs text-ink-muted">Signed in through your organisation.</p>}
               </div>

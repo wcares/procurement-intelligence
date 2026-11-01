@@ -61,7 +61,7 @@ export function PlanResults({ packages, plan, forecasts, projectStart, deadline,
                   slack={deadline ? { typical: daysBetween(r.award50, deadline), slow: r.p90Missing ? null : daysBetween(r.award90, deadline) } : null} />
                 <div className="relative mt-1 h-3 rounded bg-background">
                   <div className="absolute inset-y-0 rounded bg-risk-medium/40" style={{ left: pct(r.start50), width: `calc(${pct(r.award90)} - ${pct(r.start50)})` }} />
-                  <div className="absolute inset-y-0 rounded bg-gradient-to-r from-brand-strong to-teal-500" style={{ left: pct(r.start50), width: `calc(${pct(r.award50)} - ${pct(r.start50)})` }} />
+                  <div className="absolute inset-y-0 rounded bg-brand" style={{ left: pct(r.start50), width: `calc(${pct(r.award50)} - ${pct(r.start50)})` }} />
                   {deadline && deadline >= start && deadline <= end && <div className="absolute inset-y-[-3px] w-0.5 bg-risk-high" style={{ left: pct(deadline) }} />}
                 </div>
               </div>

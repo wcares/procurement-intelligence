@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SquarePen, Trash2 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { SavedConversation } from "@/lib/api/types";
 
@@ -82,7 +83,7 @@ export function HistoryMenu({ h }: { h: ReturnType<typeof useHistory> }) {
         History{h.list.length ? ` (${h.list.length})` : ""}
       </button>
       {open && (
-        <div className="absolute bottom-full left-0 z-30 mb-2 max-h-80 w-80 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-2xl">
+        <div className="absolute bottom-full left-0 z-30 mb-2 max-h-80 w-80 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
           {h.list.length === 0 ? <p className="px-3 py-3 text-xs text-ink-muted">No saved conversations yet. They are saved as you chat.</p> : h.list.map((c) => (
             <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-1 ${c.id === h.id ? "bg-brand-soft" : "hover:bg-subtle"}`}>
               <button type="button" className="min-w-0 flex-1 px-2 py-2 text-left" onClick={() => { void h.open(c.id); setOpen(false); }}>
@@ -98,5 +99,35 @@ export function HistoryMenu({ h }: { h: ReturnType<typeof useHistory> }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** The left column of the chat (as in Claude or ChatGPT): a new conversation, and the saved ones, newest first. Hidden on
+ * narrow screens, where the History menu below the composer would be the way in. */
+export function ConversationList({ h, busy }: { h: ReturnType<typeof useHistory>; busy: boolean }) {
+  return (
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-subtle md:flex">
+      <div className="p-3">
+        <button type="button" onClick={h.fresh} disabled={busy}
+          className="flex w-full items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-sm transition-colors hover:border-brand-2 disabled:opacity-50">
+          <SquarePen size={15} aria-hidden /> New conversation
+        </button>
+      </div>
+      <p className="px-4 pb-1 text-xs text-ink-muted">Recent</p>
+      <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+        {h.list.length === 0 ? <p className="px-2 py-2 text-xs text-ink-muted">Conversations are saved as you chat.</p> : h.list.map((c) => (
+          <div key={c.id} className={`group flex items-center rounded-md ${c.id === h.id ? "bg-surface font-medium" : "hover:bg-surface"}`}>
+            <button type="button" className="min-w-0 flex-1 px-2.5 py-2 text-left" onClick={() => void h.open(c.id)} disabled={busy}>
+              <span className="block truncate text-sm">{c.title}</span>
+              <span className="block text-[11px] font-normal text-ink-muted">{ago(c.updatedAt)}</span>
+            </button>
+            <button type="button" aria-label={`Delete ${c.title}`} onClick={() => void h.remove(c.id)}
+              className="mr-1 grid size-7 shrink-0 place-items-center rounded text-ink-muted opacity-0 transition-opacity hover:text-risk-high focus:opacity-100 group-hover:opacity-100">
+              <Trash2 size={13} aria-hidden />
+            </button>
+          </div>
+        ))}
+      </nav>
+    </aside>
   );
 }

@@ -1,35 +1,37 @@
 @import "tailwindcss";
 
+/* Colours follow the World Bank's own web design system ("The Loop", as worldbank.org's stylesheet defines it, read
+   2026-11-01): navy and blue for text and actions, its neutral greys, and its red / yellow / green states for risk.
+   Light by default; dark when the system asks for it or data-theme="dark". No gradients, glows or coloured shadows. */
 :root {
-  /* Midnight: one dark look for every page. Blue = actions and links, teal / amber / red = meaning (typical, slow, risk). */
-  color-scheme: dark;
-  --background: #06080f;
-  --foreground: #cfd6ea;
-  --surface: #0a0d17;
-  --subtle: #111626;
-  --line: #1a2038;
-  --ink-muted: #7c86a8;
-  --brand: #5b86e6;
-  --brand-strong: #4a74d6;
-  --brand-2: #6a5bd0;
-  --brand-soft: #121c3a;
-  --risk-high: #e8786c;
-  --risk-high-soft: #2b1412;
-  --risk-medium: #d09b40;
-  --risk-medium-soft: #2a200b;
-  --risk-low: #3bb877;
-  --risk-low-soft: #0c241a;
-  --glow: radial-gradient(60% 45% at 20% 0%, rgba(74, 116, 214, 0.1), transparent 70%);
-  /* chart series, fixed order (dataviz reference palette; validated on #ffffff and #1a1a19) */
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-6: #008300;
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #181f25;        /* neutral-solid-90 */
+  --surface: #ffffff;
+  --subtle: #f5f7f9;            /* neutral-solid-05 */
+  --line: #dae3eb;              /* neutral-solid-15 */
+  --ink-muted: #586e84;         /* neutral-solid-50 */
+  --brand: #004370;             /* blue-70: the Loop's primary */
+  --brand-strong: #002244;      /* brand dark blue */
+  --brand-2: #009fda;           /* brand blue */
+  --brand-soft: #e9f7fd;        /* blue-10 */
+  --on-brand: #ffffff;
+  --risk-high: #c91c25;         /* red-60 */
+  --risk-high-soft: #fdf2f2;    /* red-10 */
+  --risk-medium: #896001;       /* yellow-80 */
+  --risk-medium-soft: #fef3d7;  /* yellow-20 */
+  --risk-low: #2d7655;          /* pale green-60 */
+  --risk-low-soft: #e1f4eb;     /* pale green-10 */
+  /* chart series, fixed order */
+  --series-1: #004370;
+  --series-2: #df3416;
+  --series-3: #2d7655;
+  --series-4: #b27c00;
+  --series-5: #009fda;
+  --series-6: #586e84;
   /* shadcn/ui theme names, mapped onto the colours above (components in src/components/ui) */
   --primary: var(--brand);
-  --primary-foreground: #f1f4ff;
+  --primary-foreground: var(--on-brand);
   --secondary: var(--subtle);
   --secondary-foreground: var(--foreground);
   --muted: var(--subtle);
@@ -43,8 +45,63 @@
   --popover-foreground: var(--foreground);
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--brand);
+  --ring: var(--brand-2);
   --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: #0c0f12;
+    --foreground: #e7edf3;
+    --surface: #12171c;
+    --subtle: #181f25;
+    --line: #252e37;
+    --ink-muted: #8a9db1;
+    --brand: #169af3;
+    --brand-strong: #7fd8ff;
+    --brand-2: #47c4eb;
+    --brand-soft: #053657;
+    --on-brand: #ffffff;
+    --risk-high: #ec747a;
+    --risk-high-soft: #3a1416;
+    --risk-medium: #fed881;
+    --risk-medium-soft: #3b2c08;
+    --risk-low: #59c090;
+    --risk-low-soft: #10291d;
+    --series-1: #169af3;
+    --series-2: #f17f6a;
+    --series-3: #59c090;
+    --series-4: #fed881;
+    --series-5: #7fd8ff;
+    --series-6: #8a9db1;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0c0f12;
+  --foreground: #e7edf3;
+  --surface: #12171c;
+  --subtle: #181f25;
+  --line: #252e37;
+  --ink-muted: #8a9db1;
+  --brand: #169af3;
+  --brand-strong: #7fd8ff;
+  --brand-2: #47c4eb;
+  --brand-soft: #053657;
+  --on-brand: #ffffff;
+  --risk-high: #ec747a;
+  --risk-high-soft: #3a1416;
+  --risk-medium: #fed881;
+  --risk-medium-soft: #3b2c08;
+  --risk-low: #59c090;
+  --risk-low-soft: #10291d;
+  --series-1: #169af3;
+  --series-2: #f17f6a;
+  --series-3: #59c090;
+  --series-4: #fed881;
+  --series-5: #7fd8ff;
+  --series-6: #8a9db1;
 }
 
 @theme inline {
@@ -58,6 +115,7 @@
   --color-brand-soft: var(--brand-soft);
   --color-brand-strong: var(--brand-strong);
   --color-brand-2: var(--brand-2);
+  --color-on-brand: var(--on-brand);
   --color-risk-high: var(--risk-high);
   --color-risk-high-soft: var(--risk-high-soft);
   --color-risk-medium: var(--risk-medium);
@@ -83,22 +141,33 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --font-sans: var(--font-open-sans);
+  --font-mono: var(--font-roboto-mono);
 }
 
 body {
   background-color: var(--background);
-  background-image: var(--glow);
-  background-attachment: fixed;
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-open-sans), "Open Sans", system-ui, sans-serif;
 }
 
-/* Primary actions wear the Midnight gradient (blue to violet) wherever a button uses the brand colour. */
+/* Primary actions are solid navy (the Loop's primary), with white text, in both themes. */
 .bg-brand,
 .bg-primary {
-  background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-2));
-  color: #f1f4ff;
+  background-color: var(--brand);
+  color: var(--on-brand);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--foreground);
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
 }

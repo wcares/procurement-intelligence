@@ -15,16 +15,16 @@ export function PlanView() {
   const s = usePlan();
   const [tab, setTab] = useState<Tab>(((t) => (TABS.includes(t ?? "") ? t : "chat") as Tab)(useSearchParams().get("tab")));   // /assess and /ask redirect here
   if (!s.ready) return <p className="text-sm text-ink-muted">Loading…</p>;
-  const seg = (on: boolean) => `rounded-lg px-3.5 py-1.5 text-sm font-medium ${on ? "bg-brand" : "text-ink-muted hover:text-foreground"}`;
   return (
     // fills the space between the header and the footer; the negative margins cancel the page padding
-    <div className="-mx-4 -my-8 flex h-[calc(100dvh-110px)] min-h-[560px] flex-col lg:-mx-8 print:h-auto print:min-h-0">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 lg:px-8 print:hidden">
-        <div className="inline-flex gap-0.5 rounded-[10px] bg-subtle p-[3px]" role="group" aria-label="Plan mode">
-          <button type="button" onClick={() => setTab("chat")} aria-pressed={tab === "chat"} className={seg(tab === "chat")}>Chat</button>
-          <button type="button" onClick={() => setTab("assess")} aria-pressed={tab === "assess"} className={seg(tab === "assess")}>Assess a package</button>
-        </div>
-        <p className="hidden text-xs text-ink-muted xl:block">Describe the project&apos;s packages and the chat forecasts each one and gives you a link to the plan, where you can edit and export it. Ask to change it here and the same link updates. Ask about past projects in any country in the same chat.</p>
+    <div className="-mx-4 -my-8 flex h-[calc(100dvh-116px)] min-h-[560px] flex-col lg:-mx-8 print:h-auto print:min-h-0">
+      <div className="flex h-11 items-stretch gap-6 border-b border-line px-4 text-sm lg:px-8 print:hidden" role="tablist" aria-label="Planning workspace">
+        {(["chat", "assess"] as const).map((t) => (
+          <button key={t} type="button" role="tab" onClick={() => setTab(t)} aria-selected={tab === t}
+            className={`border-b-2 transition-colors ${tab === t ? "border-brand-2 font-semibold text-brand-strong" : "border-transparent text-ink-muted hover:text-foreground"}`}>
+            {t === "chat" ? "Chat" : "Assess a package"}
+          </button>
+        ))}
       </div>
       {tab === "assess" ? (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 lg:px-8 print:overflow-visible">
@@ -32,7 +32,7 @@ export function PlanView() {
           <AssessView />
         </div>
       ) : (
-        <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col"><PlanChat s={s} /></div>
+        <div className="flex min-h-0 w-full flex-1"><PlanChat s={s} /></div>
       )}
     </div>
   );

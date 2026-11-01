@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HistoryMenu, useHistory } from "@/components/history";
+import { ArrowUp, Loader2 } from "lucide-react";
+import { ConversationList, useHistory } from "@/components/history";
 import { api } from "@/lib/api/client";
 import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/api/types";
 import { Answer } from "@/components/ask/answer";
@@ -24,7 +25,6 @@ const STARTERS: { kind: "Plan" | "Statistics" | "Evidence"; text: string }[] = [
   { kind: "Evidence", text: "What usually goes wrong with road works tenders?" },
   { kind: "Plan", text: "Plan a health project in India: medical equipment for 20 million and a training consultancy, all awarded within 18 months" },
 ];
-const KIND_COLOR = { Plan: "border-t-brand text-brand", Statistics: "border-t-risk-low text-risk-low", Evidence: "border-t-risk-medium text-risk-medium" } as const;
 const KEEP_TURNS = 14;
 const KEEP_CHARS = 900;
 
@@ -129,109 +129,98 @@ export function PlanChat({ s }: { s: PlanState }) {
   const empty = msgs.length === 0 && !busy;
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-6 lg:px-8">
-        <div className="mx-auto flex max-w-2xl flex-col gap-6 text-sm">
-          {empty && (
-            <div className="flex flex-col gap-5 pt-[4vh]">
-              <h2 className="bg-gradient-to-r from-foreground via-[#8fa9e6] to-[#7cc9bb] bg-clip-text text-3xl font-semibold leading-tight tracking-tight text-transparent">What are you planning?</h2>
-              <p className="max-w-[52ch] text-ink-muted">Tell me what you want to plan. I will ask for what is missing, forecast it, and you can keep talking: change a method, ask about the risks, or ask what went wrong in past projects.</p>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {STARTERS.map((t) => (
-                  <button key={t.text} type="button" onClick={() => void send(t.text)}
-                    className={`flex flex-col gap-1.5 rounded-xl border border-t-2 border-line bg-surface p-3.5 text-left transition hover:-translate-y-px hover:bg-subtle ${KIND_COLOR[t.kind]}`}>
-                    <span className="text-[11px] font-semibold uppercase tracking-widest">{t.kind}</span>
-                    <span className="text-[13px] leading-snug text-foreground">{t.text}</span>
-                  </button>
-                ))}
+    <div className="flex min-h-0 min-w-0 flex-1">
+      <ConversationList h={history} busy={Boolean(busy)} />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-8 lg:px-8">
+          <div className="mx-auto flex max-w-3xl flex-col gap-7 text-[15px] leading-relaxed">
+            {empty && (
+              <div className="flex flex-col gap-6 pt-[6vh]">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-semibold text-brand-strong">What are you planning?</h2>
+                  <p className="max-w-[60ch] text-ink-muted">Describe a project&apos;s packages and I will forecast each one from comparable World Bank packages and give you the plan as a page you can edit and export. You can also ask what went wrong in past projects, in any country.</p>
+                </div>
+                <div className="divide-y divide-line border-y border-line">
+                  {STARTERS.map((t) => (
+                    <button key={t.text} type="button" onClick={() => void send(t.text)}
+                      className="flex w-full items-start gap-3 px-1 py-3 text-left transition-colors hover:bg-subtle">
+                      <span className="w-20 shrink-0 pt-0.5 text-xs text-ink-muted">{t.kind}</span>
+                      <span className="text-sm">{t.text}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {msgs.map((m) => m.summary ? (
-            <details key={m.id} className="rounded-xl border border-dashed border-line px-3.5 py-2.5 text-xs text-ink-muted">
-              <summary className="cursor-pointer">Earlier messages were summarized to make room. Show the summary</summary>
-              <p className="mt-2 whitespace-pre-wrap text-foreground">{m.content}</p>
-            </details>
-          ) : m.role === "user" ? (
-            <div key={m.id} className="flex justify-end">
-              <p className="max-w-[85%] whitespace-pre-wrap rounded-[18px_18px_4px_18px] bg-gradient-to-br from-brand-strong to-brand-2 px-3.5 py-2 text-[#f1f4ff]">{m.content}</p>
-            </div>
-          ) : (
-            <div key={m.id} className="flex min-w-0 gap-3">
-              <Mark />
-              <div className="min-w-0 flex-1 space-y-2.5">
+            )}
+            {msgs.map((m) => m.summary ? (
+              <details key={m.id} className="border-l-2 border-line pl-3 text-xs text-ink-muted">
+                <summary className="cursor-pointer">Earlier messages were summarized to make room. Show the summary</summary>
+                <p className="mt-2 whitespace-pre-wrap text-foreground">{m.content}</p>
+              </details>
+            ) : m.role === "user" ? (
+              <div key={m.id} className="flex justify-end">
+                <p className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-subtle px-4 py-2.5">{m.content}</p>
+              </div>
+            ) : (
+              <div key={m.id} className="min-w-0 space-y-3">
                 {m.rich?.kind === "plan" ? <PlanLink r={m.rich} text={m.content} />
                   : m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
                   : m.rich?.kind === "evidence" ? <div className="space-y-2"><p className="text-xs text-ink-muted">{m.rich.question}</p><Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
                   : <p className="whitespace-pre-wrap">{m.content}</p>}
               </div>
-            </div>
-          ))}
-          {(live || busy) && (
-            <div className="flex min-w-0 gap-3">
-              <Mark />
-              <div className="min-w-0 flex-1">
+            ))}
+            {(live || busy) && (
+              <div className="min-w-0">
                 {live ? <LiveAnswer live={live} /> : (
-                  <p className="flex items-center gap-2 text-ink-muted"><span className="inline-block size-2 animate-pulse rounded-full bg-brand" aria-hidden />{s.running && s.progress ? s.progress : busy}</p>
+                  <p className="flex items-center gap-2 text-sm text-ink-muted"><Loader2 size={14} className="animate-spin" aria-hidden />{s.running && s.progress ? s.progress : busy}</p>
                 )}
               </div>
-            </div>
-          )}
-          <div ref={bottom} />
-        </div>
-      </div>
-      {ctx?.warn && !full && (
-        <div className="mx-4 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-risk-medium-soft px-3 py-2 text-xs text-risk-medium lg:mx-8">
-          <span>This conversation is getting long ({pct}% of what the model can hold).</span>
-          <button className="font-medium underline underline-offset-2" onClick={() => void compact()} disabled={Boolean(busy)}>Summarize and continue</button>
-          <button className="underline underline-offset-2" onClick={restart}>Start a new one</button>
-          <span>Your plan stays either way.</span>
-        </div>
-      )}
-      <div className="px-4 pb-4 pt-2 lg:px-8">
-        {full ? (
-          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
-            <span>This conversation has reached the model&apos;s length limit.</span>
-            <span className="flex shrink-0 gap-2">
-              <button className="rounded-lg bg-brand px-3 py-1.5 font-medium" onClick={() => void compact()} disabled={Boolean(busy)}>Summarize and continue</button>
-              <button className="rounded-lg border border-line px-3 py-1.5" onClick={restart}>Start a new one</button>
-            </span>
+            )}
+            <div ref={bottom} />
           </div>
-        ) : (
-          <form className="mx-auto flex max-w-2xl items-end gap-2.5 rounded-2xl border border-line bg-surface py-2.5 pl-4 pr-2.5 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft"
-            onSubmit={(e) => { e.preventDefault(); void send(input); }}>
-            <textarea className="max-h-32 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm leading-snug outline-none placeholder:text-ink-muted" rows={1}
-              placeholder="Describe what you want to plan, or ask a question…" aria-label="Message" value={input} maxLength={1500} disabled={Boolean(busy)}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }} />
-            {pct >= 50 && <span className={`mb-2 shrink-0 text-[11px] ${pct >= 70 ? "text-risk-medium" : "text-ink-muted"}`} title="How much of what the model can hold this conversation uses">{pct}% full</span>}
-            <button type="submit" disabled={Boolean(busy) || !input.trim()} aria-label="Send"
-              className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-brand disabled:opacity-35">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" /></svg>
-            </button>
-          </form>
-        )}
-        <div className="mx-auto mt-2 flex max-w-2xl items-center justify-between gap-3 text-[11.5px] text-ink-muted">
-          <HistoryMenu h={history} />
-          {msgs.length > 0 && <button className="underline underline-offset-2" onClick={restart}>New conversation</button>}
+        </div>
+        <div className="px-4 pb-5 pt-1 lg:px-8">
+          <div className="mx-auto max-w-3xl space-y-2">
+            {ctx?.warn && !full && (
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-risk-medium">
+                <span>This conversation is getting long ({pct}% of what the model can hold).</span>
+                <button className="underline underline-offset-2" onClick={() => void compact()} disabled={Boolean(busy)}>Summarize and continue</button>
+                <button className="underline underline-offset-2" onClick={restart}>Start a new one</button>
+              </p>
+            )}
+            {full ? (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-line px-4 py-3 text-sm">
+                <span>This conversation has reached the model&apos;s length limit.</span>
+                <span className="flex shrink-0 gap-2">
+                  <button className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium" onClick={() => void compact()} disabled={Boolean(busy)}>Summarize and continue</button>
+                  <button className="rounded-md border border-line px-3 py-1.5" onClick={restart}>Start a new one</button>
+                </span>
+              </div>
+            ) : (
+              <form className="flex items-end gap-2 rounded-lg border border-line bg-surface p-2 pl-4 transition-colors focus-within:border-brand-2"
+                onSubmit={(e) => { e.preventDefault(); void send(input); }}>
+                <textarea className="max-h-40 min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] leading-snug outline-none placeholder:text-ink-muted" rows={1}
+                  placeholder="Describe what you want to plan, or ask about past projects…" aria-label="Message" value={input} maxLength={1500} disabled={Boolean(busy)}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }} />
+                {pct >= 50 && <span className={`mb-2.5 shrink-0 text-[11px] ${pct >= 70 ? "text-risk-medium" : "text-ink-muted"}`} title="How much of what the model can hold this conversation uses">{pct}% full</span>}
+                <button type="submit" disabled={Boolean(busy) || !input.trim()} aria-label="Send"
+                  className="grid size-9 shrink-0 place-items-center rounded-md bg-brand transition-opacity disabled:opacity-30">
+                  <ArrowUp size={16} aria-hidden />
+                </button>
+              </form>
+            )}
+            <p className="text-center text-[11px] text-ink-muted">Forecasts come from past World Bank packages and every answer cites its source report. Check them before you rely on them.</p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function Mark() {
-  return (
-    <span className="mt-0.5 grid size-[26px] shrink-0 place-items-center rounded-lg bg-gradient-to-br from-brand-strong to-teal-500 text-white" aria-hidden>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M2.5 11V5l5.5-3 5.5 3v6L8 14z" /><path d="M8 2v12M2.5 5L8 8l5.5-3" /></svg>
-    </span>
-  );
-}
-
 function StatsTable({ data }: { data: RankingResponse }) {
   const rows = data.rows.slice(0, 10);
   return (
-    <div className="space-y-1.5 rounded-xl border border-line bg-surface p-3.5">
+    <div className="space-y-1.5">
       <p className="text-xs font-semibold">{data.measure.label}, by {data.groupLabel.toLowerCase()} (worst first)</p>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">

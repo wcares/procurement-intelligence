@@ -29,7 +29,7 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
           <span key={i}>
             {s.text}{" "}
             {s.citations.map((c) => (
-              <a key={c} href={`#t${turnId}-c${c}`} className="mx-px inline-grid h-[18px] min-w-[18px] place-items-center rounded-md bg-brand-soft px-1 align-[1px] font-mono text-[11px] font-medium text-brand hover:bg-brand hover:text-[#f1f4ff]">
+              <a key={c} href={`#t${turnId}-c${c}`} className="mx-px inline-grid h-[18px] min-w-[18px] place-items-center rounded-md bg-brand-soft px-1 align-[1px] font-mono text-[11px] font-medium text-brand hover:bg-brand hover:text-on-brand">
                 [{c + 1}]
               </a>
             ))}{" "}
