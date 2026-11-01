@@ -53,17 +53,14 @@ export function HeaderBar() {
     await refresh();
   }
   return (
-    <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-6 px-4 lg:px-8">
-      <Link href="/" className="flex shrink-0 items-center gap-2.5">
+    <div className="mx-auto grid h-14 max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-6 px-4 lg:px-8">
+      <Link href="/" className="flex items-center gap-2.5 justify-self-start">
         <ChartNoAxesGantt size={20} strokeWidth={1.75} className="text-brand" aria-hidden />
-        <span className="leading-tight">
-          <span className="block text-[15px] font-semibold text-brand-strong">Procurement Intelligence</span>
-          <span className="hidden text-[11px] text-ink-muted sm:block">Prototype · built on World Bank open data</span>
-        </span>
+        <span className="text-[15px] font-semibold text-brand-strong">Procurement Intelligence</span>
       </Link>
-      {user && (
+      {user ? (
         <>
-          <nav className="flex h-full items-stretch gap-5 overflow-x-auto text-sm">
+          <nav className="flex h-full items-stretch gap-6 overflow-x-auto text-sm">
             {NAV.filter((n) => n.roles.includes(user.role)).map((n) => (
               <Link key={n.href} href={n.href} aria-current={on(path, n.href) ? "page" : undefined}
                 className={`flex items-center border-b-2 whitespace-nowrap transition-colors ${on(path, n.href) ? "border-brand-2 font-semibold text-brand-strong" : "border-transparent text-ink-muted hover:text-foreground"}`}>
@@ -71,7 +68,7 @@ export function HeaderBar() {
               </Link>
             ))}
           </nav>
-          <div ref={menu} className="relative ml-auto">
+          <div ref={menu} className="relative justify-self-end">
             <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}
               className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-subtle">
               <span className="grid size-7 place-items-center rounded-full bg-brand text-[11px] font-semibold uppercase text-on-brand" aria-hidden>
@@ -98,7 +95,7 @@ export function HeaderBar() {
             )}
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
