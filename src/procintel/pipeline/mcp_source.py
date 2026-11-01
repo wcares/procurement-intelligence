@@ -135,9 +135,24 @@ def list_items(server: dict) -> dict[str, dict]:
 
 
 def read_item(server: dict, uri: str) -> bytes:
+    out = read_items(server, [uri])[uri]
+    if isinstance(out, Exception):
+        raise out
+    return out
+
+
+def read_items(server: dict, uris: list[str]) -> dict[str, bytes | Exception]:
+    """Several documents in one session (a local server is started once, not once per document); a document that
+    fails gives its exception, the others are still read."""
     async def go():
+        out: dict[str, bytes | Exception] = {}
         async with _client(server) as client:
-            return await _read(client, uri)
+            for uri in uris:
+                try:
+                    out[uri] = await _read(client, uri)
+                except Exception as e:   # noqa: BLE001 - one document failing does not stop the others
+                    out[uri] = e
+        return out
     return _run(go())
 
 
@@ -261,6 +276,18 @@ def ingest(keys: list[str], events: dict[str, dict], ctx: dict) -> list[dict]:
     upload of a changed or removed one out. Intake queues its own indexing (Upload.ingested), so nothing is returned."""
     from procintel.intake import process, store as intake_store
     conf = {s["name"]: s for s in servers()}
+    wanted: dict[str, list[str]] = {}                     # documents to read, by server: one session each
+    for k in keys:
+        row = (events.get(k) or {}).get("new")
+        if row and row["server"] in conf and fmt_of(row):
+            wanted.setdefault(row["server"], []).append(row["uri"])
+    contents: dict[tuple[str, str], bytes | Exception] = {}
+    for name, uris in wanted.items():
+        try:
+            got = read_items(conf[name], uris)
+        except Exception as e:   # noqa: BLE001 - the server could not be reached: each document records it
+            got = {u: e for u in uris}
+        contents.update({(name, u): v for u, v in got.items()})
     for k in keys:
         ev = events.get(k)
         if ev is None:
@@ -278,9 +305,9 @@ def ingest(keys: list[str], events: dict[str, dict], ctx: dict) -> list[dict]:
             why = "server no longer configured" if server is None else f"format not readable ({row.get('mime_type')})"
             _set(k, row, old, "skipped", why)
             continue
-        try:
-            content = read_item(server, row["uri"])
-        except Exception as e:   # noqa: BLE001 - one document failing does not stop the others
+        content = contents.get((row["server"], row["uri"]))
+        if not isinstance(content, bytes):
+            e = content or RuntimeError("not read")
             _set(k, row, old, "failed", f"read failed: {type(e).__name__}: {e}")
             continue
         filename = row["name"] if "." in (row["name"] or "") else f"{row['name']}.{fmt}"

@@ -26,7 +26,6 @@ RETRY_CAP = 300.0
 
 _state: dict[str, dict] = {}
 _thread: threading.Thread | None = None
-_loop: asyncio.AbstractEventLoop | None = None
 
 
 def _now() -> str:
@@ -115,13 +114,8 @@ def start() -> None:
     if not servers or (_thread and _thread.is_alive()):
         return
 
-    def run() -> None:
-        global _loop
-        _loop = asyncio.new_event_loop()
-        try:
-            _loop.run_until_complete(asyncio.gather(*(follow(s) for s in servers)))
-        finally:
-            _loop.close()
+    async def all_servers() -> None:
+        await asyncio.gather(*(follow(s) for s in servers))
 
-    _thread = threading.Thread(target=run, name="procintel-mcp-listen", daemon=True)
+    _thread = threading.Thread(target=lambda: asyncio.run(all_servers()), name="procintel-mcp-listen", daemon=True)
     _thread.start()
