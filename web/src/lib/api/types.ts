@@ -293,6 +293,8 @@ export interface JobsResponse {
   runAfterIdleSeconds: number;
   /** kinds that run while the app is in use (no answer or embedding model) */
   lightKinds?: string[];
+  /** background work has a model of its own, so no job waits for a quiet app */
+  dedicatedModel?: boolean;
   running: string | null;
   workerOn: boolean;
   /** thread: worker inside the backend; external: separate worker processes; off */

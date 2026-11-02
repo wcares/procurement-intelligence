@@ -1,3 +1,4 @@
+import pytest
 from datetime import timedelta, timezone
 
 from procintel.jobs import handlers, store, worker
@@ -10,6 +11,14 @@ class Clock:
     def __call__(self):
         return self.t
 
+
+
+@pytest.fixture(autouse=True)
+def _no_background_model(monkeypatch):
+    """The worker's idle rule depends on whether background work has a model of its own; the API tests load the live
+    data/config.json into this process, so a background model saved there would leak into these tests."""
+    for v in ("PROCINTEL_BATCH_MODEL", "PROCINTEL_BATCH_API_BASE", "PROCINTEL_BATCH_API_KEY"):
+        monkeypatch.delenv(v, raising=False)
 
 def test_store_dedupes_retries_and_recovers(tmp_path):
     db = tmp_path / "jobs.duckdb"

@@ -22,9 +22,13 @@ export function JobsList() {
       <h3 className="font-semibold">Recent jobs</h3>
       <p className="mt-1 mb-4 text-sm text-ink-muted">
         Work the app does on its own: checking the World Bank sources, updating the data, measuring quality, retraining
-        the forecast. Light jobs (checking sources, taking in documents and records) start at once; heavier ones wait
-        until the app has had no requests for {queue ? Math.round(queue.runAfterIdleSeconds / 60) : 5} minutes, so they
-        never slow anyone down. Updates every 10 seconds.
+        the forecast.{" "}
+        {queue?.dedicatedModel
+          ? "Background work has a model of its own (Settings > Models), so every job starts at once without slowing anyone down."
+          : <>Light jobs (checking sources, taking in documents and records) start at once; heavier ones wait until the app has
+            had no requests for {queue ? Math.round(queue.runAfterIdleSeconds / 60) : 5} minutes, so they never slow anyone
+            down.</>}{" "}
+        Updates every 10 seconds.
       </p>
       {jobs === null ? <p className="text-sm text-ink-muted">Loading…</p> : jobs.length === 0 ? <p className="text-sm text-ink-muted">No jobs yet.</p> : (
         <div className="overflow-x-auto">

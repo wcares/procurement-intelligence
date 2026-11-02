@@ -68,7 +68,9 @@ export function Jobs() {
       <h2 className="mb-3 text-lg font-semibold">Background jobs</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-ink-muted">
-          Jobs run only after {data.runAfterIdleSeconds} s without requests and pause when someone uses the app. Idle now:{" "}
+          {data.dedicatedModel
+            ? "Background work has a model of its own, so jobs run at once and do not pause for users."
+            : `Light jobs run at once; the others run only after ${data.runAfterIdleSeconds} s without requests and pause when someone uses the app.`} Idle now:{" "}
           {data.idleSeconds} s{data.running ? ` · running: ${label(data.running)}` : ""}
           {!data.workerOn && " · worker is off (PROCINTEL_JOBS=0)"}
           {data.workerMode === "external" && " · separate worker processes"}. High-priority jobs run first, background

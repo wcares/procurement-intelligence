@@ -91,9 +91,12 @@ def _request(system: str, user: str, temperature: float | None, max_tokens: int 
     extra = _env(prefix, "EXTRA_BODY")
     if extra:
         kw.setdefault("extra_body", json.loads(extra))
+    base, key = _env(prefix, "API_BASE"), _env(prefix, "API_KEY")
+    if base and not key:
+        key = "local"   # a server of our own (llama.cpp) ignores the key, but the client refuses to call without one
     return dict(model=m, messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
                 temperature=TEMPERATURE if temperature is None else temperature, max_tokens=max_tokens,
-                api_base=_env(prefix, "API_BASE"), api_key=_env(prefix, "API_KEY"), **kw)
+                api_base=base, api_key=key, **kw)
 
 
 def _cut(max_tokens: int | None) -> RuntimeError:

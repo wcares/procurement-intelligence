@@ -51,7 +51,10 @@ def stop() -> None:
 
 
 def status() -> dict:
+    from procintel.core import llm
     return {"idleSeconds": round(activity.idle_for()), "runAfterIdleSeconds": worker.IDLE_SECONDS,
+            # background work has a model of its own: no job waits for a quiet app (procintel.jobs.worker.tick)
+            "dedicatedModel": llm.batch_dedicated(),
             "running": job_worker.current,
             "workerOn": MODE == "external" or (job_worker.thread is not None and job_worker.thread.is_alive()),
             "workerMode": {"1": "thread", "external": "external"}.get(MODE, "off"),

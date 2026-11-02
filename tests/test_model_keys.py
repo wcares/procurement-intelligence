@@ -61,3 +61,16 @@ def test_the_model_test_reports_the_reply_and_hides_a_key_in_an_error(keys, monk
     monkeypatch.setattr(llm, "complete", refuse)
     out = settings.post_model_test(ModelTest(role="llm"))
     assert not out["ok"] and "sk-ant-very-secret" not in out["error"] and "<key>" in out["error"]
+
+
+def test_a_model_with_its_own_address_and_no_key_gets_a_placeholder_key(monkeypatch):
+    from procintel.core import llm
+    monkeypatch.setenv("PROCINTEL_BATCH_MODEL", "openai/saluki-27b")
+    monkeypatch.setenv("PROCINTEL_BATCH_API_BASE", "http://127.0.0.1:8080/v1")
+    monkeypatch.delenv("PROCINTEL_BATCH_API_KEY", raising=False)
+    args = llm._request("s", "u", None, None, llm.BATCH, {})
+    assert args["api_key"] == "local"
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "anthropic/claude-sonnet-5-5")   # a hosted model, no address: no placeholder
+    monkeypatch.delenv("PROCINTEL_LLM_API_BASE", raising=False)
+    monkeypatch.setenv("PROCINTEL_LLM_API_KEY", "sk-ant-real")
+    assert llm._request("s", "u", None, None, llm.ANSWER, {})["api_key"] == "sk-ant-real"

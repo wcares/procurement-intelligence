@@ -25,7 +25,7 @@ def test_a_batch_endpoint_takes_over_inside_a_job_only(monkeypatch):
         args = llm._request("s", "u", None, None, llm.ANSWER, {})
         judge = llm._request("s", "u", None, None, llm.JUDGE, {}) if llm.available(llm.JUDGE) else None
     assert args["api_base"] == "http://b/v1" and args["model"] == "openai/saluki"   # same model name, other server
-    assert args["api_key"] is None                                                    # the answer endpoint's key is not sent elsewhere
+    assert args["api_key"] == "local"          # the answer endpoint's key (k1) is not sent elsewhere; a placeholder is
     assert judge is None
     after = llm._request("s", "u", None, None, llm.ANSWER, {})
     assert after["api_base"] == "http://a/v1" and after["api_key"] == "k1"           # a user's request is unaffected

@@ -30,9 +30,10 @@ const mins = (from: string, to?: string | null) => {
 /** One line: where a job is (waiting, running, done, failed) and, when done or failed, how long it took or why. With the
  * queue's state it says why a waiting job waits: a light one starts within seconds; a heavier one waits until the app
  * has had no requests for a while, and how long is left. */
-export function jobState(j: Job, q?: Pick<JobsResponse, "idleSeconds" | "runAfterIdleSeconds" | "lightKinds"> | null): { text: string; tone: "muted" | "ok" | "bad" } {
+export function jobState(j: Job, q?: Pick<JobsResponse, "idleSeconds" | "runAfterIdleSeconds" | "lightKinds" | "dedicatedModel"> | null): { text: string; tone: "muted" | "ok" | "bad" } {
   if (j.status === "pending") {
     if (!q) return { text: "Waiting to start", tone: "muted" };
+    if (q.dedicatedModel) return { text: "Starting within seconds (background work has a model of its own)", tone: "muted" };
     if (q.lightKinds?.includes(j.kind) || q.idleSeconds >= q.runAfterIdleSeconds) return { text: "Starting within seconds", tone: "muted" };
     const left = q.runAfterIdleSeconds - q.idleSeconds;
     return { text: `Waiting for a quiet moment: starts after ${Math.ceil(left / 60)} more min without requests (the app was last used ${q.idleSeconds} s ago)`, tone: "muted" };
