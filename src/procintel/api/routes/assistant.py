@@ -30,6 +30,14 @@ def _grounded(reply: str, *sources: str) -> bool:
     return _numbers(reply) <= allowed
 
 
+def lessons_question(message: str, plan: dict, options: dict) -> str:
+    """A question for the reports from a planner's question about a plan that has no forecast yet: their own words, with
+    the plan's country when one is set."""
+    country = next((c["name"] for c in options.get("countries", []) if c["code"] == plan.get("countryCode")), None)
+    where = f" in {country}" if country else ""
+    return f"What lessons from past World Bank projects{where} help plan procurement better? The planner asked: {message.strip()}"
+
+
 @router.post("/assistant/plan")
 def post_plan_chat(req: PlanChatRequest) -> dict:
     s = state()
@@ -51,6 +59,11 @@ def post_plan_chat(req: PlanChatRequest) -> dict:
     r = resolve.resolve(raw, options, plan, today)
     if r["intent"] == "update_plan":
         reply = resolve.compose_reply(r)
+    elif r["intent"] == "explain_plan" and not req.results:
+        # no forecast yet: rather than a dead end, answer from past projects (the page asks the evidence)
+        r["intent"] = "ask_evidence"
+        r["evidenceQuestion"] = lessons_question(history[-1]["content"], plan, options)
+        reply = "There is no forecast yet (add packages and I will forecast them), so here is what past reports say."
     elif r["intent"] == "explain_plan":
         reply = r["modelReply"]
         if not req.results or not _grounded(reply, req.results, str(plan)):

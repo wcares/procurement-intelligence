@@ -166,3 +166,15 @@ def test_a_cited_passage_can_be_fetched_by_its_id(client):
     r = client.get(f"/passages/{rec['chunk_id']}")
     assert r.status_code == 200 and r.json()["id"] == rec["chunk_id"] and r.json()["quote"] == rec["text"]
     assert client.get("/passages/no-such-passage").status_code == 404
+
+
+def test_a_plan_question_without_a_forecast_is_answered_from_past_projects(client, monkeypatch):
+    from procintel.assistant import interpret
+    monkeypatch.setattr(interpret, "interpret", lambda *a, **k: {"intent": "explain_plan", "packages": [],
+                                                                 "reply": "Your plan's bottleneck is ..."})
+    from procintel.core import llm
+    monkeypatch.setattr(llm, "available", lambda prefix=llm.ANSWER: True)
+    r = client.post("/assistant/plan", json={"messages": [{"role": "user", "content": "what would you recommend for a better plan"}],
+                                             "plan": {"countryCode": "MA", "packages": []}, "results": ""}).json()
+    assert r["intent"] == "ask_evidence" and "no forecast yet" in r["reply"]
+    assert "Morocco" in r["evidenceQuestion"] and "what would you recommend for a better plan" in r["evidenceQuestion"]
