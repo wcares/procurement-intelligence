@@ -30,14 +30,25 @@ const mins = (from: string, to?: string | null) => {
 /** One line: where a job is (waiting, running, done, failed) and, when done or failed, how long it took or why. With the
  * queue's state it says why a waiting job waits: a light one starts within seconds; a heavier one waits until the app
  * has had no requests for a while, and how long is left. */
-export function jobState(j: Job, q?: Pick<JobsResponse, "idleSeconds" | "runAfterIdleSeconds" | "lightKinds" | "dedicatedModel"> | null): { text: string; tone: "muted" | "ok" | "bad" } {
+type Queue = Pick<JobsResponse, "idleSeconds" | "runAfterIdleSeconds" | "lightKinds" | "dedicatedModel" | "waitsForModels" | "modelsFreeSeconds">;
+
+const clockTime = (utc: string) => new Date(utc.endsWith("Z") ? utc : `${utc}Z`).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+export function jobState(j: Job, q?: Queue | null): { text: string; tone: "muted" | "ok" | "bad" } {
   if (j.status === "pending") {
+    if (j.hold) return { text: "Paused: starts when you resume it", tone: "muted" };
+    if (j.not_before && new Date(`${j.not_before}Z`) > new Date()) return { text: `Scheduled: starts after ${clockTime(j.not_before)}`, tone: "muted" };
     if (!q) return { text: "Waiting to start", tone: "muted" };
-    if (q.dedicatedModel) return { text: "Starting within seconds (background work has a model of its own)", tone: "muted" };
-    if (q.lightKinds?.includes(j.kind) || q.idleSeconds >= q.runAfterIdleSeconds) return { text: "Starting within seconds", tone: "muted" };
-    const left = q.runAfterIdleSeconds - q.idleSeconds;
-    return { text: `Waiting for a quiet moment: starts after ${Math.ceil(left / 60)} more min without requests (the app was last used ${q.idleSeconds} s ago)`, tone: "muted" };
+    if (q.lightKinds?.includes(j.kind)) return { text: "Starting within seconds", tone: "muted" };
+    if (q.waitsForModels) {
+      const free = q.modelsFreeSeconds;
+      if (free === null || free === undefined || free >= q.runAfterIdleSeconds) return { text: "Starting within seconds", tone: "muted" };
+      return { text: `Waiting: a user is using the model it needs; starts ${q.runAfterIdleSeconds} s after it is free`, tone: "muted" };
+    }
+    if (q.dedicatedModel || q.idleSeconds >= q.runAfterIdleSeconds) return { text: "Starting within seconds", tone: "muted" };
+    return { text: `Waiting for a quiet moment: starts after ${q.runAfterIdleSeconds - q.idleSeconds} more s without requests`, tone: "muted" };
   }
+  if (j.status === "running" && j.stop) return { text: "Pausing after its current step", tone: "muted" };
   if (j.status === "running") return { text: `Running for ${mins(j.started_at ?? j.created_at)}`, tone: "muted" };
   if (j.status === "done") return { text: `Done in ${mins(j.started_at ?? j.created_at, j.finished_at)}`, tone: "ok" };
   return { text: `Failed: ${j.error ?? "no reason given"}`, tone: "bad" };

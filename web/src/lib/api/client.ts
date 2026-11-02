@@ -213,6 +213,11 @@ export const api = {
   /** search quality under the current settings and under the given values; the values are not applied */
   compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
   jobs: () => call<JobsResponse>("/jobs"),
+  pauseJob: (id: string) => call<JobsResponse>(`/jobs/${encodeURIComponent(id)}/pause`, { method: "POST" }),
+  resumeJob: (id: string) => call<JobsResponse>(`/jobs/${encodeURIComponent(id)}/resume`, { method: "POST" }),
+  /** start no earlier than in 30 minutes … 4 hours, or tonight (22:00 local) */
+  laterJob: (id: string, when: "30m" | "1h" | "2h" | "4h" | "tonight") =>
+    call<JobsResponse>(`/jobs/${encodeURIComponent(id)}/later`, { method: "POST", body: JSON.stringify({ when }) }),
   /** per model: whether an API key is set and where from; never the key */
   modelKeys: () => call<{ keys: Record<string, ModelKeyStatus> }>("/config/keys"),
   /** write-only: the key is sent once and never returned; a refused key comes back as { error } */

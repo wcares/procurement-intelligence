@@ -55,6 +55,8 @@ def status() -> dict:
     return {"idleSeconds": round(activity.idle_for()), "runAfterIdleSeconds": worker.IDLE_SECONDS,
             # background work has a model of its own: no job waits for a quiet app (procintel.jobs.worker.tick)
             "dedicatedModel": llm.batch_dedicated(),
+            # the models background work uses, and how long they have been free of user requests (core.busy)
+            "modelsFreeSeconds": _free_seconds(), "waitsForModels": MODE == "1",
             "running": job_worker.current,
             "workerOn": MODE == "external" or (job_worker.thread is not None and job_worker.thread.is_alive()),
             "workerMode": {"1": "thread", "external": "external"}.get(MODE, "off"),
@@ -72,3 +74,9 @@ def _watch_data_version() -> None:
                 loaded_version["version"] = v
         except Exception:  # noqa: BLE001 - try again on the next poll
             log.exception("data version check failed")
+
+
+def _free_seconds() -> int | None:
+    from procintel.core import busy
+    free = busy.free_for(busy.background_endpoints())
+    return None if free == float("inf") else round(free)

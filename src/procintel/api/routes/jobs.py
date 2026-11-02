@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from procintel.api import access, background, security
-from procintel.api.schemas import JobRequest
+from datetime import datetime, timedelta, timezone
+
+from procintel.api.schemas import JobLater, JobRequest
 from procintel.api.state import reload_lock, reload_state, state
 from procintel.jobs import store as jobs_store
 
@@ -40,3 +42,42 @@ def post_job(req: JobRequest, request: Request) -> dict:
         return access.refuse("queueing a job")
     jid = jobs_store.enqueue(req.kind, req.reason, priority=req.priority)
     return {"queued": jid, "note": None if jid else "a job of this kind is already waiting or running"}
+
+
+LATER = {"30m": timedelta(minutes=30), "1h": timedelta(hours=1), "2h": timedelta(hours=2), "4h": timedelta(hours=4)}
+TONIGHT_HOUR = 22   # "tonight": from this hour, local time, when nobody is expected to use the app
+
+
+def start_time(when: str, now: datetime | None = None) -> datetime:
+    """The naive UTC time a job may start for a choice in the queue (the store keeps UTC)."""
+    now = now or datetime.now().astimezone()                      # local time with its offset
+    if when == "tonight":
+        at = now.replace(hour=TONIGHT_HOUR, minute=0, second=0, microsecond=0)
+        at = max(at, now)
+    else:
+        at = now + LATER[when]
+    return at.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def _queue_action(ok: bool) -> dict:
+    if not ok:
+        return JSONResponse({"error": "only a waiting or running job can be paused or moved"}, status_code=409)
+    return get_jobs()
+
+
+@router.post("/jobs/{jid}/pause", dependencies=admin)
+def post_pause(jid: str) -> dict:
+    """Pause a job until it is resumed; a running one stops after its current step and keeps its place."""
+    return _queue_action(jobs_store.hold(jid))
+
+
+@router.post("/jobs/{jid}/resume", dependencies=admin)
+def post_resume(jid: str) -> dict:
+    """Undo a pause or a later start: the job runs as soon as the worker can take it."""
+    return _queue_action(jobs_store.resume(jid))
+
+
+@router.post("/jobs/{jid}/later", dependencies=admin)
+def post_later(jid: str, req: JobLater) -> dict:
+    """Start a job no earlier than the chosen time; a running one stops after its current step and resumes then."""
+    return _queue_action(jobs_store.later(jid, start_time(req.when)))

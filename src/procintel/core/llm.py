@@ -125,7 +125,9 @@ def chat(messages: list[dict], tools: list[dict] | None = None, *, temperature: 
     args = _args(messages, temperature, max_tokens, prefix, kw)
     import litellm
 
-    choice = litellm.completion(**args).choices[0]
+    from procintel.core import busy
+    with busy.user_call(busy.endpoint(args["model"], args["api_base"])):
+        choice = litellm.completion(**args).choices[0]
     if choice.finish_reason == "length":
         raise _cut(max_tokens)
     return choice.message
@@ -142,7 +144,9 @@ def complete(system: str, user: str, *, temperature: float | None = None, max_to
     args = _request(system, user, temperature, max_tokens, prefix, kw)
     import litellm  # imported lazily: it is slow to import and not needed for retrieval-only paths
 
-    choice = litellm.completion(**args).choices[0]
+    from procintel.core import busy
+    with busy.user_call(busy.endpoint(args["model"], args["api_base"])):   # background work waits for a busy model
+        choice = litellm.completion(**args).choices[0]
     if choice.finish_reason == "length":
         raise _cut(max_tokens)
     return choice.message.content or ""
@@ -154,11 +158,13 @@ def stream(system: str, user: str, *, temperature: float | None = None, max_toke
     args = _request(system, user, temperature, max_tokens, prefix, kw)
     import litellm
 
-    for chunk in litellm.completion(stream=True, **args):
-        if not chunk.choices:
-            continue
-        choice = chunk.choices[0]
-        if choice.delta and choice.delta.content:
-            yield choice.delta.content
-        if choice.finish_reason == "length":
-            raise _cut(max_tokens)
+    from procintel.core import busy
+    with busy.user_call(busy.endpoint(args["model"], args["api_base"])):
+        for chunk in litellm.completion(stream=True, **args):
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta and choice.delta.content:
+                yield choice.delta.content
+            if choice.finish_reason == "length":
+                raise _cut(max_tokens)

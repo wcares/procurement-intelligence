@@ -36,7 +36,8 @@ def choices(state: str, questions: dict[str, tuple[str, list[str]]], *, timeout:
         for qid, (text, options) in questions.items()}}
     req = urllib.request.Request(base.rstrip("/") + "/v1/systemone", json.dumps(body).encode(),
                                  {"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
+    from procintel.core import busy
+    with busy.user_call(busy.endpoint(None, base)), urllib.request.urlopen(req, timeout=timeout) as resp:
         answers = json.load(resp)["answers"]
     out = {qid: answers[qid]["probabilities"] for qid in questions}
     for qid, (_, options) in questions.items():

@@ -51,6 +51,10 @@ def _connect(db_path: Path | None) -> duckdb.DuckDBPyConnection:
     con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS worker VARCHAR")
     con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS heartbeat_at TIMESTAMP")
     con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS priority INTEGER")
+    # paused from the queue (hold), or not to start before a time (not_before); stop asks a running job to pause
+    con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS hold BOOLEAN")
+    con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS not_before TIMESTAMP")
+    con.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS stop BOOLEAN")
     con.execute("CREATE TABLE IF NOT EXISTS meta (key VARCHAR PRIMARY KEY, value VARCHAR)")
     return con
 
@@ -98,7 +102,8 @@ def enqueue(kind: str, reason: str, params: dict | None = None, dedupe: bool = T
 
 _CLAIM = """UPDATE jobs.jobs SET status = 'running', worker = '{w}', started_at = coalesce(started_at, now() at time zone 'utc'),
     heartbeat_at = now() at time zone 'utc'
-    WHERE id = (SELECT id FROM jobs.jobs WHERE status = 'pending' {only} ORDER BY {order} FOR UPDATE SKIP LOCKED LIMIT 1)
+    WHERE id = (SELECT id FROM jobs.jobs WHERE status = 'pending' AND NOT coalesce(hold, false)
+        AND (not_before IS NULL OR not_before <= now() at time zone 'utc') {only} ORDER BY {order} FOR UPDATE SKIP LOCKED LIMIT 1)
     RETURNING id"""
 
 
@@ -133,7 +138,8 @@ def next_pending(db_path: Path | None = None, worker: str = "local", only: str =
                     return None
                 q = con.execute("SELECT * FROM jobs WHERE id = ?", [r[0]])
                 return _row([d[0] for d in q.description], q.fetchone())
-            q = con.execute(f"SELECT * FROM jobs WHERE status = 'pending' {only} ORDER BY {ORDER} LIMIT 1")
+            q = con.execute(f"SELECT * FROM jobs WHERE status = 'pending' AND NOT coalesce(hold, false) "
+                            f"AND (not_before IS NULL OR not_before <= ?) {only} ORDER BY {ORDER} LIMIT 1", [_now()])
             r = q.fetchone()
             if r is None:
                 return None
@@ -158,8 +164,9 @@ def higher_waiting(priority: int | None, db_path: Path | None = None) -> bool:
     """True when a pending job has a higher priority (lower number) than `priority`."""
     con = _connect(db_path)
     try:
-        return bool(con.execute("SELECT 1 FROM jobs WHERE status = 'pending' AND coalesce(priority, 1) < ? LIMIT 1",
-                                [1 if priority is None else priority]).fetchone())
+        return bool(con.execute("SELECT 1 FROM jobs WHERE status = 'pending' AND coalesce(priority, 1) < ? "
+                                "AND NOT coalesce(hold, false) AND (not_before IS NULL OR not_before <= ?) LIMIT 1",
+                                [1 if priority is None else priority, _now()]).fetchone())
     finally:
         con.close()
 
@@ -169,7 +176,47 @@ def checkpoint(jid: str, cursor: dict, db_path: Path | None = None) -> None:
 
 
 def pause(jid: str, db_path: Path | None = None) -> None:
-    _update(jid, "status = 'pending'", [], db_path)
+    _update(jid, "status = 'pending', stop = false", [], db_path)
+
+
+def hold(jid: str, db_path: Path | None = None) -> bool:
+    """Pause a waiting or running job until it is resumed (a running one stops after its current step)."""
+    return _control(jid, "hold = true, not_before = NULL", db_path, stop_running=True)
+
+
+def later(jid: str, when, db_path: Path | None = None) -> bool:
+    """Start a waiting or running job no earlier than `when` (naive UTC); a running one stops after its current step."""
+    return _control(jid, "hold = false, not_before = ?", db_path, [when], stop_running=True)
+
+
+def resume(jid: str, db_path: Path | None = None) -> bool:
+    """Undo a pause or a later start: the job may run as soon as the worker picks it."""
+    return _control(jid, "hold = false, not_before = NULL", db_path, stop_running=False)
+
+
+def _control(jid: str, sets: str, db_path: Path | None, args: list | None = None, stop_running: bool = False) -> bool:
+    """Apply a queue action to a waiting or running job (False when the job is finished or unknown). stop_running asks a
+    running job to pause after its current step (procintel.jobs.worker.run_one)."""
+    with _LOCK:
+        con = _connect(db_path)
+        try:
+            row = con.execute("SELECT status FROM jobs WHERE id = ?", [jid]).fetchone()
+            if not row or row[0] not in ("pending", "running"):
+                return False
+            con.execute(f"UPDATE jobs SET {sets}, stop = ? WHERE id = ?",
+                        (args or []) + [stop_running and row[0] == "running", jid])
+            return True
+        finally:
+            con.close()
+
+
+def stop_requested(jid: str, db_path: Path | None = None) -> bool:
+    con = _connect(db_path)
+    try:
+        r = con.execute("SELECT coalesce(stop, false) FROM jobs WHERE id = ?", [jid]).fetchone()
+        return bool(r and r[0])
+    finally:
+        con.close()
 
 
 def finish(jid: str, result: dict, db_path: Path | None = None) -> None:

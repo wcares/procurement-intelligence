@@ -110,10 +110,11 @@ def _settings() -> list[Setting]:
                 "Probability needed for 'relevant' and 'supported' (decision model)", 0.05, 0.99),
         Setting("grounding_min", "Word-overlap threshold", "Evidence", "float", *_attr(answer, "GROUNDING_MIN"),
                 "Fallback without a decision model: share of a sentence's words that must be in its citation", 0, 1),
-        Setting("jobs_idle_seconds", "Idle time before background jobs run", "Background jobs", "int",
+        Setting("jobs_idle_seconds", "Free time before background jobs use a model", "Background jobs", "int",
                 *_attr(jobs_worker, "IDLE_SECONDS"),
-                "Seconds without any request before the queue (drift check, retraining) starts; a request pauses it",
-                10, 86400),
+                "Seconds the models a job uses (background model, embeddings, decision model) must have served no user "
+                "before the job starts; a user request to one of them pauses it after its current step (procintel.core.busy). "
+                "With separate worker processes: seconds without any request", 1, 86400),
         Setting("jobs_max_wait_seconds", "Longest a job waits for quiet", "Background jobs", "int",
                 *_attr(jobs_worker, "MAX_WAIT_SECONDS"),
                 "With users active all day, quiet never comes: a job that has waited this long runs anyway (background "

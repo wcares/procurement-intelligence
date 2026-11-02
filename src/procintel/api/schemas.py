@@ -243,6 +243,11 @@ class JobRequest(BaseModel):
     priority: Literal["high", "normal", "background"] | None = None  # default: the kind's registered priority
 
 
+class JobLater(BaseModel):
+    """When a job may start: in 30 minutes to 4 hours, or tonight (22:00 local time, or now if that has passed)."""
+    when: Literal["30m", "1h", "2h", "4h", "tonight"]
+
+
 class PromptSave(BaseModel):
     text: str = Field(min_length=1, max_length=8000)
     note: str = Field(default="", max_length=300)

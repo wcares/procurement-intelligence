@@ -61,24 +61,47 @@ def test_a_request_during_a_job_pauses_it_and_it_resumes_from_its_cursor(tmp_pat
     assert j["result"] == {"steps": 3} and seen == [0, 2]                          # resumed at step 3, not from scratch
 
 
-def test_worker_waits_for_idle_time_and_queues_the_daily_refresh(tmp_path, monkeypatch):
-    db = tmp_path / "jobs.duckdb"
+@pytest.fixture
+def models(monkeypatch):
+    """The model tracker on a test clock, with background work using one model, "m"."""
+    from procintel.core import busy
     clock = Clock()
+    monkeypatch.setattr(busy, "clock", clock)
+    monkeypatch.setattr(busy, "_running", {})
+    monkeypatch.setattr(busy, "_last", {})
+    monkeypatch.setattr(busy, "background_endpoints", lambda: {"m"})
+    return clock, busy
+
+
+def test_worker_waits_while_its_model_serves_a_user_and_queues_the_daily_refresh(tmp_path, monkeypatch, models):
+    clock, busy = models
+    db = tmp_path / "jobs.duckdb"
     monkeypatch.setattr(worker, "SCHEDULE", {"refresh": timedelta(days=1)})
     ran = []
     monkeypatch.setitem(handlers.REGISTRY, "refresh", lambda p, c, ctx: (ran.append(1), (yield {"step": 1}))[1])
     w = worker.Worker(worker.Activity(clock), {}, db)
-    assert w.tick() is None and ran == []                                           # queued, but the app is busy
+    busy._last["m"] = clock()                                                        # a user just used the model
+    assert w.tick() is None and ran == []
     assert [j["kind"] for j in store.recent(db_path=db)] == ["refresh"]
     clock.t += worker.IDLE_SECONDS
     assert w.tick() == "done" and ran == [1]
     assert w.tick() is None                                                          # done today: not queued again
 
 
-def test_light_jobs_run_while_users_are_active_and_others_wait_until_overdue(tmp_path, monkeypatch):
-    from datetime import datetime, timedelta as td
+def test_a_user_on_another_model_does_not_hold_background_work(tmp_path, monkeypatch, models):
+    clock, busy = models
     db = tmp_path / "jobs.duckdb"
-    clock = Clock()
+    monkeypatch.setattr(worker, "SCHEDULE", {})
+    monkeypatch.setitem(handlers.REGISTRY, "evaluate", lambda p, c, ctx: (yield {"s": 1}))
+    store.enqueue("evaluate", "t", db_path=db)
+    busy._running["claude"] = 1                                                      # users on the answer model only
+    assert worker.Worker(worker.Activity(clock), {}, db).tick() == "done"
+
+
+def test_light_jobs_run_while_the_model_is_busy_and_others_wait_until_overdue(tmp_path, monkeypatch, models):
+    from datetime import datetime, timedelta as td
+    clock, busy = models
+    db = tmp_path / "jobs.duckdb"
     monkeypatch.setattr(worker, "SCHEDULE", {})
     ran = []
     for kind in ("detect_changes", "refresh", "evaluate"):
@@ -86,16 +109,51 @@ def test_light_jobs_run_while_users_are_active_and_others_wait_until_overdue(tmp
     store.enqueue("refresh", "t", db_path=db)
     store.enqueue("evaluate", "t", db_path=db)
     store.enqueue("detect_changes", "t", db_path=db)
-    w = worker.Worker(worker.Activity(clock), {}, db)                                # users active: no idle time
-    assert w.tick() == "done" and ran == ["detect_changes"]                          # a light job needs no quiet
+    busy._running["m"] = 1                                                           # a user's request is using it
+    w = worker.Worker(worker.Activity(clock), {}, db)
+    assert w.tick() == "done" and ran == ["detect_changes"]                          # a light job needs no free model
     assert w.tick() is None and ran == ["detect_changes"]                            # the others wait
     old = datetime.now(timezone.utc).replace(tzinfo=None) - td(seconds=worker.MAX_WAIT_SECONDS + 5)
     import duckdb
     con = duckdb.connect(str(db))
     con.execute("UPDATE jobs SET created_at = ? WHERE kind IN ('refresh', 'evaluate')", [old])
     con.close()
-    assert w.tick() == "done" and ran == ["detect_changes", "refresh"]               # overdue: runs although users are active
+    assert w.tick() == "done" and ran == ["detect_changes", "refresh"]               # overdue: runs although it is busy
     assert w.tick() is None                                                          # background jobs wait 12 times as long
+
+
+def test_a_user_needing_the_model_pauses_a_job_after_its_step(tmp_path, monkeypatch, models):
+    clock, busy = models
+    db = tmp_path / "jobs.duckdb"
+    monkeypatch.setattr(worker, "SCHEDULE", {})
+
+    def two_steps(params, cursor, ctx):
+        clock.t += 1
+        busy._last["m"] = clock()                                                    # a user used the model during step 1
+        yield {"done": 1}
+        yield {"done": 2}
+    monkeypatch.setitem(handlers.REGISTRY, "evaluate", two_steps)
+    store.enqueue("evaluate", "t", db_path=db)
+    job = store.next_pending(db_path=db)
+    assert worker.run_one(job, worker.Activity(clock), {}, db, models={"m"}) == "pending"
+    assert store.recent(db_path=db)[0]["cursor"] == {"done": 1}
+
+
+def test_a_job_can_be_paused_moved_and_resumed_from_the_queue(tmp_path):
+    from datetime import datetime, timedelta as td
+    db = tmp_path / "jobs.duckdb"
+    jid = store.enqueue("evaluate", "t", db_path=db)
+    assert store.hold(jid, db) and store.next_pending(db_path=db) is None          # paused: never picked
+    assert store.later(jid, datetime.now(timezone.utc).replace(tzinfo=None) + td(hours=1), db)
+    assert store.next_pending(db_path=db) is None                                  # not before its time
+    assert store.later(jid, datetime.now(timezone.utc).replace(tzinfo=None) - td(seconds=1), db)
+    assert store.next_pending(db_path=db)["id"] == jid                              # its time has come (now running)
+    assert store.hold(jid, db) and store.stop_requested(jid, db)                    # a running one is asked to stop
+    store.pause(jid, db)
+    assert not store.stop_requested(jid, db) and store.next_pending(db_path=db) is None
+    assert store.resume(jid, db) and store.next_pending(db_path=db)["id"] == jid
+    store.finish(jid, {}, db)
+    assert not store.hold(jid, db)                                                  # a finished job cannot be moved
 
 
 def test_a_request_does_not_pause_a_light_job(tmp_path, monkeypatch):

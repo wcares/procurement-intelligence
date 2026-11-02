@@ -28,11 +28,11 @@ import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
-from procintel.core import llm
+from procintel.core import busy, llm
 from procintel.jobs import handlers, store
 
 log = logging.getLogger(__name__)
-IDLE_SECONDS = 300  # tunable on the Settings page
+IDLE_SECONDS = 5  # tunable on the Settings page: how long the models a job uses must be free of user requests
 # Jobs that use neither the answer model nor the embedding model never compete with a user's request, so they do not wait for
 # quiet (and are not paused by a request); the rest wait for IDLE_SECONDS without a request.
 LIGHT = {"detect_changes", "drift_check", "retention", "retrain", "pipeline_batch_light"}
@@ -115,9 +115,11 @@ def worker_id() -> str:
     return f"{socket.gethostname()}:{os.getpid()}"
 
 
-def run_one(job: dict, activity: Activity, ctx: dict, db_path=None) -> str:
-    """Run a job until it finishes, fails or a request arrives; returns its new status."""
+def run_one(job: dict, activity: Activity, ctx: dict, db_path=None, models: set[str] | None = None) -> str:
+    """Run a job until it finishes, fails, is paused from the queue, or a user needs a model it uses (models: the
+    endpoints it uses, procintel.core.busy; None: the separate-worker rule, any request); returns its new status."""
     started = activity.last
+    step_started = busy.clock()
     handler = handlers.REGISTRY.get(job["kind"])
     if handler is None:
         return store.fail(job["id"], f"unknown job kind {job['kind']!r}", db_path)
@@ -126,10 +128,18 @@ def run_one(job: dict, activity: Activity, ctx: dict, db_path=None) -> str:
         while True:
             cursor = next(gen)
             store.checkpoint(job["id"], cursor, db_path)
-            # a request came in during the step, or a more urgent job is waiting: give the machine back
-            # light and overdue jobs, and every job when the batch model is its own, are not paused by requests
-            yields = job["kind"] not in LIGHT and not _overdue(job) and not llm.batch_dedicated()
-            if (yields and activity.last != started) or store.higher_waiting(job.get("priority"), db_path):
+            if store.stop_requested(job["id"], db_path):    # paused or rescheduled from the queue
+                store.pause(job["id"], db_path)
+                return "pending"
+            # a user needed a model this job uses, or a more urgent job is waiting: give the model back.
+            # Light and overdue jobs are not paused by users.
+            yields = job["kind"] not in LIGHT and not _overdue(job)
+            if models is not None:
+                wanted = yields and busy.used_since(step_started, models)
+            else:   # separate workers cannot see model use: any request counts, unless jobs have a model of their own
+                wanted = yields and not llm.batch_dedicated() and activity.last != started
+            step_started = busy.clock()
+            if wanted or store.higher_waiting(job.get("priority"), db_path):
                 store.pause(job["id"], db_path)
                 return "pending"
     except StopIteration as done:
@@ -153,14 +163,19 @@ class Worker:
         for kind, every in SCHEDULE.items():
             if store.due(kind, every, self.db_path):
                 store.enqueue(kind, f"scheduled: every {every}", db_path=self.db_path)
-        idle = self.activity.idle_for() >= IDLE_SECONDS or llm.batch_dedicated()   # a model of their own: no need to wait for users
+        if isinstance(self.activity, SharedActivity):   # separate workers: the app's requests, as recorded in the store
+            models = None
+            idle = self.activity.idle_for() >= IDLE_SECONDS or llm.batch_dedicated()
+        else:   # in the backend: only the models background work uses, and only while a user is using them
+            models = busy.background_endpoints()
+            idle = busy.free_for(models) >= IDLE_SECONDS
         job = store.next_pending(self.db_path, self.name, "" if idle else _only_when_busy())
         if job is None:
             return None
         self.current = job["kind"]
         try:
             with llm.use_batch():   # the job's model calls go to the batch model, where one is set
-                return run_one(job, self.activity, self.ctx, self.db_path)
+                return run_one(job, self.activity, self.ctx, self.db_path, models)
         finally:
             self.current = None
 

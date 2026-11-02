@@ -283,6 +283,12 @@ export interface Job {
   /** high runs first; a running job pauses between steps when a higher one waits */
   priority: JobPriority;
   worker: string | null;
+  /** paused from the queue: waits until resumed */
+  hold?: boolean | null;
+  /** not to start before this time (UTC, without zone) */
+  not_before?: string | null;
+  /** a running job asked to pause after its current step */
+  stop?: boolean | null;
 }
 
 export type JobPriority = "high" | "normal" | "background";
@@ -297,6 +303,10 @@ export interface JobsResponse {
   lightKinds?: string[];
   /** background work has a model of its own, so no job waits for a quiet app */
   dedicatedModel?: boolean;
+  /** the worker waits only for the models a job uses (in the backend); otherwise for any request (separate workers) */
+  waitsForModels?: boolean;
+  /** how long the models background work uses have been free of user requests; null if never used yet */
+  modelsFreeSeconds?: number | null;
   running: string | null;
   workerOn: boolean;
   /** thread: worker inside the backend; external: separate worker processes; off */

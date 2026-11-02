@@ -68,10 +68,10 @@ export function Jobs() {
       <h2 className="mb-3 text-lg font-semibold">Background jobs</h2>
       <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
         <p className="text-xs text-ink-muted">
-          {data.dedicatedModel
-            ? "Background work has a model of its own, so jobs run at once and do not pause for users."
-            : `Light jobs run at once; the others run only after ${data.runAfterIdleSeconds} s without requests and pause when someone uses the app.`} Idle now:{" "}
-          {data.idleSeconds} s{data.running ? ` · running: ${label(data.running)}` : ""}
+          {data.waitsForModels
+            ? `A job waits only while a user's request uses a model it needs, and starts ${data.runAfterIdleSeconds} s after that model is free${data.modelsFreeSeconds != null ? ` (free for ${data.modelsFreeSeconds} s now)` : ""}.`
+            : `Light jobs run at once; the others run only after ${data.runAfterIdleSeconds} s without requests and pause when someone uses the app.`} App last used:{" "}
+          {data.idleSeconds} s ago{data.running ? ` · running: ${label(data.running)}` : ""}
           {!data.workerOn && " · worker is off (PROCINTEL_JOBS=0)"}
           {data.workerMode === "external" && " · separate worker processes"}. High-priority jobs run first, background
           jobs only when nothing else waits; a running job pauses between steps when a more urgent one arrives.

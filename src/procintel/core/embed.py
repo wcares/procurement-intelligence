@@ -67,11 +67,14 @@ def embed(texts: list[str]) -> np.ndarray:
         raise RuntimeError("PROCINTEL_EMBED_MODEL is not set")
     import litellm  # imported lazily: slow to import, not needed when embeddings are off
 
+    from procintel.core import busy
     out = []
-    for i in range(0, len(texts), BATCH):
-        resp = litellm.embedding(model=m, input=texts[i:i + BATCH], api_base=os.environ.get("PROCINTEL_EMBED_API_BASE"),
-                                 api_key=os.environ.get("PROCINTEL_EMBED_API_KEY") or "local")
-        out.extend(d["embedding"] for d in sorted(resp.data, key=lambda d: d["index"]))
+    base = os.environ.get("PROCINTEL_EMBED_API_BASE")
+    with busy.user_call(busy.endpoint(m, base)):   # a user's search marks the embedding model busy (not a job's)
+        for i in range(0, len(texts), BATCH):
+            resp = litellm.embedding(model=m, input=texts[i:i + BATCH], api_base=base,
+                                     api_key=os.environ.get("PROCINTEL_EMBED_API_KEY") or "local")
+            out.extend(d["embedding"] for d in sorted(resp.data, key=lambda d: d["index"]))
     v = np.asarray(out, dtype=np.float32)
     if v.shape[0] != len(texts):
         raise RuntimeError(f"embedding server returned {v.shape[0]} vectors for {len(texts)} texts")
