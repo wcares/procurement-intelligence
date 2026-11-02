@@ -30,6 +30,7 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
             {s.text}{" "}
             {s.kind === "plan" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px] text-ink-muted">your plan</span>}
             {s.kind === "general" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px]">general guidance</span>}
+            {s.kind === "data" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px] text-ink-muted">engine data</span>}
             {s.citations.map((c) => (
               <a key={c} href={`#t${turnId}-c${c}`} className="mx-px inline-grid h-[18px] min-w-[18px] place-items-center rounded-md bg-brand-soft px-1 align-[1px] font-mono text-[11px] font-medium text-brand hover:bg-brand hover:text-on-brand">
                 [{c + 1}]

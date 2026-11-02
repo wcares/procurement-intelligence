@@ -34,11 +34,9 @@ def get_options() -> dict:
     return state().options
 
 
-@router.post("/assess", response_model=AssessResponse)
-def post_assess(req: AssessRequest, request: Request) -> dict:
-    started = time.monotonic()
+def assessment(body: dict) -> dict:
+    """The full assessment of a package (the /assess response without its log entry); also the chat's assess tool."""
     s = state()
-    body = req.model_dump()
     body["project"] = project_facts(body.get("projectId"))
     out = run_assess(s.retriever, s.bench, s.governance, body, s.timeline_model, s.region.get(body["countryCode"]),
                      s.country_name.get(body["countryCode"], ""), s.rebid, s.rebid_cost, s.amendments, s.wgi)
@@ -49,6 +47,14 @@ def post_assess(req: AssessRequest, request: Request) -> dict:
         out["similarPackages"] = s.similar.search(body.get("description") or "", body["procGroup"])
     except Exception:  # embedding server down: the assessment stands without this section
         out["similarPackages"] = []
+    return out
+
+
+@router.post("/assess", response_model=AssessResponse)
+def post_assess(req: AssessRequest, request: Request) -> dict:
+    started = time.monotonic()
+    body = req.model_dump()
+    out = assessment(body)
     feedback.log_response("assess", body, out, user_id=service.pseudonym(security.user_of(request)),
                           duration_ms=round((time.monotonic() - started) * 1000))
     return out

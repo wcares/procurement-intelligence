@@ -177,6 +177,7 @@ def test_a_free_question_in_the_plan_chat_gets_a_checked_answer_from_the_data(cl
     hit = Hit(chunk_id="c1", doc_id="d1", title="ICR Rural Roads", doc_type="ICR", url="u", section="Lessons", para=None,
               kind="text", text="Civil works were delayed because the contractor lacked equipment and the rainy season stopped work.",
               project_id="P123456", project_name="Rural Roads", country_code="MA", score=1.0)
+    monkeypatch.setenv("PROCINTEL_CHAT_TOOLS", "off")                          # the path for a model without tools
     monkeypatch.setattr(interpret, "interpret", lambda *a, **k: {"intent": "other", "packages": [], "reply": None})
     monkeypatch.setattr(converse, "find_passages", lambda *a, **k: [hit])
     monkeypatch.setattr(decide, "available", lambda: False)                    # word overlap, no model server

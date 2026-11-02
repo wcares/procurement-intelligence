@@ -15,7 +15,7 @@ import type { PlanState } from "./use-plan";
 type Rich =
   | { kind: "plan"; id: string; expiresAt: string; end50: string | null; end90: string | null; bottleneck?: string; packages: number }
   | { kind: "stats"; data: RankingResponse }
-  | { kind: "evidence"; question: string; response: AskResponse };
+  | { kind: "evidence"; question: string; response: AskResponse; steps?: string[] };
 /** content is what the model sees of this message later; rich is what the person sees. */
 export interface ChatMsg { id: number; role: "user" | "assistant"; content: string; rich?: Rich; summary?: boolean }
 
@@ -80,9 +80,14 @@ export function PlanChat({ s }: { s: PlanState }) {
       if (direct) { await askEvidence(clean); return; }
       const r = await api.planChat(historyFor(all), s.asChatPlan(), s.results);
       setCtx(r.context);
-      if (r.intent === "chat" && r.answer) add({ role: "assistant", content: r.reply, rich: { kind: "evidence", question: clean, response: r.answer } });
+      if (r.intent === "chat" && r.answer) add({ role: "assistant", content: r.reply, rich: { kind: "evidence", question: clean, response: r.answer, steps: r.steps } });
       else add({ role: "assistant", content: r.reply });
-      if (r.intent === "update_plan" && r.changes.length) {
+      for (const data of r.statistics ?? []) {
+        const top = data.rows.filter((x) => !x.few).slice(0, 8);
+        add({ role: "assistant", rich: { kind: "stats", data },
+          content: `Shown: ${data.measure.label} by ${data.groupLabel}, worst first: ${top.map((x) => `${x.label} ${fmt(data.measure, x.value)}`).join("; ")}.` });
+      }
+      if ((r.intent === "update_plan" || r.intent === "chat") && r.changes.length) {
         s.adopt(r.plan);
         if (r.plan.countryCode && r.plan.packages.length) {
           const pkgs = r.plan.packages as PlanPackage[];
@@ -165,7 +170,11 @@ export function PlanChat({ s }: { s: PlanState }) {
               <div key={m.id} className="min-w-0 space-y-3">
                 {m.rich?.kind === "plan" ? <PlanLink r={m.rich} text={m.content} />
                   : m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
-                  : m.rich?.kind === "evidence" ? <div className="space-y-2"><p className="text-xs text-ink-muted">{m.rich.question}</p><Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
+                  : m.rich?.kind === "evidence" ? <div className="space-y-2">
+                      {m.rich.steps?.length ? (
+                        <ul className="space-y-0.5 text-xs text-ink-muted">{m.rich.steps.map((x, i) => <li key={i}>· {x}</li>)}</ul>
+                      ) : <p className="text-xs text-ink-muted">{m.rich.question}</p>}
+                      <Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
                   : <p className="whitespace-pre-wrap">{m.content}</p>}
               </div>
             ))}

@@ -38,6 +38,7 @@ PROMPTS = {p.name: p for p in [
     Prompt("answer", "Answer writer", "Ask: writes the cited sentences (procintel.answering.answer)", "answers"),
     Prompt("chat_summary", "Chat summarizer", "Planning chat: compacts a long conversation so it can continue", None),
     Prompt("chat_converse", "Planning assistant", "Planning chat: talks with the planner, citing the reports, the plan and its forecast", None),
+    Prompt("chat_agent", "Planning assistant with tools", "Planning chat, for a model that calls tools: which tools to use and how to answer (${today} = today)", None),
     Prompt("clarify", "Question clarifier", "Ask: rewrites a casual or unclear question as a clear one before searching", "answers"),
     Prompt("answer_related", "Closest-material writer", "Ask: when nothing answers directly, says what the closest passages do tell", None),
     Prompt("generalize", "Question generalizer", "Ask: when a specific case has no evidence, the question without the country or project", None),

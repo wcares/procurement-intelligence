@@ -246,7 +246,7 @@ export interface AnswerSentence {
   /** the sentence in English, when the answer is in another language (it was checked against the passages in English) */
   en?: string;
   /** planning chat only: from the reports (cited), about the planner's own plan, or general guidance */
-  kind?: "evidence" | "plan" | "general";
+  kind?: "evidence" | "plan" | "data" | "general";
 }
 
 export interface AskResponse {
@@ -807,6 +807,10 @@ export interface PlanChatResponse {
   reply: string;
   /** intent chat: the assistant's answer, checked sentence by sentence, in the shape of an Ask answer */
   answer?: AskResponse;
+  /** intent chat with a model that calls tools: what it looked up or changed, in words */
+  steps?: string[];
+  /** statistics a tool looked up (shown as tables) */
+  statistics?: RankingResponse[];
   plan: ChatPlan;
   changes: string[]; assumptions: string[]; notes: string[]; needs: string[];
   evidenceQuestion: string | null;

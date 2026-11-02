@@ -83,6 +83,11 @@ MAX_TOKENS = 1200
 
 def _request(system: str, user: str, temperature: float | None, max_tokens: int | None, prefix: str, kw: dict) -> dict:
     """The litellm.completion arguments shared by complete() and stream()."""
+    return _args([{"role": "system", "content": system}, {"role": "user", "content": user}], temperature, max_tokens,
+                 prefix, kw)
+
+
+def _args(messages: list[dict], temperature: float | None, max_tokens: int | None, prefix: str, kw: dict) -> dict:
     m = model_name(prefix)
     if m is None:
         raise RuntimeError(f"{prefix}_MODEL is not set")
@@ -94,9 +99,36 @@ def _request(system: str, user: str, temperature: float | None, max_tokens: int 
     base, key = _env(prefix, "API_BASE"), _env(prefix, "API_KEY")
     if base and not key:
         key = "local"   # a server of our own (llama.cpp) ignores the key, but the client refuses to call without one
-    return dict(model=m, messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+    return dict(model=m, messages=messages,
                 temperature=TEMPERATURE if temperature is None else temperature, max_tokens=max_tokens,
                 api_base=base, api_key=key, **kw)
+
+
+def supports_tools(prefix: str = ANSWER) -> bool:
+    """Whether the model can call tools (function calling), as LiteLLM knows it: hosted models such as Claude can; a
+    llama.cpp server is not known to, and the chat then answers without tools."""
+    m = model_name(prefix)
+    if not m:
+        return False
+    import litellm
+    try:
+        return bool(litellm.supports_function_calling(model=m))
+    except Exception:  # noqa: BLE001 - an unknown model: no tools
+        return False
+
+
+def chat(messages: list[dict], tools: list[dict] | None = None, *, temperature: float | None = None,
+         max_tokens: int | None = None, prefix: str = ANSWER, **kw: Any):
+    """One turn of a conversation that may call tools: the model's message (its text, or its tool_calls)."""
+    if tools:
+        kw.setdefault("tools", tools)
+    args = _args(messages, temperature, max_tokens, prefix, kw)
+    import litellm
+
+    choice = litellm.completion(**args).choices[0]
+    if choice.finish_reason == "length":
+        raise _cut(max_tokens)
+    return choice.message
 
 
 def _cut(max_tokens: int | None) -> RuntimeError:

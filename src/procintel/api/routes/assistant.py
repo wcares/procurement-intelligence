@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from procintel.api.schemas import PlanChatRequest, SummarizeRequest
 from procintel.api.state import state
 from procintel.api import security
-from procintel.assistant import context, converse, interpret, resolve
+from procintel.assistant import agent, context, converse, interpret, resolve
 from procintel.auth import service
 from procintel.learning import feedback
 from procintel.core import llm, prompts
@@ -36,6 +36,20 @@ def post_plan_chat(req: PlanChatRequest, request: Request) -> dict:
                 "needs": [], "evidenceQuestion": None, "statistic": None, "context": usage}
     if not llm.available():
         raise HTTPException(503, "no language model is configured")
+    if agent.enabled():
+        # a model that calls tools decides itself what to look up or change (procintel.assistant.agent)
+        try:
+            out = agent.run(s, history, plan, req.results, today)
+        except Exception as e:  # server down, timeout: the planner can retry
+            raise HTTPException(502, f"the language model did not answer: {e}") from e
+        feedback.log_response("chat", {"message": history[-1]["content"]}, out["answer"],
+                              user_id=service.pseudonym(security.user_of(request)))
+        reply = " ".join(x["text"] for x in out["answer"]["answer"]) or "I could not find anything in the data for that."
+        return {"intent": "chat", "reply": reply, "plan": out["plan"], "changes": out["changes"],
+                "assumptions": out["assumptions"], "notes": out["notes"], "needs": out["needs"],
+                "evidenceQuestion": None, "statistic": None, "answer": out["answer"], "steps": out["steps"],
+                "statistics": out["statistics"],
+                "context": context.usage(system + fixed, history + [{"role": "assistant", "content": reply}])}
     try:
         raw = interpret.interpret(history, options, interpret.with_names(plan, options), req.results, today)
     except Exception as e:  # server down, timeout, a cut answer: the planner can retry or use the manual form
