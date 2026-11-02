@@ -1,4 +1,11 @@
+import os
+
 import pytest
+
+# No test starts the backend's background work (job worker, MCP listener): tests/test_api.py's app is created once per
+# module, before the per-test isolation below applies, so its worker would run against the live job queue (seen
+# 2026-11-02: it put a running evaluation back to pending). Must be set before procintel.api.background is imported.
+os.environ["PROCINTEL_JOBS"] = "0"
 
 
 @pytest.fixture(autouse=True)
