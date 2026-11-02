@@ -28,6 +28,7 @@ export function ConfigView() {
   const [busy, setBusy] = useState(false);
   const [comparison, setComparison] = useState<CompareResponse | null>(null);
   const [section, setSection] = useState("accounts");
+  const [bgTab, setBgTab] = useState<"jobs" | "settings">("jobs");   // Background work: recent jobs, or its settings
   const [open, setOpen] = useState<Record<string, boolean>>({});   // settings whose technical detail is shown
 
   useEffect(() => {
@@ -134,12 +135,24 @@ export function ConfigView() {
         )}
         {groups.filter(([g]) => slug(g) === current).map(([group, items]) => {
           const pending = items.filter((x) => changed.includes(x.key));
+          const tabbed = slug(group) === "background-work";   // the job list is long: its settings get their own tab
+          const showItems = !tabbed || bgTab === "settings";
           return (
             <div key={group} className="space-y-6">
               <h2 className="text-xl font-semibold">{group}</h2>
-              {slug(group) === "background-work" && <JobsList />}
+              {tabbed && (
+                <div role="tablist" aria-label={group} className="flex gap-1 border-b border-line">
+                  {([["jobs", "Recent jobs"], ["settings", `Settings (${items.length})`]] as const).map(([id, text]) => (
+                    <button key={id} type="button" role="tab" aria-selected={bgTab === id} onClick={() => setBgTab(id)}
+                      className={`-mb-px border-b-2 px-3 py-2 text-sm ${bgTab === id ? "border-brand font-medium" : "border-transparent text-ink-muted hover:text-foreground"}`}>
+                      {text}{id === "settings" && pending.length > 0 ? " · unsaved" : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tabbed && bgTab === "jobs" && <JobsList />}
               {slug(group) === "models" && <ModelAccess settings={settings ?? []} onSettings={(s) => (setSettings(s), setDraft({}), setErrors({}))} />}
-              {items.map((x) => {
+              {showItems && items.map((x) => {
                 const value = draft[x.key] ?? String(x.value);
                 const err = errors[x.key];
                 const dirty = changed.includes(x.key);
@@ -182,7 +195,7 @@ export function ConfigView() {
                   </section>
                 );
               })}
-              {pending.length > 0 && (
+              {showItems && pending.length > 0 && (
                 <section className="space-y-3 rounded-lg border border-line p-5">
                   <div>
                     <p className="font-semibold">Check before saving</p>
