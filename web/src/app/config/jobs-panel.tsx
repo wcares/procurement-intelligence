@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
+import { unfinishedFirst } from "@/components/job-status";
 import type { Job, JobsResponse } from "@/lib/api/types";
 
 const JOB_LABELS: Record<string, string> = {
@@ -88,7 +89,7 @@ export function Jobs() {
           <p className="text-sm text-ink-muted">No jobs yet.</p>
         ) : (
           <ul className="divide-y divide-line text-sm">
-            {data.jobs.slice(0, 10).map((j) => (
+            {unfinishedFirst(data.jobs).slice(0, 10).map((j) => (
               <li key={j.id} className="flex flex-wrap items-baseline gap-x-2 py-1.5">
                 <span className="font-medium">{label(j.kind)}</span>
                 <span className={`text-xs ${j.status === "failed" ? "text-risk-high" : "text-ink-muted"}`}>{j.status}</span>

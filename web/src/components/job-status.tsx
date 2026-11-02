@@ -30,6 +30,12 @@ const mins = (from: string, to?: string | null) => {
 /** One line: where a job is (waiting, running, done, failed) and, when done or failed, how long it took or why. With the
  * queue's state it says why a waiting job waits: a light one starts within seconds; a heavier one waits until the app
  * has had no requests for a while, and how long is left. */
+/** Running and waiting jobs first (newest first within each), so an unfinished job is never hidden under finished ones. */
+export const unfinishedFirst = (jobs: Job[]) => {
+  const rank = (j: Job) => (j.status === "running" ? 0 : j.status === "pending" ? 1 : 2);
+  return jobs.map((j, i) => [j, i] as const).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([j]) => j);
+};
+
 type Queue = Pick<JobsResponse, "idleSeconds" | "runAfterIdleSeconds" | "lightKinds" | "dedicatedModel" | "waitsForModels" | "modelsFreeSeconds">;
 
 const clockTime = (utc: string) => new Date(utc.endsWith("Z") ? utc : `${utc}Z`).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });

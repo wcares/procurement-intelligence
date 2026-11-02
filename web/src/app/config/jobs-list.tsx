@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { Job, JobsResponse } from "@/lib/api/types";
-import { jobLabel, jobState } from "@/components/job-status";
+import { jobLabel, jobState, unfinishedFirst } from "@/components/job-status";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -12,9 +12,9 @@ export function JobsList() {
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [queue, setQueue] = useState<JobsResponse | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  const act = (p: Promise<JobsResponse>) => p.then((r) => { setJobs(r.jobs); setQueue(r); setNote(null); }).catch((e: Error) => setNote(e.message));
+  const act = (p: Promise<JobsResponse>) => p.then((r) => { setJobs(unfinishedFirst(r.jobs)); setQueue(r); setNote(null); }).catch((e: Error) => setNote(e.message));
   useEffect(() => {
-    const load = () => api.jobs().then((r) => { setJobs(r.jobs); setQueue(r); }).catch(() => setJobs([]));
+    const load = () => api.jobs().then((r) => { setJobs(unfinishedFirst(r.jobs)); setQueue(r); }).catch(() => setJobs([]));
     void load();
     const t = setInterval(load, 10000);
     return () => clearInterval(t);
