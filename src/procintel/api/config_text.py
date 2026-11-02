@@ -9,7 +9,7 @@ PLAIN = {
  "llm_api_base": ("Answer model address", "Models", "Where the answer model runs. Only change it when the model moves to another server."),
  "llm_extra_body": ("Answer model extra options", "Models", "Extra switches some model servers need. Leave as it is unless the model's documentation asks for one."),
  "llm_temperature": ("Answer creativity", "Models", "How much the answer model varies its wording. 0 gives the same answer every time, which suits evidence-based answers."),
- "llm_max_tokens": ("Longest answer", "Models", "The most text the answer model may write in one reply. A reply that hits this limit is treated as failed rather than shown half-finished."),
+ "llm_max_tokens": ("Longest answer (tokens)", "Models", "The most the answer model may write in one reply, in tokens: a token is about three quarters of a word, so 1,200 is about 900 words. A cited answer uses a few hundred. A reply that hits this limit is treated as failed rather than shown half-finished. A hosted model (Claude) can take 2,000 to 4,000; a local one also has to fit the question and passages in its own context (Saluki: 8,192)."),
  "judge_model": ("Second checking model", "Models", "Used only when measuring quality: a different model double-checks that answer sentences match their sources, so the answer model does not grade itself. Empty: no second check."),
  "judge_api_base": ("Second checking model address", "Models", "Where the second checking model runs."),
  "judge_extra_body": ("Second checking model extra options", "Models", "Extra switches for that model's server. Leave as it is unless needed."),
