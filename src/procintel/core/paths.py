@@ -12,6 +12,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]  # src/procintel/core/paths.py -> repo
 DATA_DIR = Path(os.environ.get("PROCINTEL_DATA_DIR") or ROOT / "data").expanduser()
 
+
+def keys_dir() -> Path:
+    """Where saved model keys and model profiles live: data/, unless PROCINTEL_KEYS_DIR points elsewhere (the tests)."""
+    return Path(os.environ.get("PROCINTEL_KEYS_DIR") or DATA_DIR).expanduser()
+
 DB_PATH = DATA_DIR / "procintel.duckdb"          # projects, notices, documents, passages, vectors, tags, models' tables
 FEEDBACK_DB = DATA_DIR / "feedback.duckdb"       # response log and feedback (its own file: one writer per DuckDB file)
 JOBS_DB = DATA_DIR / "jobs.duckdb"               # job queue

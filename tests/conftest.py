@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 import pytest
 
@@ -6,6 +7,14 @@ import pytest
 # module, before the per-test isolation below applies, so its worker would run against the live job queue (seen
 # 2026-11-02: it put a running evaluation back to pending). Must be set before procintel.api.background is imported.
 os.environ["PROCINTEL_JOBS"] = "0"
+# Nor do saved model keys or model profiles: apps created per module start before the per-test fixture below, and their
+# startup moves a saved key between files (procintel.api.model_profiles.migrate; seen 2026-11-02 on the live data/).
+os.environ["PROCINTEL_KEYS_DIR"] = tempfile.mkdtemp(prefix="procintel-test-keys-")
+
+
+@pytest.fixture(autouse=True)
+def isolated_keys(tmp_path, monkeypatch):
+    monkeypatch.setenv("PROCINTEL_KEYS_DIR", str(tmp_path))
 
 
 @pytest.fixture(autouse=True)

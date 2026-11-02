@@ -25,7 +25,7 @@ _from_env: dict[str, str | None] = {}           # what the environment held befo
 
 
 def path() -> Path:
-    return paths.DATA_DIR / "model_keys.json"
+    return paths.keys_dir() / "model_keys.json"
 
 
 def _read() -> dict[str, str]:
