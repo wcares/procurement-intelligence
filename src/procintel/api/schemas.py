@@ -216,6 +216,14 @@ class ModelKey(BaseModel):
     value: str = Field(min_length=8, max_length=512)   # write-only: never returned
 
 
+class ProviderKey(BaseModel):
+    value: str = Field(min_length=8, max_length=512)   # write-only: never returned
+
+
+class ModelProfileSave(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+
+
 class ModelTest(BaseModel):
     role: Literal["llm", "judge", "batch"] = "llm"
 

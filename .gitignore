@@ -44,3 +44,5 @@ data/media/
 data/mcp_sources.json
 data/mcp_demo/
 data/model_keys.json
+data/provider_keys.json
+data/model_profiles.json

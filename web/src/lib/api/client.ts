@@ -24,7 +24,10 @@ import type {
   FeedbackRequest,
   FeedbackReviewResponse,
   JobsResponse,
+  ConfigSetting,
   ModelKeyStatus,
+  ModelProfile,
+  ProviderKeyStatus,
   ModelTestResult,
   FeedbackResponse,
   DryRunResponse,
@@ -228,6 +231,20 @@ export const api = {
     return res.ok ? out : { error: out.error ?? (res.status === 400 ? "a key is 8 to 512 characters without spaces" : `failed (${res.status})`) };
   },
   removeModelKey: (role: string) => call<{ keys: Record<string, ModelKeyStatus> }>(`/config/keys/${encodeURIComponent(role)}`, { method: "DELETE" }),
+  providerKeys: () => call<{ providers: ProviderKeyStatus[] }>("/config/provider-keys"),
+  /** write-only: sent once, never returned; a refused key comes back as { error } */
+  setProviderKey: async (provider: string, value: string): Promise<{ providers: ProviderKeyStatus[] } | { error: string }> => {
+    const res = await fetch(`${API_BASE}/config/provider-keys/${encodeURIComponent(provider)}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ value }) });
+    const out = await res.json().catch(() => ({}));
+    return res.ok ? out : { error: out.error ?? (res.status === 400 ? "a key is 8 to 512 characters without spaces" : `failed (${res.status})`) };
+  },
+  removeProviderKey: (provider: string) => call<{ providers: ProviderKeyStatus[] }>(`/config/provider-keys/${encodeURIComponent(provider)}`, { method: "DELETE" }),
+  modelProfiles: () => call<{ profiles: ModelProfile[] }>("/config/model-profiles"),
+  saveModelProfile: (name: string) => call<{ profiles: ModelProfile[] }>("/config/model-profiles", { method: "POST", body: JSON.stringify({ name }) }),
+  applyModelProfile: (name: string) =>
+    call<{ settings: ConfigSetting[]; profiles: ModelProfile[] }>(`/config/model-profiles/${encodeURIComponent(name)}/apply`, { method: "POST" }),
+  removeModelProfile: (name: string) => call<{ profiles: ModelProfile[] }>(`/config/model-profiles/${encodeURIComponent(name)}`, { method: "DELETE" }),
   /** one short question to a model as it is set now: the reply and how long it took */
   testModel: (role: string) => call<ModelTestResult>("/config/model-test", { method: "POST", body: JSON.stringify({ role }) }),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),

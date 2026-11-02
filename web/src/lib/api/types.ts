@@ -905,3 +905,14 @@ export interface ModelTestResult {
   reply?: string;
   error?: string;
 }
+
+/** a provider and whether a key is saved for it (the key itself never reaches the browser) */
+export interface ProviderKeyStatus { provider: string; label: string; set: boolean }
+
+/** a saved answer model, switched to with one click */
+export interface ModelProfile {
+  name: string; model: string; api_base: string; extra_body: string;
+  /** whose saved key it uses; null: a server of your own */
+  provider: string | null;
+  active: boolean;
+}

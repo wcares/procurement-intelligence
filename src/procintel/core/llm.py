@@ -99,6 +99,9 @@ def _args(messages: list[dict], temperature: float | None, max_tokens: int | Non
     base, key = _env(prefix, "API_BASE"), _env(prefix, "API_KEY")
     if base and not key:
         key = "local"   # a server of our own (llama.cpp) ignores the key, but the client refuses to call without one
+    elif not base:      # a hosted model: its provider's key saved on the Settings page, else the role's own key
+        from procintel.core import provider_keys
+        key = provider_keys.get(provider_keys.provider_of(m, None)) or key
     return dict(model=m, messages=messages,
                 temperature=TEMPERATURE if temperature is None else temperature, max_tokens=max_tokens,
                 api_base=base, api_key=key, **kw)

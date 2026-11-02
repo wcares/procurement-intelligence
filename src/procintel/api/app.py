@@ -18,7 +18,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from procintel.api import background, config, model_keys, security
+from procintel.api import background, config, model_keys, model_profiles, security
 from procintel.api.routes import ROUTERS
 from procintel.api.state import state
 from procintel.auth import service
@@ -33,6 +33,7 @@ async def lifespan(_: FastAPI):
     model_keys.load()  # API keys set on the Settings page (data/model_keys.json), over those from the environment
     for key, err in config.load_saved().items():  # saved settings from the configuration page
         print(f"config: saved value for {key} ignored: {err}")
+    model_profiles.migrate()  # once: model profiles from the general ones, a page key moved to its provider
     if admin := service.ensure_first_admin():  # no accounts yet: the admin named in the environment
         print(f"auth: created the first admin account {admin!r}")
     state()  # build the index before the first request rather than during it
