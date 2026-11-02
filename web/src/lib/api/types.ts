@@ -245,6 +245,8 @@ export interface AnswerSentence {
   citations: number[];
   /** the sentence in English, when the answer is in another language (it was checked against the passages in English) */
   en?: string;
+  /** planning chat only: from the reports (cited), about the planner's own plan, or general guidance */
+  kind?: "evidence" | "plan" | "general";
 }
 
 export interface AskResponse {
@@ -801,8 +803,10 @@ export interface ChatPlanPackage {
 export interface ChatPlan { countryCode: string | null; projectStart: string | null; deadline: string | null; packages: ChatPlanPackage[] }
 export interface ChatContext { used: number; budget: number; warn: boolean; full: boolean }
 export interface PlanChatResponse {
-  intent: "update_plan" | "ask_evidence" | "ask_statistics" | "explain_plan" | "other";
+  intent: "update_plan" | "ask_evidence" | "ask_statistics" | "explain_plan" | "other" | "chat";
   reply: string;
+  /** intent chat: the assistant's answer, checked sentence by sentence, in the shape of an Ask answer */
+  answer?: AskResponse;
   plan: ChatPlan;
   changes: string[]; assumptions: string[]; notes: string[]; needs: string[];
   evidenceQuestion: string | null;

@@ -80,7 +80,8 @@ export function PlanChat({ s }: { s: PlanState }) {
       if (direct) { await askEvidence(clean); return; }
       const r = await api.planChat(historyFor(all), s.asChatPlan(), s.results);
       setCtx(r.context);
-      add({ role: "assistant", content: r.reply });
+      if (r.intent === "chat" && r.answer) add({ role: "assistant", content: r.reply, rich: { kind: "evidence", question: clean, response: r.answer } });
+      else add({ role: "assistant", content: r.reply });
       if (r.intent === "update_plan" && r.changes.length) {
         s.adopt(r.plan);
         if (r.plan.countryCode && r.plan.packages.length) {

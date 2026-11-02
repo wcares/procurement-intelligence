@@ -26,8 +26,10 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
       {partial && <span className="inline-block rounded-full bg-risk-medium-soft px-2.5 py-0.5 text-xs font-medium text-risk-medium">No direct answer in the reports</span>}
       <div className="text-sm leading-relaxed">
         {r.answer.map((s, i) => (
-          <span key={i}>
+          <span key={i} className={s.kind === "general" ? "text-ink-muted" : undefined}>
             {s.text}{" "}
+            {s.kind === "plan" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px] text-ink-muted">your plan</span>}
+            {s.kind === "general" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px]">general guidance</span>}
             {s.citations.map((c) => (
               <a key={c} href={`#t${turnId}-c${c}`} className="mx-px inline-grid h-[18px] min-w-[18px] place-items-center rounded-md bg-brand-soft px-1 align-[1px] font-mono text-[11px] font-medium text-brand hover:bg-brand hover:text-on-brand">
                 [{c + 1}]

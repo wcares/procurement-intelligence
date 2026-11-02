@@ -168,13 +168,28 @@ def test_a_cited_passage_can_be_fetched_by_its_id(client):
     assert client.get("/passages/no-such-passage").status_code == 404
 
 
-def test_a_plan_question_without_a_forecast_is_answered_from_past_projects(client, monkeypatch):
-    from procintel.assistant import interpret
-    monkeypatch.setattr(interpret, "interpret", lambda *a, **k: {"intent": "explain_plan", "packages": [],
-                                                                 "reply": "Your plan's bottleneck is ..."})
-    from procintel.core import llm
+
+def test_a_free_question_in_the_plan_chat_gets_a_checked_answer_from_the_data(client, monkeypatch):
+    import json
+    from procintel.answering.retrieve import Hit
+    from procintel.assistant import converse, interpret
+    from procintel.core import decide, llm
+    hit = Hit(chunk_id="c1", doc_id="d1", title="ICR Rural Roads", doc_type="ICR", url="u", section="Lessons", para=None,
+              kind="text", text="Civil works were delayed because the contractor lacked equipment and the rainy season stopped work.",
+              project_id="P123456", project_name="Rural Roads", country_code="MA", score=1.0)
+    monkeypatch.setattr(interpret, "interpret", lambda *a, **k: {"intent": "other", "packages": [], "reply": None})
+    monkeypatch.setattr(converse, "find_passages", lambda *a, **k: [hit])
+    monkeypatch.setattr(decide, "available", lambda: False)                    # word overlap, no model server
     monkeypatch.setattr(llm, "available", lambda prefix=llm.ANSWER: True)
+    reply = {"sentences": [
+        {"text": "Civil works were delayed because the contractor lacked equipment.", "kind": "evidence", "citations": [1]},
+        {"text": "Your plan ends in 2031 with 7 packages.", "kind": "plan"},            # numbers not in the plan: dropped
+        {"text": "Plan the works outside the rainy season where you can.", "kind": "general"}]}
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: json.dumps(reply))
     r = client.post("/assistant/plan", json={"messages": [{"role": "user", "content": "what would you recommend for a better plan"}],
                                              "plan": {"countryCode": "MA", "packages": []}, "results": ""}).json()
-    assert r["intent"] == "ask_evidence" and "no forecast yet" in r["reply"]
-    assert "Morocco" in r["evidenceQuestion"] and "what would you recommend for a better plan" in r["evidenceQuestion"]
+    assert r["intent"] == "chat"
+    a = r["answer"]
+    assert [(s["kind"], s["citations"]) for s in a["answer"]] == [("evidence", [0]), ("general", [])]
+    assert a["citations"][0]["id"] == "c1" and a["meta"]["responseId"]
+    assert any("not supported" in c for c in a["meta"]["caveats"]) and any("general guidance" in c for c in a["meta"]["caveats"])

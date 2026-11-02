@@ -4,14 +4,16 @@ The server keeps nothing between calls. Statistics and evidence questions are an
 exist (/dashboard/ranking, /ask); this one only decides which is needed and hands back the question to put to it."""
 from __future__ import annotations
 
-import re
 from datetime import date
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from procintel.api.schemas import PlanChatRequest, SummarizeRequest
 from procintel.api.state import state
-from procintel.assistant import context, interpret, resolve
+from procintel.api import security
+from procintel.assistant import context, converse, interpret, resolve
+from procintel.auth import service
+from procintel.learning import feedback
 from procintel.core import llm, prompts
 
 router = APIRouter()
@@ -20,26 +22,8 @@ FULL_REPLY = ("This conversation has reached the model's length limit. Summarize
               "or start a new one; your plan stays.")
 
 
-def _numbers(text: str) -> set[str]:
-    return {n.replace(",", "") for n in re.findall(r"\d[\d,]*\.?\d*", text)}
-
-
-def _grounded(reply: str, *sources: str) -> bool:
-    """Every number in the reply appears in what the model was given: it may explain the results, not invent them."""
-    allowed = set().union(*(_numbers(s) for s in sources))
-    return _numbers(reply) <= allowed
-
-
-def lessons_question(message: str, plan: dict, options: dict) -> str:
-    """A question for the reports from a planner's question about a plan that has no forecast yet: their own words, with
-    the plan's country when one is set."""
-    country = next((c["name"] for c in options.get("countries", []) if c["code"] == plan.get("countryCode")), None)
-    where = f" in {country}" if country else ""
-    return f"What lessons from past World Bank projects{where} help plan procurement better? The planner asked: {message.strip()}"
-
-
 @router.post("/assistant/plan")
-def post_plan_chat(req: PlanChatRequest) -> dict:
+def post_plan_chat(req: PlanChatRequest, request: Request) -> dict:
     s = state()
     options = s.options
     today = date.today()
@@ -59,16 +43,18 @@ def post_plan_chat(req: PlanChatRequest) -> dict:
     r = resolve.resolve(raw, options, plan, today)
     if r["intent"] == "update_plan":
         reply = resolve.compose_reply(r)
-    elif r["intent"] == "explain_plan" and not req.results:
-        # no forecast yet: rather than a dead end, answer from past projects (the page asks the evidence)
-        r["intent"] = "ask_evidence"
-        r["evidenceQuestion"] = lessons_question(history[-1]["content"], plan, options)
-        reply = "There is no forecast yet (add packages and I will forecast them), so here is what past reports say."
-    elif r["intent"] == "explain_plan":
-        reply = r["modelReply"]
-        if not req.results or not _grounded(reply, req.results, str(plan)):
-            reply = ("I can only answer that from the forecast, and " + ("it does not contain what you asked about:\n" + req.results
-                     if req.results else "there is none yet. Add packages and I will forecast them."))
+    elif r["intent"] in ("explain_plan", "other"):
+        # free conversation: the planning assistant answers from the conversation, the plan, its forecast and the
+        # reports, each sentence checked (procintel.assistant.converse); the page shows it like an Ask answer
+        try:
+            out = converse.converse(s.retriever, history, interpret.plan_summary(interpret.with_names(plan, options)),
+                                    req.results, plan.get("countryCode"))
+        except Exception as e:  # the model failed: say so rather than lose the turn
+            raise HTTPException(502, f"the language model did not answer: {e}") from e
+        feedback.log_response("chat", {"message": history[-1]["content"]}, out,
+                              user_id=service.pseudonym(security.user_of(request)))
+        r["intent"], r["answer"] = "chat", out
+        reply = " ".join(x["text"] for x in out["answer"]) or "I could not find anything in the data for that."
     else:
         reply = r["modelReply"] or "Tell me about the project you want to plan, for example the country and what you will buy."
         if r["notes"]:
