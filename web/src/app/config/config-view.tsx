@@ -6,6 +6,7 @@ import type { CompareResponse, ConfigProfile, ConfigSetting, RetrievalMetrics } 
 import { FeedbackReview } from "@/components/evaluation/feedback-review";
 import { Jobs } from "./jobs-panel";
 import { JobsList } from "./jobs-list";
+import { ModelAccess } from "./model-access";
 import { Info } from "lucide-react";
 import Link from "next/link";
 import { Prompts } from "./prompts-panel";
@@ -137,6 +138,7 @@ export function ConfigView() {
             <div key={group} className="space-y-6">
               <h2 className="text-xl font-semibold">{group}</h2>
               {slug(group) === "background-work" && <JobsList />}
+              {slug(group) === "models" && <ModelAccess settings={settings ?? []} onSettings={(s) => (setSettings(s), setDraft({}), setErrors({}))} />}
               {items.map((x) => {
                 const value = draft[x.key] ?? String(x.value);
                 const err = errors[x.key];

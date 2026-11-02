@@ -212,6 +212,14 @@ class ConfigResponse(BaseModel):
     settings: list[ConfigSetting]
 
 
+class ModelKey(BaseModel):
+    value: str = Field(min_length=8, max_length=512)   # write-only: never returned
+
+
+class ModelTest(BaseModel):
+    role: Literal["llm", "judge", "batch"] = "llm"
+
+
 class ConfigUpdate(BaseModel):
     values: dict[str, str | int | float]
     save: bool = False

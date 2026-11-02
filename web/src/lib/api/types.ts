@@ -870,3 +870,18 @@ export interface SharedItem {
   createdAt: string;
   expiresAt: string;
 }
+
+/** whether a model has an API key and where it comes from (the key itself is never sent to the browser) */
+export interface ModelKeyStatus {
+  set: boolean;
+  from: "page" | "environment" | null;
+}
+
+export interface ModelTestResult {
+  ok: boolean;
+  model: string | null;
+  address?: string;
+  seconds?: number;
+  reply?: string;
+  error?: string;
+}

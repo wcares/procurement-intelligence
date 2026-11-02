@@ -24,6 +24,8 @@ import type {
   FeedbackRequest,
   FeedbackReviewResponse,
   JobsResponse,
+  ModelKeyStatus,
+  ModelTestResult,
   FeedbackResponse,
   DryRunResponse,
   ConnectorsResponse,
@@ -211,6 +213,18 @@ export const api = {
   /** search quality under the current settings and under the given values; the values are not applied */
   compare: (values: Record<string, string | number>) => call<CompareResponse>("/config/compare", { method: "POST", body: JSON.stringify({ values }) }),
   jobs: () => call<JobsResponse>("/jobs"),
+  /** per model: whether an API key is set and where from; never the key */
+  modelKeys: () => call<{ keys: Record<string, ModelKeyStatus> }>("/config/keys"),
+  /** write-only: the key is sent once and never returned; a refused key comes back as { error } */
+  setModelKey: async (role: string, value: string): Promise<{ keys: Record<string, ModelKeyStatus> } | { error: string }> => {
+    const res = await fetch(`${API_BASE}/config/keys/${encodeURIComponent(role)}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ value }) });
+    const out = await res.json().catch(() => ({}));
+    return res.ok ? out : { error: out.error ?? (res.status === 400 ? "a key is 8 to 512 characters without spaces" : `failed (${res.status})`) };
+  },
+  removeModelKey: (role: string) => call<{ keys: Record<string, ModelKeyStatus> }>(`/config/keys/${encodeURIComponent(role)}`, { method: "DELETE" }),
+  /** one short question to a model as it is set now: the reply and how long it took */
+  testModel: (role: string) => call<ModelTestResult>("/config/model-test", { method: "POST", body: JSON.stringify({ role }) }),
   feedbackReview: () => call<FeedbackReviewResponse>("/feedback/review"),
   pipeline: () => call<PipelineResponse>("/pipeline"),
   connectors: () => call<ConnectorsResponse>("/pipeline/connectors"),

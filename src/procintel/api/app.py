@@ -18,7 +18,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from procintel.api import background, config, security
+from procintel.api import background, config, model_keys, security
 from procintel.api.routes import ROUTERS
 from procintel.api.state import state
 from procintel.auth import service
@@ -30,6 +30,7 @@ POLL_HEADER = "x-procintel-poll"   # "1" on a page's automatic re-check (an open
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    model_keys.load()  # API keys set on the Settings page (data/model_keys.json), over those from the environment
     for key, err in config.load_saved().items():  # saved settings from the configuration page
         print(f"config: saved value for {key} ignored: {err}")
     if admin := service.ensure_first_admin():  # no accounts yet: the admin named in the environment
