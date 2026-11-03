@@ -174,12 +174,26 @@ class AskFallback(BaseModel):
     citations: list[Citation]
 
 
+class Basis(BaseModel):
+    kind: Literal["passages", "assessment", "statistics", "plan", "forecast", "conversation", "message"]
+    label: str
+    detail: str | None = None
+
+
+class Provenance(BaseModel):
+    """Where an answer came from, for the card under it (procintel.answering.answer.provenance)."""
+    model: str | None
+    basis: list[Basis]
+    kinds: dict[str, int]
+
+
 class AskResponse(BaseModel):
     answer: list[AnswerSentence]
     citations: list[Citation]
     unsupported: bool
     fallback: AskFallback | None = None
     meta: ResponseMeta
+    provenance: Provenance | None = None
 
 
 class FeedbackRequest(BaseModel):

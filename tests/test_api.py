@@ -38,6 +38,13 @@ def test_ask_cites_every_sentence(client, monkeypatch):
         assert any(s["text"] in r["citations"][c]["quote"] for c in s["citations"])  # verbatim quote
 
 
+def test_ask_says_where_its_answer_came_from(client):
+    r = client.post("/ask", json={"question": "What usually goes wrong with road works tenders?"}).json()
+    p = r["provenance"]
+    assert p["basis"][0]["kind"] == "passages" and "passage" in p["basis"][0]["label"]
+    assert set(p["kinds"]) <= {"evidence"} and "model" in p
+
+
 def test_ask_unsupported(client):
     r = client.post("/ask", json={"question": "What is the boiling point of tungsten?"}).json()
     assert r["unsupported"] and r["answer"] == [] and r["citations"] == []
