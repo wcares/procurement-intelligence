@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { ExportButtons } from "@/components/export-buttons";
 import { Freshness } from "@/components/freshness";
-import type { AssessRequest, AssessResponse, FlagEvidenceItem, Options, ProcGroup } from "@/lib/api/types";
+import type { AssessRequest, AssessResponse, FlagEvidenceItem, Options, ProcGroup, Recommendation } from "@/lib/api/types";
 import { Caveats, CitationCard, RiskBadge, TimelineBar } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { StageTimeline } from "@/components/assess/stage-timeline";
@@ -44,6 +44,7 @@ export function AssessView() {
   const [assessed, setAssessed] = useState<AssessRequest | null>(null);
   const [started, setStarted] = useState<Started>({});
   const [startedAssessed, setStartedAssessed] = useState<Started | null>(null);
+  const [accepted, setAccepted] = useState<Recommendation[]>([]);   // mitigations the planner accepted, kept with the assessment
 
   useEffect(() => {
     api.options().then(setOpts).catch((e: Error) => setError(e.message));
@@ -58,7 +59,7 @@ export function AssessView() {
     setForm(req); // eslint-disable-line react-hooks/set-state-in-effect -- the form follows the link it was opened with
     if (params.get("run") === "1") {
       setLoading(true);
-      api.assess(req).then((r) => (setResult(r), setAssessed(req))).catch((e: Error) => setError(e.message)).finally(() => setLoading(false));
+      api.assess(req).then((r) => (setResult(r), setAssessed(req), setAccepted([]))).catch((e: Error) => setError(e.message)).finally(() => setLoading(false));
     }
   }, [params]);
 
@@ -85,6 +86,7 @@ export function AssessView() {
     try {
       setResult(await api.assess(form));
       setAssessed(form);
+      setAccepted([]);
       setStartedAssessed(started.tenderStart || started.awardDate ? { ...started } : null);
     } catch (err) {
       setError((err as Error).message);
@@ -200,17 +202,19 @@ export function AssessView() {
         )}
         {result && assessed && <GoalPanel request={assessed} />}
         {result && assessed && <AssessChat request={assessed} result={result} />}
-        {result && assessed && <ExportButtons kind="assessment" body={{ request: assessed, response: result }} />}
-        {result && <AssessResults r={result} />}
+        {result && assessed && <ExportButtons kind="assessment" body={{ request: assessed, response: result, accepted }} />}
+        {result && <AssessResults r={result} accepted={accepted} onRemove={(id) => setAccepted((a) => a.filter((x) => x.id !== id))} />}
         {result && <Freshness only={["Notice", "ContractAward", "Document", "SupervisionDoc", "Indicator"]} />}
-        <InsightsPanel wide procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed} />
+        <InsightsPanel wide procGroup={form.procGroup} methodCode={form.methodCode} countryCode={form.countryCode} assessed={assessed}
+          onAccept={(r) => setAccepted((a) => (a.some((x) => x.id === r.id) ? a : [...a, r]))} />
       </section>
     </div>
   );
 }
 
-/** The assessment's results (also shown on a shared link). */
-export function AssessResults({ r }: { r: AssessResponse }) {
+/** The assessment's results (also shown on a shared link), with the mitigations the planner accepted from the
+ * recommendations, each with its quoted sources. */
+export function AssessResults({ r, accepted = [], onRemove }: { r: AssessResponse; accepted?: Recommendation[]; onRemove?: (id: string) => void }) {
   const show = (elementId: string) => {
     const el = document.getElementById(elementId);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -223,6 +227,29 @@ export function AssessResults({ r }: { r: AssessResponse }) {
       {r.stages && r.stages.length > 0 && (
         <Card title="Tender stages and where the risks are">
           <StageTimeline stages={r.stages} risks={r.risks} precedents={r.precedents} prediction={r.prediction} onSelect={show} />
+        </Card>
+      )}
+      {accepted.length > 0 && (
+        <Card title="Accepted mitigations">
+          <ul className="space-y-3">
+            {accepted.map((m) => (
+              <li key={m.id} className="text-sm">
+                <p className="font-medium">{m.title}</p>
+                {m.text && <p className="mt-1">{m.text}</p>}
+                {m.sentences?.map((s, i) => (
+                  <p key={i} className="mt-1">
+                    {s.text}{" "}
+                    {s.citations.map((c) => m.citations[c] ? (
+                      <a key={c} href={m.citations[c].url} target="_blank" rel="noreferrer" className="text-brand underline-offset-2 hover:underline"
+                        title={`${m.citations[c].projectName}: ${m.citations[c].quote.slice(0, 200)}`}>[{m.citations[c].projectName || m.citations[c].projectId}]</a>
+                    ) : null)}
+                  </p>
+                ))}
+                {onRemove && <button type="button" className="mt-1 text-xs text-ink-muted underline" onClick={() => onRemove(m.id)}>remove</button>}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-ink-muted">Kept with this assessment: in its Word file and behind its link.</p>
         </Card>
       )}
       <div className="grid gap-6 md:grid-cols-2">

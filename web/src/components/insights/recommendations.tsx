@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import type { AssessRequest, RecommendationsResponse } from "@/lib/api/types";
+import type { AssessRequest, Recommendation, RecommendationsResponse } from "@/lib/api/types";
 
 /** Asked on request (about a minute: one cited answer per flagged risk). Accept / dismiss are ratings on the logged
- * response, like the feedback on answers. */
-export function Recommendations({ request }: { request: AssessRequest | null }) {
+ * response, like the feedback on answers; an accepted mitigation is also handed to the page (onAccept), which keeps it
+ * with the assessment. */
+export function Recommendations({ request, onAccept }: { request: AssessRequest | null; onAccept?: (r: Recommendation) => void }) {
   const [data, setData] = useState<RecommendationsResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +31,8 @@ export function Recommendations({ request }: { request: AssessRequest | null }) 
     await api.feedback({ responseId: data.meta.responseId, rating: accept ? "useful" : "not_useful",
       comment: `${accept ? "accepted" : "dismissed"} recommendation ${id}` }).catch(() => null);
     setRated((r) => ({ ...r, [id]: accept ? "accepted" : "dismissed" }));
+    const rec = data.recommendations.find((r) => r.id === id);
+    if (accept && rec?.kind === "mitigation") onAccept?.(rec);
   }
 
   if (!request) return <p className="text-xs text-ink-muted">Assess a package to get recommendations for it.</p>;
@@ -67,7 +70,7 @@ export function Recommendations({ request }: { request: AssessRequest | null }) 
           <div className="mt-1 flex gap-3">
             {rated[r.id] ? <span className="text-ink-muted">{rated[r.id]}</span> : (
               <>
-                <button className="underline" onClick={() => rate(r.id, true)}>accept</button>
+                <button className="underline" onClick={() => rate(r.id, true)}>{r.kind === "mitigation" ? "accept: keep with the assessment" : "accept"}</button>
                 <button className="underline" onClick={() => rate(r.id, false)}>dismiss</button>
               </>
             )}

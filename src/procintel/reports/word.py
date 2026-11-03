@@ -208,6 +208,17 @@ def assessment_docx(body: dict, who: str | None = None) -> bytes:
             src = doc.add_paragraph(f"[{i}] {c.get('projectName', '')} ({c.get('projectId', '')}, {c.get('countryCode', '')}) · "
                                     f"{c.get('docType', '')} · {c.get('section', '')}" + (f" · {c['url']}" if c.get("url") else ""))
             src.runs[0].font.size = Pt(9)
+    if body.get("accepted"):   # mitigations the planner accepted from the recommendations, with their sources
+        doc.add_heading("Accepted mitigations", level=1)
+        for m in body["accepted"]:
+            doc.add_paragraph(m.get("title", ""), style="List Bullet")
+            if m.get("text"):
+                doc.add_paragraph(m["text"])
+            for s in m.get("sentences") or []:
+                doc.add_paragraph(s.get("text", ""))
+            for c in m.get("citations") or []:
+                src = doc.add_paragraph(f"{c.get('projectName', '')} ({c.get('projectId', '')}) · {c.get('section', '')}" + (f" · {c['url']}" if c.get("url") else ""))
+                src.runs[0].font.size = Pt(9)
     if res.get("similarPackages"):
         doc.add_heading("Similar past packages", level=1)
         _table(doc, ["Package", "Project", "Method", "Days to award", "Value (US$)", "Re-bid"],

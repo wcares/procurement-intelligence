@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api/client";
-import type { AssessRequest, AssessResponse, SharedItem } from "@/lib/api/types";
+import type { AssessRequest, AssessResponse, SharedItem, Recommendation } from "@/lib/api/types";
 import { PlanArtifact } from "@/components/plan/plan-artifact";
 import { AssessResults } from "@/app/assess/assess-view";
 import { ExportButtons } from "@/components/export-buttons";
@@ -22,12 +22,12 @@ function Shared() {
   if (error) return <p className="text-sm text-risk-high">{error}</p>;
   if (!item) return <p className="text-sm text-ink-muted">Loading…</p>;
   if (item.kind === "plan") return <PlanArtifact share={item} />;
-  const body = item.body as { request: AssessRequest; response: AssessResponse };
+  const body = item.body as { request: AssessRequest; response: AssessResponse; accepted?: Recommendation[] };
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <h1 className="text-xl font-semibold">Package assessment · {body.request.countryCode} · {body.request.procGroup} · {body.request.methodCode}</h1>
       <ExportButtons kind="assessment" body={body} />
-      <AssessResults r={body.response} />
+      <AssessResults r={body.response} accepted={body.accepted} />
     </div>
   );
 }

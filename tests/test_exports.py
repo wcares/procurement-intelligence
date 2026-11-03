@@ -51,6 +51,11 @@ def test_the_assessment_file_has_the_forecast_risks_and_quoted_lessons_with_thei
     assert "Re-tendering" in text and "Transparency" in text
     assert "Splitting the works into smaller lots" in text and "https://example.org/r.pdf" in text
     assert "Recent years are incomplete." in text
+    kept = {**ASSESS, "accepted": [{"id": "m1", "kind": "mitigation", "title": "Re-tendering: what past projects did",
+                                     "sentences": [{"text": "Bidding documents were simplified.", "citations": [0]}],
+                                     "citations": [{"projectName": "Roads", "projectId": "P1", "section": "Lessons", "url": "https://example.org/l.pdf"}]}]}
+    text = _text(word.assessment_docx(kept))
+    assert "Accepted mitigations" in text and "Bidding documents were simplified." in text and "https://example.org/l.pdf" in text
 
 
 def test_the_routes_return_word_files_and_refuse_bad_bodies():

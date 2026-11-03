@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { AssessRequest, AwardTrend } from "@/lib/api/types";
+import type { AssessRequest, AwardTrend, Recommendation } from "@/lib/api/types";
 import { Recommendations } from "./recommendations";
 import { TrendChart } from "./trend-chart";
 
 /** The award-time trend for the current choice and (on Assess) recommendations for the assessed package. Alerts live on the
  * Insights page only. */
-export function InsightsPanel({ procGroup, methodCode, countryCode, assessed, wide = false }: {
+export function InsightsPanel({ procGroup, methodCode, countryCode, assessed, onAccept, wide = false }: {
   procGroup?: string; methodCode?: string; countryCode?: string; assessed?: AssessRequest | null; wide?: boolean;
+  onAccept?: (r: Recommendation) => void;
 }) {
   const [trend, setTrend] = useState<AwardTrend | null>(null);
   useEffect(() => {
@@ -32,7 +33,7 @@ export function InsightsPanel({ procGroup, methodCode, countryCode, assessed, wi
       {assessed !== undefined && (
         <div className={card}>
           <h3 className="mb-1 text-sm font-semibold">Recommendations</h3>
-          <Recommendations key={JSON.stringify(assessed)} request={assessed} />
+          <Recommendations key={JSON.stringify(assessed)} request={assessed} onAccept={onAccept} />
         </div>
       )}
     </aside>
