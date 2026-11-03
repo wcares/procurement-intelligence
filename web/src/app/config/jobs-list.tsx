@@ -26,7 +26,7 @@ export function JobsList() {
         Work the app does on its own: checking the World Bank sources, updating the data, measuring quality, retraining
         the forecast.{" "}
         {queue?.waitsForModels
-          ? <>A job waits only while a user's request is using a model it needs, and starts {queue.runAfterIdleSeconds} s
+          ? <>A job waits only while a user&apos;s request is using a model it needs, and starts {queue.runAfterIdleSeconds} s
             after that model is free; a user needing the model pauses it after its current step. Light jobs (checking
             sources, taking in documents and records) never wait. Pause a job, or start it later, from its row.</>
           : <>Light jobs start at once; heavier ones wait until the app has had no requests for {queue?.runAfterIdleSeconds ?? 5} s.</>}{" "}
