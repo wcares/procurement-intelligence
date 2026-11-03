@@ -93,7 +93,12 @@ def provenance(model: str | None, used: list[dict], sentences: list[dict] | None
     for s in sentences or []:
         k = s.get("kind") or "evidence"
         kinds[k] = kinds.get(k, 0) + 1
-    return {"model": model, "basis": used, "kinds": kinds}
+    seen, once = set(), []
+    for b in used:   # a tool called twice (the plan read before and after a change) is one line on the card
+        if (b["kind"], b["label"]) not in seen:
+            seen.add((b["kind"], b["label"]))
+            once.append(b)
+    return {"model": model, "basis": once, "kinds": kinds}
 
 
 def _reports(hits: list[Hit]) -> str:

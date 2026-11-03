@@ -97,7 +97,7 @@ def test_every_chat_answer_says_where_it_came_from(monkeypatch):
     raw = '{"sentences": [{"text": "Delays came from weak contractors.", "kind": "evidence", "citations": [1]}, ' \
           '{"text": "Plan a buffer.", "kind": "general"}]}'
     used = [answer.basis("conversation", "The last 2 messages"), answer.basis("assessment", "Assessment of CW by RFB in KE", "217 comparable packages")]
-    out = converse.assemble(None, raw, [hit], "", "first", used)
+    out = converse.assemble(None, raw, [hit], "", "first", used + [used[1]])   # a tool called twice: one line
     assert out["provenance"] == {"model": "test-model", "basis": used, "kinds": {"evidence": 1, "general": 1}}
     sess = tools.Session(state=None, plan={}, results="", today=None)
     sess.used.append(answer.basis("plan", "Your plan"))
