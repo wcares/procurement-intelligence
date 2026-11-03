@@ -226,7 +226,7 @@ export function PlanChat({ s }: { s: PlanState }) {
   );
 }
 
-function StatsTable({ data }: { data: RankingResponse }) {
+export function StatsTable({ data }: { data: RankingResponse }) {
   const rows = data.rows.slice(0, 10);
   return (
     <div className="space-y-1.5">

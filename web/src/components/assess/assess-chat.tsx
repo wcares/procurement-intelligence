@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2, MessageCircle, X } from "lucide-react";
 import { api } from "@/lib/api/client";
-import type { AskResponse, AssessRequest, AssessResponse, ChatPlan, ChatTurn } from "@/lib/api/types";
+import type { AskResponse, AssessRequest, AssessResponse, ChatPlan, ChatTurn, RankingResponse } from "@/lib/api/types";
 import { Answer } from "@/components/ask/answer";
+import { StatsTable } from "@/components/plan/plan-chat";
 
-interface Msg { id: number; role: "user" | "assistant"; content: string; answer?: AskResponse; steps?: string[] }
+interface Msg { id: number; role: "user" | "assistant"; content: string; answer?: AskResponse; steps?: string[]; stats?: RankingResponse; question?: string }
 
 const STARTERS = ["Why could this package be slow?", "What can I do to award it faster?", "What went wrong on similar projects?"];
 const KEEP_TURNS = 12;
@@ -46,7 +47,7 @@ export function AssessChat({ request, result }: { request: AssessRequest; result
   const [busy, setBusy] = useState(false);
   const next = useRef(1);
   const bottom = useRef<HTMLDivElement>(null);
-  useEffect(() => { setMsgs([]); }, [result]);   // eslint-disable-line react-hooks/set-state-in-effect -- a new assessment: a new conversation
+  useEffect(() => { setMsgs([]); }, [result]);   // a new assessment: a new conversation
   useEffect(() => { if (open) bottom.current?.scrollIntoView({ block: "end" }); }, [msgs, busy, open]);
 
   async function send(text: string) {
@@ -56,8 +57,19 @@ export function AssessChat({ request, result }: { request: AssessRequest; result
     setMsgs(all); setInput(""); setBusy(true);
     try {
       const history: ChatTurn[] = all.slice(-KEEP_TURNS).map((m) => ({ role: m.role, content: m.content.slice(0, 900) }));
+      // the same backend and tools as the planning chat; the routes a model without tools uses are handled here too
       const r = await api.planChat(history, asPlan(request), assessmentText(request, result));
-      setMsgs((m) => [...m, { id: next.current++, role: "assistant", content: r.reply, answer: r.intent === "chat" ? r.answer : undefined, steps: r.steps }]);
+      const add = (m: Omit<Msg, "id">) => setMsgs((all) => [...all, { ...m, id: next.current++ }]);
+      if (r.intent === "ask_evidence" && r.evidenceQuestion) {
+        const a = await api.ask({ question: r.evidenceQuestion });
+        add({ role: "assistant", content: a.answer.map((s) => s.text).join(" ").slice(0, 600), answer: a, question: r.evidenceQuestion });
+      } else if (r.intent === "ask_statistics" && r.statistic) {
+        const data = await api.ranking(r.statistic.measure, r.statistic.group);
+        add({ role: "assistant", content: `Shown: ${data.measure.label} by ${data.groupLabel}.`, stats: data });
+      } else {
+        add({ role: "assistant", content: r.reply, answer: r.intent === "chat" ? r.answer : undefined, steps: r.steps });
+      }
+      for (const data of r.statistics ?? []) add({ role: "assistant", content: `Shown: ${data.measure.label} by ${data.groupLabel}.`, stats: data });
     } catch (e) {
       setMsgs((m) => [...m, { id: next.current++, role: "assistant", content: `Sorry, that did not work (${(e as Error).message.slice(0, 120)}). Please try again.` }]);
     } finally {
@@ -96,7 +108,9 @@ export function AssessChat({ request, result }: { request: AssessRequest; result
           <div key={m.id} className="flex justify-end"><p className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-subtle px-3 py-2">{m.content}</p></div>
         ) : (
           <div key={m.id} className="min-w-0">
-            {m.answer ? <Answer turnId={5000 + m.id} r={m.answer} question="" steps={m.steps} /> : <p className="whitespace-pre-wrap">{m.content}</p>}
+            {m.stats ? <StatsTable data={m.stats} />
+              : m.answer ? <Answer turnId={5000 + m.id} r={m.answer} question={m.question ?? ""} steps={m.steps} />
+              : <p className="whitespace-pre-wrap">{m.content}</p>}
           </div>
         ))}
         {busy && <p className="flex items-center gap-2 text-ink-muted"><Loader2 size={14} className="animate-spin" aria-hidden /> Thinking…</p>}
