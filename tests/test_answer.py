@@ -303,3 +303,22 @@ def test_a_sentence_in_another_language_is_checked_in_its_english_version(monkey
     del reply["sentences"][0]["en"]                                                  # without it the Hindi cannot be checked
     out, dropped = answer.generative("q", [hit])
     assert out == [] and dropped == 1
+
+
+def test_an_english_question_gets_english_sentences(monkeypatch):
+    import json
+
+    from procintel.answering import answer
+    from procintel.answering.retrieve import Hit
+    hit = Hit(chunk_id="d:1", doc_id="d", title="t", doc_type="x", url="u", section="S", para="4", kind="text",
+              text="Delays were caused by weak contractors and late payments to them.", project_id="P",
+              project_name="n", country_code="KE", score=1.0, via="bm25", tag=None, tag_confidence=None, problem=None)
+    english = "Delays were caused by weak contractors and late payments."
+    reply = {"sentences": [{"text": "Les retards étaient dus à des entrepreneurs faibles et à des paiements tardifs.",
+                            "en": english, "citations": [1]}]}
+    monkeypatch.setattr(answer, "_pieces", lambda system, user, streaming: iter([json.dumps(reply, ensure_ascii=False)]))
+    out, _ = answer.generative("What usually goes wrong with road works tenders?", [hit])
+    assert out == [{"text": english, "citations": [0]}]                             # seen 2026-11-02: French for English
+    out, _ = answer.generative("Quels sont les problèmes des appels d'offres routiers ?", [hit])
+    assert out[0]["text"].startswith("Les retards") and out[0]["en"] == english       # a French question keeps French
+    assert not answer.asked_in_english("Kenya RFB delays")                           # unsure: the model's choice stands

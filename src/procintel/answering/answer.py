@@ -261,12 +261,27 @@ def _pieces(system: str, user: str, streaming: bool):
         yield llm.complete(system, user)
 
 
+ENGLISH_SURE = 0.95
+
+
+def asked_in_english(question: str) -> bool:
+    """Whether the question is clearly English. The prompt asks for the question's language, but a model shown French
+    passages answered an English question in French (2026-11-02) while also writing the English copy it is checked
+    against; for an English question that copy is shown. Unsure (short or mixed text): the model's choice stands."""
+    from procintel.ingestion import language
+    if sum(c.isalpha() for c in question) < 8:
+        return False
+    lang, p = language._conf(question)
+    return lang == "en" and p >= ENGLISH_SURE
+
+
 def generative_events(question: str, hits: list[Hit], use_decide: bool = False, streaming: bool = True, prompt: str = "answer"):
     """Like generative(), but yields {"type": "sentence"} for each sentence as soon as it is written and checked, so a
     page can show it while the model goes on. The generator's return value is generative()'s result: it is worked out
     from the whole reply, with the checks already made not repeated, so the streamed sentences are previews of it."""
     numbered = "\n\n".join(f"[{i + 1}] ({h.project_id}, {h.section}) {h.text}" for i, h in enumerate(hits))
     seen: dict[tuple, bool] = {}   # (text, citations) -> supported: each sentence is checked once
+    in_english = asked_in_english(question)
 
     def keep(s) -> dict | None:
         if not isinstance(s, dict) or not isinstance(s.get("text"), str):
@@ -274,6 +289,9 @@ def generative_events(question: str, hits: list[Hit], use_decide: bool = False, 
         cites = sorted({c - 1 for c in s.get("citations") or [] if isinstance(c, int) and 1 <= c <= len(hits)})
         key = (s["text"], tuple(cites))
         english = s.get("en") if isinstance(s.get("en"), str) and s["en"].strip() else None
+        if in_english and english:   # answered in another language (the passages', seen 2026-11-02): its English copy
+            s, english = {**s, "text": english}, None
+            key = (s["text"], tuple(cites))
         if cites and key not in seen:   # a sentence in another language is checked in its English version
             seen[key] = _supported(english or s["text"], [hits[c] for c in cites], use_decide)
         if not (cites and seen[key]):
