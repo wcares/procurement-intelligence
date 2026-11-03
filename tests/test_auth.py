@@ -125,13 +125,33 @@ def test_sign_up_checks_and_limits(local):
     assert client(local, "10.0.0.9").post("/auth/signup", json={"username": "u4", "password": "long-enough-1"}).status_code == 200
 
 
-def test_declining_removes_only_requests(local):
+def test_declining_a_request_removes_it(local):
     admin = client(local)
     client(local, "10.0.0.10").post("/auth/signup", json={"username": "dee", "password": "dee-pass-123"})
     admin.post("/auth/login", json={"username": "root", "password": "admin-pass-12"})
     assert "dee" not in [u["username"] for u in admin.delete("/auth/users/dee").json()["users"]]
-    assert admin.delete("/auth/users/ana").status_code == 404                 # an account in use is disabled instead
     assert client(local).delete("/auth/users/ana").status_code == 401
+
+
+def test_removing_an_account_leaves_nothing_for_a_later_one(local, monkeypatch, tmp_path):
+    from procintel.core import paths
+    monkeypatch.setattr(paths, "FEEDBACK_DB", tmp_path / "feedback.duckdb")     # saved conversations
+    monkeypatch.setattr(paths, "PIPELINE_DB", tmp_path / "pipeline.duckdb")     # watch-lists and alerts
+    ana, admin = client(local), client(local)
+    ana.post("/auth/login", json={"username": "ana", "password": "planner-pass-1"})
+    assert ana.put("/conversations/conv-0001", json={"kind": "plan", "messages": [{"role": "user", "content": "hi"}]}).status_code == 200
+    assert ana.put("/insights/watch", json={"watch": {"country": ["KE"]}}).status_code == 200
+    admin.post("/auth/login", json={"username": "root", "password": "admin-pass-12"})
+    assert admin.delete("/auth/users/root").status_code == 400                # not your own account
+    assert admin.delete("/auth/users/nobody").status_code == 404
+    assert ana.delete("/auth/users/root").status_code == 403                  # planners cannot remove anyone
+    assert "ana" not in [u["username"] for u in admin.delete("/auth/users/ana").json()["users"]]
+    assert ana.get("/auth/me").status_code == 401                             # the session ended with the account
+    service.create_user("ana", "a-new-pass-12", "planner")                    # someone new with the same name
+    ana2 = client(local)
+    ana2.post("/auth/login", json={"username": "ana", "password": "a-new-pass-12"})
+    assert ana2.get("/conversations?kind=plan").json()["items"] == []
+    assert not any(ana2.get("/insights/watch").json()["watch"].values())
 
 
 def test_each_sign_in_page_admits_its_roles(local):

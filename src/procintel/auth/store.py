@@ -93,12 +93,14 @@ def recent_requests(since: timedelta) -> int:
         con.close()
 
 
-def delete_request(username: str) -> bool:
-    """Remove an access request that was never approved (an account in use is disabled instead, keeping its history)."""
+def delete_user(username: str) -> bool:
+    """Remove an account or an access request, with its sessions and failed sign-ins; False when there is none."""
     con = connect()
     try:
-        if not con.execute("SELECT count(*) FROM users WHERE username = ? AND requested_at IS NOT NULL", [username]).fetchone()[0]:
+        if not con.execute("SELECT count(*) FROM users WHERE username = ?", [username]).fetchone()[0]:
             return False
+        con.execute("DELETE FROM sessions WHERE username = ?", [username])
+        con.execute("DELETE FROM failed_logins WHERE username = ?", [username])
         con.execute("DELETE FROM users WHERE username = ?", [username])
         return True
     finally:

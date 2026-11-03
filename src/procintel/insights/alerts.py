@@ -180,6 +180,16 @@ def _alert(kind: str, items: list[dict], days: dict[str, int]) -> tuple[str, str
     return (f"{n} new completion report{'s' if n > 1 else ''}", "for " + "; ".join(names[:3]))
 
 
+def forget(username: str, db_path: Path | None = None) -> None:
+    """A removed account's watch-list and alerts (procintel.auth.service.remove_user)."""
+    con = connect(db_path)
+    try:
+        con.execute("DELETE FROM watch WHERE username = ?", [username])
+        con.execute("DELETE FROM alert WHERE username = ?", [username])
+    finally:
+        con.close()
+
+
 def from_events(events: dict[str, dict], document_rows: dict[str, dict], db_path: Path | None = None) -> int:
     """Write the alerts a batch gives each watching planner; returns how many."""
     watches = _all_watches(db_path)

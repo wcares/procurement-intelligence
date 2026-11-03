@@ -99,6 +99,18 @@ def get(user_id: str, conversation_id: str, db_path: Path | None = None) -> dict
     return {"id": r[0], "kind": r[1], "title": r[2], "messages": json.loads(r[3]), "updatedAt": r[4].isoformat() + "Z"} if r else None
 
 
+def remove_all(user_id: str, db_path: Path | None = None) -> int:
+    """Every saved conversation of a user, for a removed account (procintel.auth.service.remove_user)."""
+    with _LOCK:
+        con = _connect(db_path)
+        try:
+            n = con.execute("SELECT count(*) FROM conversation WHERE user_id = ?", [user_id]).fetchone()[0]
+            con.execute("DELETE FROM conversation WHERE user_id = ?", [user_id])
+        finally:
+            con.close()
+    return n
+
+
 def remove(user_id: str, conversation_id: str, db_path: Path | None = None) -> bool:
     with _LOCK:
         con = _connect(db_path)

@@ -156,8 +156,8 @@ export const api = {
     send<{ users: Account[] }>("/auth/users", "POST", { username, password, role }),
   updateUser: (username: string, change: { role?: string; active?: boolean; password?: string }) =>
     send<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, "PATCH", change),
-  /** decline an access request (never approved) */
-  declineRequest: (username: string) => call<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, { method: "DELETE" }),
+  /** remove an account with its saved conversations, watch-list and alerts, or decline an access request */
+  removeUser: (username: string) => call<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, { method: "DELETE" }),
   options: () => call<Options>("/options"),
   /** saved conversations of the signed-in user (kind: the planning chat or Ask) */
   conversations: (kind: "plan" | "ask") => call<{ items: SavedConversation[] }>(`/conversations?kind=${kind}`),

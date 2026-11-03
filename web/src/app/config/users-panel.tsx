@@ -7,8 +7,9 @@ import { useAuth } from "@/components/auth";
 
 const box = "rounded-md border border-line bg-surface px-2 py-1 text-xs";
 
-/** Accounts and roles (admins), and access requests from the sign-up page, approved with a role or declined. Passwords
- * are set here or with `python -m procintel.auth`, never shown. */
+/** Accounts and roles (admins), and access requests from the sign-up page, approved with a role or declined. An account
+ * can be disabled (kept, cannot sign in) or removed after a confirmation on the row (with its saved conversations,
+ * watch-list and alerts). Passwords are set here or with `python -m procintel.auth`, never shown. */
 export function Users() {
   const { user } = useAuth();
   const [list, setList] = useState<Account[] | null>(null);
@@ -16,6 +17,7 @@ export function Users() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("planner");
   const [msg, setMsg] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);   // the account whose removal is being confirmed
 
   useEffect(() => {
     if (user?.mode === "local") api.users().then((r) => setList(r.users)).catch(() => setList(null));
@@ -46,17 +48,32 @@ export function Users() {
                   <select className={box} value={u.role} disabled={u.username === user.username}
                     onChange={async (e) => apply(await api.updateUser(u.username, { role: e.target.value }), `${u.username} is now ${e.target.value}.`)}>
                     <option value="planner">planner</option>
-                                        <option value="admin">admin</option>
+                    <option value="admin">admin</option>
                   </select>
                 </td>
                 <td>{u.active ? "active" : "disabled"}</td>
                 <td>{u.lastLogin ? new Date(u.lastLogin).toLocaleString() : "never"}</td>
-                <td className="text-right">
-                  {u.username !== user.username && (
-                    <button className="underline" onClick={async () => apply(await api.updateUser(u.username, { active: !u.active }), `${u.username} ${u.active ? "disabled" : "enabled"}.`)}>
-                      {u.active ? "disable" : "enable"}
-                    </button>
-                  )}
+                <td className="whitespace-nowrap text-right">
+                  {u.username !== user.username && (removing === u.username ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-risk-high">Remove {u.username} and their saved conversations?</span>
+                      <button type="button" className="rounded-md bg-risk-high px-3 py-1 font-medium text-white"
+                        onClick={async () => {
+                          setRemoving(null);
+                          await apply(await api.removeUser(u.username).catch((e: Error) => ({ error: e.message })), `${u.username} removed.`);
+                        }}>
+                        Remove
+                      </button>
+                      <button type="button" className="underline" onClick={() => setRemoving(null)}>cancel</button>
+                    </span>
+                  ) : (
+                    <span className="space-x-3">
+                      <button type="button" className="underline" onClick={async () => apply(await api.updateUser(u.username, { active: !u.active }).catch((e: Error) => ({ error: e.message })), `${u.username} ${u.active ? "disabled" : "enabled"}.`)}>
+                        {u.active ? "disable" : "enable"}
+                      </button>
+                      <button type="button" className="text-risk-high underline" onClick={() => setRemoving(u.username)}>remove</button>
+                    </span>
+                  ))}
                 </td>
               </tr>
             ))}
@@ -73,7 +90,7 @@ export function Users() {
           <input className={box} type="password" autoComplete="new-password" placeholder="password (10+ characters)" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <select className={box} value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="planner">planner</option>
-                        <option value="admin">admin</option>
+            <option value="admin">admin</option>
           </select>
           <button className={box} type="submit">Add user</button>
         </form>
@@ -105,7 +122,7 @@ function Requests({ requests, apply }: { requests: Account[]; apply: (r: { users
     await apply(await api.updateUser(name, { active: true }).catch(failed), `${name} approved as ${role}.`);
   });
   const decline = (name: string) => run(name, async () =>
-    apply(await api.declineRequest(name).catch(failed), `The request from ${name} was declined.`));
+    apply(await api.removeUser(name).catch(failed), `The request from ${name} was declined.`));
   return (
     <div className="space-y-3 rounded-md border border-brand-2 bg-brand-soft p-4">
       <p className="text-sm font-semibold">Access requests ({requests.length})</p>

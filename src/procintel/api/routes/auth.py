@@ -82,8 +82,10 @@ def update_user(username: str, req: UserUpdate, request: Request) -> dict:
 
 
 @router.delete("/auth/users/{username}", dependencies=admin)
-def decline_request(username: str) -> dict:
-    """Decline an access request (an account that was never approved); accounts in use are disabled instead."""
-    if not store.delete_request(username):
-        return JSONResponse({"error": f"no access request from {username!r}"}, status_code=404)
+def remove_user(username: str, request: Request) -> dict:
+    """Remove an account, or decline an access request (procintel.auth.service.remove_user); not your own."""
+    if username == security.user_of(request):
+        return JSONResponse({"error": "you cannot remove your own account"}, status_code=400)
+    if not service.remove_user(username):
+        return JSONResponse({"error": f"no user {username!r}"}, status_code=404)
     return {"users": store.users()}

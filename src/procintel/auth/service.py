@@ -81,6 +81,19 @@ def create_user(username: str, password: str, role: str, requested: bool = False
     store.add_user(username, passwords.hash_password(password), role, requested)
 
 
+def remove_user(username: str) -> bool:
+    """Remove an account (or decline an access request): the account, its sessions, its saved conversations, watch-list
+    and alerts, so a later account with the same name starts empty. The pseudonymous response log and ratings stay:
+    they are the quality measurements and do not name the person. False when there is no such account."""
+    from procintel.insights import alerts
+    from procintel.learning import conversations
+    if not store.delete_user(username):
+        return False
+    conversations.remove_all(pseudonym(username))
+    alerts.forget(username)
+    return True
+
+
 def request_access(username: str, password: str, client: str) -> None:
     """Sign-up: a planner account that stays inactive until an admin enables it (Settings, Accounts). Nobody can ask for
     a higher role here; an admin changes the role when approving. ValueError for a bad name or password, LoginRefused
