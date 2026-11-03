@@ -246,7 +246,7 @@ function StatsTable({ data }: { data: RankingResponse }) {
       </div>
       <p className="text-xs text-ink-muted">Greyed rows rest on fewer than 3 projects. {data.measure.note}</p>
       <SourceCard p={{ model: null, kinds: {}, basis: [{ kind: "statistics", label: `${data.measure.label} by ${data.groupLabel.toLowerCase()}`,
-        detail: `${rows.length} ${data.groupLabel.toLowerCase()} groups, computed from past projects' records; no model involved` }] }} />
+        detail: `${rows.length} ${data.groupLabel.toLowerCase()} groups; each value is computed from the dates in past procurement notices and contract awards, and "based on" says how many tenders it rests on` }] }} />
     </div>
   );
 }

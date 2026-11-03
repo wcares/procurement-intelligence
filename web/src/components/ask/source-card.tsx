@@ -9,18 +9,21 @@ const ICON: Record<Provenance["basis"][number]["kind"], typeof BookOpen> = {
   conversation: MessageSquare, message: MessageSquare,
 };
 
-/** The one line under an answer saying whether it has sources: "Backed by 3 passages from 2 reports and the
- * engine's figures", plus who wrote it. */
+/** The one line under an answer saying what it rests on, in a planner's words: report passages (cited), figures
+ * computed from past tenders' records (statistics, an assessment, the forecast), the plan; and who wrote it. */
 function summary(p: Provenance, citations: Citation[]): string {
   const reports = new Set(citations.map((c) => c.docId)).size;
-  const figures = p.basis.filter((b) => b.kind === "assessment" || b.kind === "statistics" || b.kind === "forecast").length;
+  const n = (kind: string) => p.basis.filter((b) => b.kind === kind).length;
   const parts: string[] = [];
   if (citations.length) parts.push(`${citations.length} passage${citations.length === 1 ? "" : "s"} from ${reports} report${reports === 1 ? "" : "s"}`);
-  if (figures) parts.push(`the engine's figures (${figures})`);
-  const plan = p.basis.some((b) => b.kind === "plan");
-  if (plan && !parts.length) parts.push("your plan");
-  const backed = parts.length ? `Backed by ${parts.join(" and ")}` : "No source cited";
-  const by = p.model ? "written by the AI assistant" : "composed by the engine, no model involved";
+  const figures: string[] = [];
+  if (n("statistics")) figures.push(`${n("statistics")} statistic${n("statistics") === 1 ? "" : "s"}`);
+  if (n("assessment")) figures.push(`${n("assessment") === 1 ? "an assessment" : `${n("assessment")} assessments`} of comparable packages`);
+  if (n("forecast")) figures.push("the plan's forecast");
+  if (figures.length) parts.push(`${figures.join(", ")} computed from past tenders' records`);
+  if (!parts.length && n("plan")) parts.push("your plan");
+  const backed = parts.length ? (p.model ? `Based on ${parts.join(" and ")}` : parts.join(" and ").replace(/^\w/, (c) => c.toUpperCase())) : "No source cited";
+  const by = p.model ? "written by the AI assistant" : "no AI model involved";
   const own = p.kinds.general ? `; ${p.kinds.general} sentence${p.kinds.general === 1 ? "" : "s"} of general guidance` : "";
   return `${backed} · ${by}${own}`;
 }
