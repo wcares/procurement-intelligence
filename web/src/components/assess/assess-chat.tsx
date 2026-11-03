@@ -24,10 +24,10 @@ export function assessmentText(req: AssessRequest, r: AssessResponse): string {
     `${r.prediction.p_long != null ? `, chance of over 180 days ${Math.round(r.prediction.p_long * 100)}%` : ""}.`);
   for (const s of r.stages ?? []) if (s.median != null) lines.push(`Stage "${s.label}": median ${s.median} days, slow case ${s.p90 ?? "?"} (${s.n} packages).`);
   for (const f of r.risks) lines.push(`Risk (${f.level}, ${f.basis}): ${f.label}. ${f.detail}`);
-  for (const p of r.precedents.slice(0, 6)) lines.push(`Lesson from ${p.citation.projectName} (${p.citation.projectId}), ${p.citation.section}: "${p.citation.quote.slice(0, 300)}"`);
+  for (const p of r.precedents.slice(0, 6)) lines.push(`Lesson from ${p.citation.projectName} (${p.citation.projectId}), ${p.citation.section}: "${p.citation.quote.slice(0, 220)}"`);
   for (const s of r.similarPackages.slice(0, 5)) lines.push(`Similar past package ${s.packageId} (${s.countryCode}): "${s.description}", ${s.tenderToAwardDays ?? "unknown"} days to award` +
     `${s.valueUsd ? `, US$${Math.round(s.valueUsd).toLocaleString("en-US")}` : ""}.`);
-  return lines.join("\n");
+  return lines.join("\n").slice(0, 11000);   // the backend takes 12,000 characters
 }
 
 /** The package as a one-package plan, so the assistant's plan tools see it. */

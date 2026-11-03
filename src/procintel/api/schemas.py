@@ -339,4 +339,4 @@ class SummarizeRequest(BaseModel):
 class PlanChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=60)   # ends with the planner's latest message
     plan: ChatPlan = Field(default_factory=ChatPlan)
-    results: str = Field(default="", max_length=4000)                    # the plan's forecast, as text, for questions about it
+    results: str = Field(default="", max_length=12000)   # the plan's forecast, or an assessment, as text (the context guard counts it)
