@@ -21,6 +21,8 @@ def connect(db_path: Path | None = None) -> duckdb.DuckDBPyConnection:
     con = db.connect(path)
     con.execute("""CREATE TABLE IF NOT EXISTS users (username VARCHAR PRIMARY KEY, password_hash VARCHAR,
                    role VARCHAR, active BOOLEAN, created_at TIMESTAMP, last_login TIMESTAMP)""")
+    # set while an account asked for on the sign-up page waits for an admin's approval (older stores lack it)
+    con.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS requested_at TIMESTAMP")
     con.execute("""CREATE TABLE IF NOT EXISTS sessions (token_hash VARCHAR PRIMARY KEY, username VARCHAR,
                    created_at TIMESTAMP, expires_at TIMESTAMP)""")
     con.execute("CREATE TABLE IF NOT EXISTS failed_logins (username VARCHAR, client VARCHAR, failed_at TIMESTAMP)")
@@ -34,9 +36,9 @@ def token_hash(token: str) -> str:
 def get_user(username: str) -> dict | None:
     con = connect()
     try:
-        r = con.execute("SELECT username, password_hash, role, active FROM users WHERE username = ?",
+        r = con.execute("SELECT username, password_hash, role, active, requested_at IS NOT NULL FROM users WHERE username = ?",
                         [username]).fetchone()
-        return dict(zip(("username", "password_hash", "role", "active"), r)) if r else None
+        return dict(zip(("username", "password_hash", "role", "active", "pending"), r)) if r else None
     finally:
         con.close()
 
@@ -44,9 +46,10 @@ def get_user(username: str) -> dict | None:
 def users() -> list[dict]:
     con = connect()
     try:
-        q = con.execute("SELECT username, role, active, created_at, last_login FROM users ORDER BY username")
+        q = con.execute("SELECT username, role, active, created_at, last_login, requested_at FROM users ORDER BY username")
         return [{"username": u, "role": r, "active": a, "createdAt": c.isoformat() + "Z" if c else None,
-                 "lastLogin": ll.isoformat() + "Z" if ll else None} for u, r, a, c, ll in q.fetchall()]
+                 "lastLogin": ll.isoformat() + "Z" if ll else None, "requestedAt": rq.isoformat() + "Z" if rq else None}
+                for u, r, a, c, ll, rq in q.fetchall()]
     finally:
         con.close()
 
@@ -59,10 +62,32 @@ def count_users() -> int:
         con.close()
 
 
-def add_user(username: str, password_hash: str, role: str) -> None:
+def add_user(username: str, password_hash: str, role: str, requested: bool = False) -> None:
+    """A working account, or with requested an inactive one waiting for an admin's approval."""
     con = connect()
     try:
-        con.execute("INSERT INTO users VALUES (?, ?, ?, true, ?, NULL)", [username, password_hash, role, _now()])
+        con.execute("""INSERT INTO users (username, password_hash, role, active, created_at, last_login, requested_at)
+                       VALUES (?, ?, ?, ?, ?, NULL, ?)""", [username, password_hash, role, not requested, _now(), _now() if requested else None])
+    finally:
+        con.close()
+
+
+def recent_requests(since: timedelta) -> int:
+    con = connect()
+    try:
+        return con.execute("SELECT count(*) FROM users WHERE requested_at > ?", [_now() - since]).fetchone()[0]
+    finally:
+        con.close()
+
+
+def delete_request(username: str) -> bool:
+    """Remove an access request that was never approved (an account in use is disabled instead, keeping its history)."""
+    con = connect()
+    try:
+        if not con.execute("SELECT count(*) FROM users WHERE username = ? AND requested_at IS NOT NULL", [username]).fetchone()[0]:
+            return False
+        con.execute("DELETE FROM users WHERE username = ?", [username])
+        return True
     finally:
         con.close()
 
@@ -72,6 +97,8 @@ def update_user(username: str, **fields) -> None:
     try:
         for k, v in fields.items():
             con.execute(f"UPDATE users SET {k} = ? WHERE username = ?", [v, username])
+        if fields.get("active") is True:   # enabling a requested account approves the request
+            con.execute("UPDATE users SET requested_at = NULL WHERE username = ?", [username])
         if fields.get("active") is False or "password_hash" in fields or "role" in fields:
             con.execute("DELETE FROM sessions WHERE username = ?", [username])  # changes take effect at once
     finally:

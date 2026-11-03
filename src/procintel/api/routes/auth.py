@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
 
 from procintel.api import security
-from procintel.api.schemas import Login, NewUser, UserUpdate
+from procintel.api.schemas import Login, NewUser, SignUp, UserUpdate
 from procintel.auth import service, store
 
 router = APIRouter()
@@ -17,11 +17,25 @@ def login(req: Login, request: Request, response: Response) -> dict:
     if service.mode() == "off":
         return {"username": "local", "role": "admin", "mode": "off"}
     try:
-        token, user = service.login(req.username, req.password, request.client.host if request.client else "?")
+        token, user = service.login(req.username, req.password, request.client.host if request.client else "?", req.portal)
     except service.LoginRefused as e:
         return JSONResponse({"error": str(e)}, status_code=e.status)
     security.set_session(response, token)
     return user | {"mode": "local"}
+
+
+@router.post("/auth/signup")
+def signup(req: SignUp, request: Request) -> dict:
+    """Ask for a planner account; it works once an admin enables it in Settings, Accounts."""
+    if service.mode() == "off":
+        return JSONResponse({"error": "sign-in is off on this server"}, status_code=400)
+    try:
+        service.request_access(req.username, req.password, request.client.host if request.client else "?")
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    except service.LoginRefused as e:
+        return JSONResponse({"error": str(e)}, status_code=e.status)
+    return {"ok": True}
 
 
 @router.post("/auth/logout")
@@ -64,4 +78,12 @@ def update_user(username: str, req: UserUpdate, request: Request) -> dict:
         return JSONResponse({"error": f"no user {username!r}"}, status_code=404)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
+    return {"users": store.users()}
+
+
+@router.delete("/auth/users/{username}", dependencies=admin)
+def decline_request(username: str) -> dict:
+    """Decline an access request (an account that was never approved); accounts in use are disabled instead."""
+    if not store.delete_request(username):
+        return JSONResponse({"error": f"no access request from {username!r}"}, status_code=404)
     return {"users": store.users()}

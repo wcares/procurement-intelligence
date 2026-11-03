@@ -272,6 +272,12 @@ class RuleSet(BaseModel):
 class Login(BaseModel):
     username: str = Field(min_length=1, max_length=60)
     password: str = Field(min_length=1, max_length=200)
+    portal: Literal["planner", "admin"] | None = None   # the sign-in page used; it admits only its roles
+
+
+class SignUp(BaseModel):
+    username: str = Field(min_length=1, max_length=60)
+    password: str = Field(min_length=1, max_length=200)
 
 
 class NewUser(BaseModel):

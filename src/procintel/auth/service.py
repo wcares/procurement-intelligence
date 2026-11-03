@@ -4,6 +4,8 @@ from __future__ import annotations
 import hashlib
 import os
 import secrets
+import threading
+import time
 from datetime import timedelta
 
 from procintel.auth import ROLES, passwords, store
@@ -13,6 +15,12 @@ SESSION_LIFETIME = timedelta(hours=12)
 MAX_FAILURES = 5                       # failed logins for a username or from a client ...
 FAILURE_WINDOW = timedelta(minutes=15)  # ... within this window: further attempts are refused until it passes
 _DUMMY = passwords.hash_password(secrets.token_hex(8))  # checked for unknown names, so timing reveals no usernames
+# Each sign-in page admits only its roles, so an admin account is not used from the planner page or the other way round.
+PORTALS = {"planner": ("planner", "reviewer"), "admin": ("admin",)}
+REQUESTS_PER_CLIENT = 3                 # access requests (sign-up) from one client per hour ...
+REQUESTS_PER_HOUR = 30                  # ... and from everyone, so the page cannot fill the accounts table
+_requests: dict[str, list[float]] = {}
+_requests_lock = threading.Lock()
 
 
 class LoginRefused(Exception):
@@ -28,16 +36,23 @@ def mode() -> str:
     return m
 
 
-def login(username: str, password: str, client: str) -> tuple[str, dict]:
-    """(session token, user) or LoginRefused."""
+def login(username: str, password: str, client: str, portal: str | None = None) -> tuple[str, dict]:
+    """(session token, user) or LoginRefused. portal: the sign-in page used ("planner" or "admin"), which admits only
+    its roles; None (the API and older clients) admits every role. Only a correct password learns why an account was
+    refused, so the messages reveal nothing to someone guessing."""
     if store.recent_failures(username, client, FAILURE_WINDOW) >= MAX_FAILURES:
         raise LoginRefused(f"too many failed attempts; try again in {FAILURE_WINDOW.seconds // 60} minutes", 429)
     user = store.get_user(username)
     ok = passwords.verify(password, user["password_hash"] if user else _DUMMY)
+    if user and ok and not user["active"] and user["pending"]:
+        raise LoginRefused("your access request is waiting for an administrator to approve it")
     if not (user and ok and user["active"]):
         store.record_failure(username, client)
         raise LoginRefused("wrong username or password")
     store.clear_failures(username)
+    if portal is not None and user["role"] not in PORTALS[portal]:
+        raise LoginRefused("this is an administrator account: use the administrator sign-in" if portal == "planner"
+                           else "this is not an administrator account: use the planner sign-in")
     token = secrets.token_urlsafe(32)
     store.add_session(token, username, SESSION_LIFETIME)
     return token, {"username": username, "role": user["role"]}
@@ -53,7 +68,7 @@ def user_for(token: str | None) -> dict | None:
     return store.session_user(token) if token else None
 
 
-def create_user(username: str, password: str, role: str) -> None:
+def create_user(username: str, password: str, role: str, requested: bool = False) -> None:
     username = username.strip()
     if not username or len(username) > 60:
         raise ValueError("a username of 1 to 60 characters")
@@ -63,7 +78,20 @@ def create_user(username: str, password: str, role: str) -> None:
         raise ValueError(f"password: {problem}")
     if store.get_user(username):
         raise ValueError("this username exists")
-    store.add_user(username, passwords.hash_password(password), role)
+    store.add_user(username, passwords.hash_password(password), role, requested)
+
+
+def request_access(username: str, password: str, client: str) -> None:
+    """Sign-up: a planner account that stays inactive until an admin enables it (Settings, Accounts). Nobody can ask for
+    a higher role here; an admin changes the role when approving. ValueError for a bad name or password, LoginRefused
+    when too many requests came in."""
+    now = time.monotonic()
+    with _requests_lock:
+        mine = [t for t in _requests.get(client, []) if now - t < 3600]
+        if len(mine) >= REQUESTS_PER_CLIENT or store.recent_requests(timedelta(hours=1)) >= REQUESTS_PER_HOUR:
+            raise LoginRefused("too many access requests; try again in an hour", 429)
+        create_user(username, password, "planner", requested=True)
+        _requests[client] = mine + [now]
 
 
 def update_user(username: str, role: str | None = None, active: bool | None = None, password: str | None = None) -> None:

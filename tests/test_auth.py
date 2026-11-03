@@ -10,6 +10,7 @@ def local(monkeypatch, tmp_path):
     monkeypatch.setenv("PROCINTEL_AUTH", "local")
     monkeypatch.setenv("PROCINTEL_COOKIE_SECURE", "0")   # the test client speaks plain http
     monkeypatch.setattr(paths, "DATA_DIR", tmp_path)       # the pseudonym salt
+    monkeypatch.setattr(service, "_requests", {})          # sign-up counts per client
     service.create_user("ana", "planner-pass-1", "planner")
     service.create_user("root", "admin-pass-12", "admin")
     from procintel.api.app import app
@@ -100,3 +101,51 @@ def test_reviewer_labels_and_reviews_but_has_no_pipeline_control(local):
     assert root.patch("/auth/users/root", json={"role": "reviewer"}).status_code == 400     # not your own admin role
     r = root.patch("/auth/users/ana", json={"role": "reviewer"})
     assert r.status_code == 200, r.json()
+
+
+def test_sign_up_waits_for_an_admin(local):
+    anon, admin = client(local, "10.0.0.7"), client(local)
+    assert anon.post("/auth/signup", json={"username": "ben", "password": "ben-pass-123", "role": "admin"}).json() == {"ok": True}
+    refused = anon.post("/auth/login", json={"username": "ben", "password": "ben-pass-123"})
+    assert refused.status_code == 401 and "waiting" in refused.json()["error"]
+    wrong = anon.post("/auth/login", json={"username": "ben", "password": "not-his-pass"})
+    assert wrong.json()["error"] == "wrong username or password"       # only the right password learns it is pending
+    admin.post("/auth/login", json={"username": "root", "password": "admin-pass-12"})
+    ben = next(u for u in admin.get("/auth/users").json()["users"] if u["username"] == "ben")
+    assert ben["role"] == "planner" and not ben["active"] and ben["requestedAt"]   # a request never asks for a role
+    ben = next(u for u in admin.patch("/auth/users/ben", json={"active": True}).json()["users"] if u["username"] == "ben")
+    assert ben["active"] and ben["requestedAt"] is None
+    assert anon.post("/auth/login", json={"username": "ben", "password": "ben-pass-123", "portal": "planner"}).json()["role"] == "planner"
+
+
+def test_sign_up_checks_and_limits(local):
+    anon = client(local, "10.0.0.8")
+    assert "exists" in anon.post("/auth/signup", json={"username": "ana", "password": "another-pass-1"}).json()["error"]
+    assert "password" in anon.post("/auth/signup", json={"username": "cy", "password": "short"}).json()["error"]
+    for name in ("u1", "u2", "u3"):
+        assert anon.post("/auth/signup", json={"username": name, "password": "long-enough-1"}).status_code == 200
+    assert anon.post("/auth/signup", json={"username": "u4", "password": "long-enough-1"}).status_code == 429
+    assert client(local, "10.0.0.9").post("/auth/signup", json={"username": "u4", "password": "long-enough-1"}).status_code == 200
+
+
+def test_declining_removes_only_requests(local):
+    admin = client(local)
+    client(local, "10.0.0.10").post("/auth/signup", json={"username": "dee", "password": "dee-pass-123"})
+    admin.post("/auth/login", json={"username": "root", "password": "admin-pass-12"})
+    assert "dee" not in [u["username"] for u in admin.delete("/auth/users/dee").json()["users"]]
+    assert admin.delete("/auth/users/ana").status_code == 404                 # an account in use is disabled instead
+    assert client(local).delete("/auth/users/ana").status_code == 401
+
+
+def test_each_sign_in_page_admits_its_roles(local):
+    service.create_user("rev", "reviewer-pass-1", "reviewer")
+    for name, pw, portal, ok in [("ana", "planner-pass-1", "admin", False), ("root", "admin-pass-12", "planner", False),
+                                 ("ana", "planner-pass-1", "planner", True), ("rev", "reviewer-pass-1", "planner", True),
+                                 ("root", "admin-pass-12", "admin", True), ("ana", "planner-pass-1", None, True)]:
+        c = client(local)
+        r = c.post("/auth/login", json={"username": name, "password": pw, "portal": portal})
+        assert (r.status_code == 200) == ok, (name, portal)
+        assert (c.get("/auth/me").status_code == 200) == ok, (name, portal)    # a refused page sets no session
+        if not ok:
+            assert "sign-in" in r.json()["error"]
+
