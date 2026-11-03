@@ -66,6 +66,7 @@ def run(state, history: list[dict], plan: dict, results: str, today: date | None
     grounding = "\n".join([interpret.plan_summary(interpret.with_names(sess.plan, state.options)), results, *sess.outputs])
     first = (f"Written by {llm.model_name()} as the planning assistant, using the engine's tools"
              f"{': ' + '; '.join(sess.steps) if sess.steps else ' (none were needed)'}.")
-    answer = converse.assemble(state.retriever, final, sess.hits, grounding, first)
+    used = [converse.answer.basis("conversation", f"The last {min(len(history), HISTORY)} messages")] + sess.used
+    answer = converse.assemble(state.retriever, final, sess.hits, grounding, first, used)
     return {"answer": answer, "steps": sess.steps, "plan": sess.plan, "changes": sess.changes,
             "assumptions": sess.assumptions, "needs": sess.needs, "notes": sess.notes, "statistics": sess.statistics}

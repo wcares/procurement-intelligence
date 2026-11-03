@@ -257,6 +257,16 @@ export interface AskResponse {
   /** when unsupported: a plain reply saying what was searched, plus what the closest passages do say (cited) */
   fallback?: { answer: AnswerSentence[]; citations: Citation[] } | null;
   meta: ResponseMeta;
+  /** where the answer came from, for the card under it (absent on the in-app mock) */
+  provenance?: Provenance;
+}
+
+/** Where a reply came from: the model that wrote it (null: composed by the engine, or quoted verbatim), what it was
+ * built from, and how many sentences are of each kind (evidence cited, engine data, the plan, general guidance). */
+export interface Provenance {
+  model: string | null;
+  basis: { kind: "passages" | "assessment" | "statistics" | "plan" | "forecast" | "conversation" | "message"; label: string; detail?: string }[];
+  kinds: Record<string, number>;
 }
 
 /** What /ask/stream sends while it works: what it is doing, the evidence found, each checked sentence, then the answer. */
@@ -828,6 +838,8 @@ export interface PlanChatResponse {
   evidenceQuestion: string | null;
   statistic: { measure: string; group: string } | null;
   context: ChatContext;
+  /** for a reply that is not an Ask-shaped answer (a plan update, a short reply): where it came from */
+  provenance?: Provenance;
 }
 
 /** One saved conversation in the history list (its messages are fetched when it is opened). */

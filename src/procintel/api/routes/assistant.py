@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from procintel.api.schemas import PlanChatRequest, SummarizeRequest
 from procintel.api.state import state
 from procintel.api import security
+from procintel.answering import answer
 from procintel.assistant import agent, context, converse, interpret, resolve
 from procintel.auth import service
 from procintel.learning import feedback
@@ -55,8 +56,11 @@ def post_plan_chat(req: PlanChatRequest, request: Request) -> dict:
     except Exception as e:  # server down, timeout, a cut answer: the planner can retry or use the manual form
         raise HTTPException(502, f"the language model did not answer: {e}") from e
     r = resolve.resolve(raw, options, plan, today)
+    # where a reply that is not an Ask-shaped answer came from (the page shows it under the reply)
+    read = [answer.basis("message", "Your message, read by " + (llm.model_name() or "the model")), answer.basis("plan", "Your plan")]
     if r["intent"] == "update_plan":
         reply = resolve.compose_reply(r)
+        r["provenance"] = answer.provenance(None, read + [answer.basis("plan", "The changes made to it, checked against the data's countries and methods")])
     elif r["intent"] in ("explain_plan", "other"):
         # free conversation: the planning assistant answers from the conversation, the plan, its forecast and the
         # reports, each sentence checked (procintel.assistant.converse); the page shows it like an Ask answer
@@ -73,6 +77,7 @@ def post_plan_chat(req: PlanChatRequest, request: Request) -> dict:
         reply = r["modelReply"] or "Tell me about the project you want to plan, for example the country and what you will buy."
         if r["notes"]:
             reply = f"{reply} {' '.join(r['notes'])}"
+        r["provenance"] = answer.provenance(llm.model_name() if r["modelReply"] else None, read)
     r.pop("modelReply")
     return {**r, "reply": reply, "context": context.usage(system + fixed, history + [{"role": "assistant", "content": reply}])}
 

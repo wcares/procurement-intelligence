@@ -79,6 +79,28 @@ def meta(caveats: list[str]) -> dict:
     return {"source": "live", "generatedAt": datetime.now(timezone.utc).isoformat(), "caveats": caveats}
 
 
+def basis(kind: str, label: str, detail: str | None = None) -> dict:
+    """One thing an answer was built from, for the card under it: kind is passages, plan, forecast, assessment,
+    statistics, conversation or message; label says which, detail says how much."""
+    return {"kind": kind, "label": label} | ({"detail": detail} if detail else {})
+
+
+def provenance(model: str | None, used: list[dict], sentences: list[dict] | None = None) -> dict:
+    """Where an answer came from, shown under every chat answer: the model that wrote it (None: sentences quoted or
+    composed by the engine itself), what it was built from (basis), and how many sentences are of each kind
+    (evidence: cited and checked; data: the engine's figures; plan: the planner's plan; general: the model's own)."""
+    kinds: dict[str, int] = {}
+    for s in sentences or []:
+        k = s.get("kind") or "evidence"
+        kinds[k] = kinds.get(k, 0) + 1
+    return {"model": model, "basis": used, "kinds": kinds}
+
+
+def _reports(hits: list[Hit]) -> str:
+    n = len({h.doc_id for h in hits})
+    return f"{len(hits)} passage{'s' if len(hits) != 1 else ''} from {n} report{'s' if n != 1 else ''}"
+
+
 def citation(h: Hit) -> dict:
     section = f"{h.section} ¶{h.para}" if h.para else h.section
     out = {"id": h.chunk_id, "docId": h.doc_id, "docType": h.doc_type, "title": h.title, "section": section,
@@ -534,11 +556,13 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
         why = (f"{judge} judged none of the retrieved passages relevant to the question." if judge
                else "No evaluation passage shares enough terms with the question to count as evidence.")
         fb = yield from fallback_events(retriever, question, own, use_decide, second_search)
-        yield {"type": "done", "result": {"answer": [], "citations": [], "unsupported": True, "fallback": fb, "meta": meta(caveats + [why])}}
+        yield {"type": "done", "result": {"answer": [], "citations": [], "unsupported": True, "fallback": fb, "meta": meta(caveats + [why]),
+                                          "provenance": provenance(llm.model_name() if llm.available() else None, [basis(
+                                              "passages", "No passage supported an answer", "the closest ones are shown as such")])}}
         return
     yield {"type": "passages", "items": [{"projectId": h.project_id, "projectName": h.project_name, "countryCode": h.country_code,
                                           "section": h.section, "docType": h.doc_type} for h in hits]}
-    answer = None
+    answer, generated = None, False
     if llm.available():
         yield stage(f"Writing the answer from {len(hits)} passage{'s' if len(hits) != 1 else ''}…")
         try:
@@ -551,6 +575,7 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
             elif not answer:
                 caveats.append(f"{llm.model_name()} found no supported answer to this question in the retrieved passages.")
             else:
+                generated = True
                 caveats.append(f"Sentences written by {llm.model_name()} from the cited passages; each was checked "
                                f"against the passages it cites by {checker}, which does not prove every detail.")
             if dropped:
@@ -579,4 +604,8 @@ def ask_events(retriever: Retriever, question: str, country: str | None = None, 
         "unsupported": not answer,
         **({"fallback": fb} if fb else {}),
         "meta": meta(caveats),
+        "provenance": provenance(llm.model_name() if generated else None, [basis(
+            "passages", _reports([hits[i] for i in used] or hits),
+            f"found by keyword and semantic search; every sentence checked against what it cites by {checker}")],
+            [{"kind": "evidence"} for _ in answer]),
     }}

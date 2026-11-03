@@ -87,11 +87,20 @@ def converse(retriever: Retriever, history: list[dict], plan_text: str, results:
     raw = llm.complete(prompts.get("chat_converse"), _context(history, plan_text, results, hits), max_tokens=900)
     first = (f"Written by {llm.model_name()} as the planning assistant, from the conversation, your plan"
              f"{' and its forecast' if results else ''} and {len(hits)} passages found for your message.")
-    return assemble(retriever, raw, hits, f"{plan_text}\n{results}", first)
+    built_from = [answer.basis("conversation", f"The last {min(len(history), HISTORY)} messages")]
+    if plan_text:
+        built_from.append(answer.basis("plan", "Your plan"))
+    if results:
+        built_from.append(answer.basis("forecast", "Its forecast"))
+    if hits:
+        built_from.append(answer.basis("passages", answer._reports(hits), "found for your message"))
+    return assemble(retriever, raw, hits, f"{plan_text}\n{results}", first, built_from)
 
 
-def assemble(retriever: Retriever, raw: str, hits: list[Hit], grounding: str, first: str) -> dict:
-    """The model's reply checked sentence by sentence and shaped as an Ask answer, with caveats saying what was checked."""
+def assemble(retriever: Retriever, raw: str, hits: list[Hit], grounding: str, first: str,
+             built_from: list[dict] | None = None) -> dict:
+    """The model's reply checked sentence by sentence and shaped as an Ask answer, with caveats saying what was checked
+    and a provenance (what it was built from) for the card under it."""
     sentences = _parse(raw)
     use_decide = decide.available()
     if sentences is None:      # not the JSON asked for: show the reply as general text rather than nothing
@@ -116,4 +125,4 @@ def assemble(retriever: Retriever, raw: str, hits: list[Hit], grounding: str, fi
         caveats.append(f"{dropped} sentence{'s' if dropped > 1 else ''} not supported by the data were left out.")
     caveats += answer.conflict_notes(retriever, cited)
     return {"answer": kept, "citations": [answer.citation(h) for h in cited], "unsupported": not kept,
-            "fallback": None, "meta": answer.meta(caveats)}
+            "fallback": None, "meta": answer.meta(caveats), "provenance": answer.provenance(llm.model_name(), built_from or [], kept)}

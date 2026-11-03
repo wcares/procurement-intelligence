@@ -6,6 +6,7 @@ import { Caveats, CitationCard } from "@/components/evidence";
 import { FeedbackBar, FlagCitation } from "@/components/feedback";
 import { RelatedMedia } from "@/components/monitoring/project-media";
 import { AnswerMap } from "./answer-map";
+import { SourceCard } from "./source-card";
 
 /** An answer from the reports: the sentences with their citation chips and the quoted sources below. When nothing answered
  * the question directly it shows the fallback reply (what was searched and what is close) under a plain label. */
@@ -60,6 +61,7 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
           </div>
         ))}
       </div>
+      {full.provenance && <SourceCard p={full.provenance} />}
       {partial ? <details className="text-xs text-ink-muted"><summary className="cursor-pointer">How this was searched</summary><div className="mt-2"><Caveats meta={r.meta} /></div></details> : <Caveats meta={r.meta} />}
       <FeedbackBar responseId={r.meta.responseId} subject="answer" />
     </div>

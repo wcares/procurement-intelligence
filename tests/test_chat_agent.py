@@ -82,3 +82,23 @@ def test_the_agent_is_used_only_for_a_model_that_calls_tools(monkeypatch):
     assert agent.enabled()
     monkeypatch.setenv("PROCINTEL_CHAT_TOOLS", "off")
     assert not agent.enabled()
+
+
+def test_every_chat_answer_says_where_it_came_from(monkeypatch):
+    """The card under each answer: the model, what it was built from (what the tools brought in), the sentence kinds."""
+    from procintel.answering import answer
+    from procintel.assistant import converse, tools
+    from procintel.answering.retrieve import Hit
+    hit = Hit(chunk_id="c1", doc_id="d1", title="t", doc_type="x", url="u", section="S", para="1", kind="text",
+              text="Delays came from weak contractors.", project_id="P", project_name="n", country_code="KE",
+              score=1.0, via="bm25", tag=None, tag_confidence=None, problem=None)
+    monkeypatch.setattr(converse.llm, "model_name", lambda prefix="llm": "test-model")
+    monkeypatch.setattr(converse.decide, "available", lambda: False)
+    raw = '{"sentences": [{"text": "Delays came from weak contractors.", "kind": "evidence", "citations": [1]}, ' \
+          '{"text": "Plan a buffer.", "kind": "general"}]}'
+    used = [answer.basis("conversation", "The last 2 messages"), answer.basis("assessment", "Assessment of CW by RFB in KE", "217 comparable packages")]
+    out = converse.assemble(None, raw, [hit], "", "first", used)
+    assert out["provenance"] == {"model": "test-model", "basis": used, "kinds": {"evidence": 1, "general": 1}}
+    sess = tools.Session(state=None, plan={}, results="", today=None)
+    sess.used.append(answer.basis("plan", "Your plan"))
+    assert [b["kind"] for b in sess.used] == ["plan"] and "detail" not in sess.used[0]

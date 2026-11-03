@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Callable
 
+from procintel.answering import answer
 from procintel.answering.retrieve import Hit
 
 
@@ -51,6 +52,7 @@ class Session:
     hits: list[Hit] = field(default_factory=list)     # passages, numbered 1.. across the turn
     steps: list[str] = field(default_factory=list)    # what was done, in words, for the page
     outputs: list[str] = field(default_factory=list)  # every tool result, for checking the answer's numbers
+    used: list[dict] = field(default_factory=list)    # what the answer is built from (answer.basis), for its card
     changes: list[str] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
     needs: list[str] = field(default_factory=list)
@@ -101,6 +103,7 @@ def search_reports(sess: Session, query: str, country: str | None = None) -> dic
     if code and not hits:
         hits = sess.state.retriever.search(query, k=6)
     sess.steps.append(f'Searched the reports for "{query}"' + (f" ({code})" if code else ""))
+    sess.used.append(answer.basis("passages", answer._reports(hits), f'found for "{query}"' + (f" in {code}" if code else "")))
     return {"passages": sess.passages(hits)}
 
 
@@ -133,6 +136,10 @@ def assess_package(sess: Session, country: str, procurement_type: str, method: s
             lessons += sess.passages([hit])
     out["lessons"] = lessons
     sess.steps.append(f"Assessed {procurement_type} by {method.upper()} in {code}" + (f", US${value_usd:,.0f}" if value_usd else ""))
+    d = out["daysToAward"]
+    sess.used.append(answer.basis("assessment", f"Assessment of {procurement_type} by {method.upper()} in {code}",
+                                  f"{d['comparablePackages'] or 0} comparable packages ({d['comparedWith'] or 'all'}); "
+                                  f"{len(out['risks'])} risk flags; {len(lessons)} lessons from the reports"))
     return out
 
 
@@ -154,6 +161,7 @@ def procurement_options(sess: Session) -> dict:
 def get_plan(sess: Session) -> dict:
     from procintel.assistant import interpret
     sess.steps.append("Read your plan and its forecast")
+    sess.used.append(answer.basis("plan", "Your plan and its forecast"))
     return {"plan": interpret.plan_summary(interpret.with_names(sess.plan, sess.options)),
             "forecast": sess.results or "(none yet: the plan has no packages, or they are not forecast yet)"}
 
@@ -181,6 +189,7 @@ def update_plan(sess: Session, **change) -> dict:
     sess.needs += r["needs"]
     sess.notes += r["notes"]
     sess.steps.append("Updated your plan: " + ("; ".join(r["changes"]) or "nothing changed"))
+    sess.used.append(answer.basis("plan", "Your plan, as updated in this turn"))
     return {"changes": r["changes"], "assumptions": r["assumptions"], "questions": r["needs"], "notes": r["notes"],
             "plan": interpret.plan_summary(interpret.with_names(sess.plan, sess.options)),
             "forecast": "computed by the page after this reply"}
@@ -200,6 +209,8 @@ def statistics(sess: Session, measure: str, group: str) -> dict:
     sess.statistics.append(data)
     sess.steps.append(f"Looked up {data['measure']['label']} by {data['groupLabel'].lower()}")
     rows = [r for r in data["rows"] if not r["few"]][:10]
+    sess.used.append(answer.basis("statistics", f"{data['measure']['label']} by {data['groupLabel'].lower()}",
+                                  f"{len(rows)} {data['groupLabel'].lower()} groups with enough projects, from past projects' records"))
     return {"measure": data["measure"]["label"], "unit": data["measure"].get("unit"), "by": data["groupLabel"],
             "worst_first": [{"name": r["label"], "value": r["value"], "projects": r["projects"]} for r in rows]}
 

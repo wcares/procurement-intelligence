@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { ConversationList, useHistory } from "@/components/history";
 import { api } from "@/lib/api/client";
-import type { AskResponse, ChatContext, ChatTurn, RankingResponse } from "@/lib/api/types";
+import type { AskResponse, ChatContext, ChatTurn, Provenance, RankingResponse } from "@/lib/api/types";
 import { Answer } from "@/components/ask/answer";
 import { LiveAnswer, emptyLive, fold, type Live } from "@/components/ask/live-answer";
+import { SourceCard } from "@/components/ask/source-card";
 import { fmt } from "@/components/dashboard/format";
 import { isEvidenceQuestion } from "./route-question";
 import { schedule, todayLocal, type PlanPackage } from "@/lib/plan";
@@ -15,6 +16,7 @@ import type { PlanState } from "./use-plan";
 type Rich =
   | { kind: "plan"; id: string; expiresAt: string; end50: string | null; end90: string | null; bottleneck?: string; packages: number }
   | { kind: "stats"; data: RankingResponse }
+  | { kind: "note"; provenance: Provenance }
   | { kind: "evidence"; question: string; response: AskResponse; steps?: string[] };
 /** content is what the model sees of this message later; rich is what the person sees. */
 export interface ChatMsg { id: number; role: "user" | "assistant"; content: string; rich?: Rich; summary?: boolean }
@@ -81,7 +83,7 @@ export function PlanChat({ s }: { s: PlanState }) {
       const r = await api.planChat(historyFor(all), s.asChatPlan(), s.results);
       setCtx(r.context);
       if (r.intent === "chat" && r.answer) add({ role: "assistant", content: r.reply, rich: { kind: "evidence", question: clean, response: r.answer, steps: r.steps } });
-      else add({ role: "assistant", content: r.reply });
+      else add({ role: "assistant", content: r.reply, rich: r.provenance ? { kind: "note", provenance: r.provenance } : undefined });
       for (const data of r.statistics ?? []) {
         const top = data.rows.filter((x) => !x.few).slice(0, 8);
         add({ role: "assistant", rich: { kind: "stats", data },
@@ -170,6 +172,7 @@ export function PlanChat({ s }: { s: PlanState }) {
               <div key={m.id} className="min-w-0 space-y-3">
                 {m.rich?.kind === "plan" ? <PlanLink r={m.rich} text={m.content} />
                   : m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
+                  : m.rich?.kind === "note" ? <div className="space-y-2"><p className="whitespace-pre-wrap">{m.content}</p><SourceCard p={m.rich.provenance} /></div>
                   : m.rich?.kind === "evidence" ? <div className="space-y-2">
                       {m.rich.steps?.length ? (
                         <ul className="space-y-0.5 text-xs text-ink-muted">{m.rich.steps.map((x, i) => <li key={i}>· {x}</li>)}</ul>
@@ -246,6 +249,8 @@ function StatsTable({ data }: { data: RankingResponse }) {
         </table>
       </div>
       <p className="text-xs text-ink-muted">Greyed rows rest on fewer than 3 projects. {data.measure.note}</p>
+      <SourceCard p={{ model: null, kinds: {}, basis: [{ kind: "statistics", label: `${data.measure.label} by ${data.groupLabel.toLowerCase()}`,
+        detail: `${rows.length} ${data.groupLabel.toLowerCase()} groups, computed from past projects' records; no model involved` }] }} />
     </div>
   );
 }
@@ -287,6 +292,9 @@ function PlanLink({ r, text }: { r: Extract<Rich, { kind: "plan" }>; text: strin
         <span className="shrink-0 text-xs font-medium text-brand">Open, edit or export →</span>
       </a>
       <p className="text-[11px] text-ink-muted">The link shows the latest version of this plan until {new Date(r.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.</p>
+      <SourceCard p={{ model: null, kinds: {}, basis: [
+        { kind: "plan", label: `Your plan, ${r.packages} package${r.packages === 1 ? "" : "s"}` },
+        { kind: "forecast", label: "Forecast by the engine", detail: "days to award from comparable past packages and the prediction model, laid on the plan's dates" }] }} />
     </div>
   );
 }
