@@ -53,7 +53,11 @@ export function StageTimeline({ stages, risks, precedents, prediction, onSelect 
     });
     return {
       grid: { left: 130, right: 24, top: 10, bottom: 40 },
-      tooltip: { trigger: "item", formatter: (p) => {
+      // kept inside the chart and wrapped: a long risk detail used to run off the window's edge (seen 2026-11-03)
+      tooltip: { trigger: "item", confine: true, backgroundColor: cssVar("--surface", "#fff"), borderColor: cssVar("--line", "#ddd"),
+        textStyle: { color: cssVar("--foreground", "#181f25"), fontSize: 12 },
+        extraCssText: "max-width: 360px; white-space: normal; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.15);",
+        formatter: (p) => {
         const d = (p as unknown as { data: { label?: string; detail?: string; stage?: string; days?: number; n?: number | null; scope?: string; lessons?: number } }).data;
         if (d.label) return `<b>${d.label}</b><br/>${d.detail}`;
         return `<b>${d.stage}</b><br/>${Math.round(d.days ?? 0)} days · ${d.n != null ? `${d.n} packages ` : ""}(${d.scope})${d.lessons ? `<br/>${d.lessons} past lesson${d.lessons === 1 ? "" : "s"} on this stage` : ""}`;
