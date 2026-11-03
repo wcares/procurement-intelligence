@@ -10,16 +10,32 @@ import { SourceCard } from "./source-card";
 
 /** An answer from the reports: the sentences with their citation chips and the quoted sources below. When nothing answered
  * the question directly it shows the fallback reply (what was searched and what is close) under a plain label. */
-export function Answer({ turnId, r: full, question }: { turnId: number; r: AskResponse; question: string }) {
+export function Answer({ turnId, r: full, question, steps }: { turnId: number; r: AskResponse; question: string; steps?: string[] }) {
   const partial = full.unsupported;   // nothing answered it directly: the reply says what was tried and what is close
   const r = partial && full.fallback ? { ...full, ...full.fallback } : full;
   const [asMap, setAsMap] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);   // the source card, opened by a citation chip or the map
   const toSource = (i: number) => {
-    const el = document.getElementById(`t${turnId}-c${i}`);
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    el?.classList.add("ring-2", "ring-brand", "rounded-xl");
-    setTimeout(() => el?.classList.remove("ring-2", "ring-brand"), 1500);
+    setSourcesOpen(true);
+    setTimeout(() => {   // after the card has opened
+      const el = document.getElementById(`t${turnId}-c${i}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.classList.add("ring-2", "ring-brand", "rounded-xl");
+      setTimeout(() => el?.classList.remove("ring-2", "ring-brand"), 1500);
+    }, 50);
   };
+  // the cited passages (quote, report link, flag) and the projects' media: inside the source card when there is one
+  const sources = (
+    <>
+      <RelatedMedia projectIds={r.citations.map((c) => c.projectId).filter(Boolean)} />
+      {r.citations.map((c, i) => (
+        <div key={c.id} id={`t${turnId}-c${i}`} className="scroll-mt-20">
+          <CitationCard c={c} index={i} highlight={r.answer.find((s) => s.citations.includes(i))?.text}
+            action={<FlagCitation responseId={r.meta.responseId} citationId={c.id} />} />
+        </div>
+      ))}
+    </>
+  );
   return (
     <div className="space-y-3">
       {!partial && <button className="text-xs text-ink-muted underline" onClick={() => setAsMap(!asMap)}>{asMap ? "Show as text" : "Show as map"}</button>}
@@ -33,7 +49,7 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
             {s.kind === "general" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px]">general guidance</span>}
             {s.kind === "data" && <span className="mx-px rounded border border-line px-1 align-[1px] text-[10px] text-ink-muted">engine data</span>}
             {s.citations.map((c) => (
-              <a key={c} href={`#t${turnId}-c${c}`} className="mx-px inline-grid h-[18px] min-w-[18px] place-items-center rounded-md bg-brand-soft px-1 align-[1px] font-mono text-[11px] font-medium text-brand hover:bg-brand hover:text-on-brand">
+              <a key={c} href={`#t${turnId}-c${c}`} onClick={(e) => { e.preventDefault(); toSource(c); }} className="mx-px inline-grid h-[18px] min-w-[18px] place-items-center rounded-md bg-brand-soft px-1 align-[1px] font-mono text-[11px] font-medium text-brand hover:bg-brand hover:text-on-brand">
                 [{c + 1}]
               </a>
             ))}{" "}
@@ -48,21 +64,16 @@ export function Answer({ turnId, r: full, question }: { turnId: number; r: AskRe
           </ol>
         </details>
       )}
-      <RelatedMedia projectIds={r.citations.map((c) => c.projectId).filter(Boolean)} />
-      <div className="space-y-2">
-        {r.citations.map((c, i) => (
-          <div key={c.id} id={`t${turnId}-c${i}`} className="scroll-mt-20">
-            <CitationCard
-              c={c}
-              index={i}
-              highlight={r.answer.find((s) => s.citations.includes(i))?.text}
-              action={<FlagCitation responseId={r.meta.responseId} citationId={c.id} />}
-            />
-          </div>
-        ))}
-      </div>
-      {full.provenance && <SourceCard p={full.provenance} />}
-      {partial ? <details className="text-xs text-ink-muted"><summary className="cursor-pointer">How this was searched</summary><div className="mt-2"><Caveats meta={r.meta} /></div></details> : <Caveats meta={r.meta} />}
+      {full.provenance ? (
+        <SourceCard p={full.provenance} citations={r.citations} steps={steps} details={<Caveats meta={r.meta} />} open={sourcesOpen} onOpen={setSourcesOpen}>
+          {sources}
+        </SourceCard>
+      ) : (
+        <>
+          {sources}
+          {partial ? <details className="text-xs text-ink-muted"><summary className="cursor-pointer">How this was searched</summary><div className="mt-2"><Caveats meta={r.meta} /></div></details> : <Caveats meta={r.meta} />}
+        </>
+      )}
       <FeedbackBar responseId={r.meta.responseId} subject="answer" />
     </div>
   );

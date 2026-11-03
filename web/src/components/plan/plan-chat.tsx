@@ -173,11 +173,7 @@ export function PlanChat({ s }: { s: PlanState }) {
                 {m.rich?.kind === "plan" ? <PlanLink r={m.rich} text={m.content} />
                   : m.rich?.kind === "stats" ? <StatsTable data={m.rich.data} />
                   : m.rich?.kind === "note" ? <div className="space-y-2"><p className="whitespace-pre-wrap">{m.content}</p><SourceCard p={m.rich.provenance} /></div>
-                  : m.rich?.kind === "evidence" ? <div className="space-y-2">
-                      {m.rich.steps?.length ? (
-                        <ul className="space-y-0.5 text-xs text-ink-muted">{m.rich.steps.map((x, i) => <li key={i}>· {x}</li>)}</ul>
-                      ) : <p className="text-xs text-ink-muted">{m.rich.question}</p>}
-                      <Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} /></div>
+                  : m.rich?.kind === "evidence" ? <Answer turnId={1000 + m.id} r={m.rich.response} question={m.rich.question} steps={m.rich.steps} />
                   : <p className="whitespace-pre-wrap">{m.content}</p>}
               </div>
             ))}
