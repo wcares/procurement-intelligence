@@ -39,7 +39,7 @@ export function Users() {
         {msg && <p role="status" className="text-sm font-medium">{msg}</p>}
         {requests.length > 0 && <Requests requests={requests} apply={apply} />}
         <table className="w-full text-left">
-          <thead className="text-ink-muted"><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>
+          <thead className="text-ink-muted"><tr><th>User</th><th>Role</th><th>Clearance</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>
           <tbody>
             {list.filter((u) => !requests.includes(u)).map((u) => (
               <tr key={u.username} className="border-t border-line">
@@ -49,6 +49,12 @@ export function Users() {
                     onChange={async (e) => apply(await api.updateUser(u.username, { role: e.target.value }), `${u.username} is now ${e.target.value}.`)}>
                     <option value="planner">planner</option>
                     <option value="admin">admin</option>
+                  </select>
+                </td>
+                <td>
+                  {/* planned: not stored or enforced yet (see the Permission levels section below) */}
+                  <select className={`${box} opacity-50`} disabled value="1" aria-label={`Clearance for ${u.username} (planned)`} title="Planned: not in use yet">
+                    <option value="1">Level 1</option>
                   </select>
                 </td>
                 <td>{u.active ? "active" : "disabled"}</td>
@@ -95,7 +101,42 @@ export function Users() {
           <button className={box} type="submit">Add user</button>
         </form>
       </div>
+      <PermissionLevels />
     </section>
+  );
+}
+
+/** Planned, shown greyed out: clearance levels per user and per document, applied every time someone searches. Nothing
+ * here is stored or enforced yet; the backend knows nothing of it. */
+function PermissionLevels() {
+  const levels = [
+    ["1", "Public", "World Bank open data: projects, notices, awards and published reports. Everyone."],
+    ["2", "Internal", "Uploaded documents and records from connected systems marked internal."],
+    ["3", "Restricted", "Bid evaluations, supplier correspondence and other confidential files."],
+  ];
+  return (
+    <div className="mt-6 space-y-3 rounded-lg border border-dashed border-line p-5 text-xs opacity-60" aria-disabled="true">
+      <div className="flex items-center gap-2">
+        <h3 className="text-sm font-semibold">Permission levels</h3>
+        <span className="rounded border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-ink-muted">Planned</span>
+      </div>
+      <p className="text-ink-muted">
+        Each document gets a level at intake and each user a clearance; search, the chat, assessments, exports and shared links
+        show only what the user may see, checked on every request. Not in use yet: all documents are public today.
+      </p>
+      <table className="w-full text-left">
+        <thead className="text-ink-muted"><tr><th>Level</th><th>Name</th><th>Who sees it and what it holds</th></tr></thead>
+        <tbody>
+          {levels.map(([n, name, what]) => (
+            <tr key={n} className="border-t border-line"><td className="py-1 font-mono">{n}</td><td className="font-medium">{name}</td><td>{what}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" disabled className={box}>Set a document&apos;s level at intake</button>
+        <button type="button" disabled className={box}>Default clearance for new accounts: 1</button>
+      </div>
+    </div>
   );
 }
 
