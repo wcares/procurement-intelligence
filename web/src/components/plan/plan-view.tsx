@@ -27,8 +27,8 @@ export function PlanView() {
         ))}
       </div>
       {tab === "assess" ? (
-        {/* overflow-anchor off: when the results appear above the Insights panel, the browser otherwise scrolls down to keep
-            that panel in view, and the page lands at the bottom (seen 2026-11-03); the view stays at the top instead */}
+        // overflow-anchor off: when the results appear above the Insights panel, the browser otherwise scrolls down to keep
+        // that panel in view, and the page lands at the bottom (seen 2026-11-03); the view stays at the top instead
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 [overflow-anchor:none] lg:px-8 print:overflow-visible">
           <p className="mb-5 max-w-2xl text-sm text-ink-muted">See how comparable World Bank–financed packages actually went, and what past evaluations say went wrong, with every lesson quoted from its source.</p>
           <AssessView />
