@@ -746,6 +746,8 @@ export interface Account {
   active: boolean;
   createdAt: string | null;
   lastLogin: string | null;
+  /** set while an access request from the sign-up page waits for approval */
+  requestedAt: string | null;
 }
 
 /** Home dashboard (GET /dashboard and friends; procintel.insights.dashboard). */

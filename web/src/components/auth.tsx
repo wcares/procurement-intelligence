@@ -9,7 +9,9 @@ const AuthContext = createContext<{ user: AuthUser | null; refresh: () => Promis
 
 export const useAuth = () => useContext(AuthContext);
 
-const PUBLIC_PAGES = ["/login", "/data-handling"]; // readable without signing in
+// The landing page and the sign-in pages: readable without signing in, and a signed-in visitor is sent on to their home.
+const SIGN_IN_PAGES = ["/welcome", "/login", "/login/planner", "/login/admin", "/signup"];
+const PUBLIC_PAGES = [...SIGN_IN_PAGES, "/data-handling"]; // readable without signing in
 // The planner app: an admin account is for running the platform and does not use it, so it is sent to its own home.
 const PLANNER_PAGES = ["/", "/assess", "/plan", "/ask", "/insights", "/documents", "/package"];
 export const ADMIN_HOME = "/pipeline";
@@ -28,8 +30,16 @@ export function landingFor(next: string | null, role: Role): string {
   return next;
 }
 
-/** Loads the signed-in user; any page but /login stays hidden until there is one, and a visitor without a session is
- * sent to /login. */
+/** Where a visitor without a session goes: the landing page from the home page, the administrator sign-in from an
+ * admin page, otherwise the planner sign-in, each coming back to the page asked for. */
+function signInFor(pathname: string): string {
+  if (pathname === "/") return "/welcome";
+  const portal = PAGE_ROLE.some(([p, r]) => r === "admin" && (pathname === p || pathname.startsWith(`${p}/`))) ? "admin" : "planner";
+  return `/login/${portal}?next=${encodeURIComponent(pathname)}`;
+}
+
+/** Loads the signed-in user; any page but the public ones stays hidden until there is one, and a visitor without a
+ * session is sent to sign in (signInFor). */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checked, setChecked] = useState(false);
@@ -69,16 +79,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (checked && !user && !PUBLIC_PAGES.includes(pathname)) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    if (checked && !user && !PUBLIC_PAGES.includes(pathname)) router.replace(signInFor(pathname));
   }, [checked, user, pathname, router]);
+
+  useEffect(() => {   // already signed in: no landing or sign-in page, straight to the page asked for or the role's home
+    if (user && SIGN_IN_PAGES.includes(pathname)) router.replace(landingFor(new URLSearchParams(window.location.search).get("next"), user.role));
+  }, [user, pathname, router]);
 
   useEffect(() => {
     if (user?.role === "admin" && PLANNER_PAGES.includes(pathname)) router.replace(ADMIN_HOME);
   }, [user, pathname, router]);
 
   // The page is rendered but hidden until the session is known (Next validates every rendered segment); the backend
-  // checks the session on every call, so a hidden page without one gets 401s and the visitor is sent to /login.
-  const ready = PUBLIC_PAGES.includes(pathname) || Boolean(checked && user && !(user.role === "admin" && PLANNER_PAGES.includes(pathname)));
+  // checks the session on every call, so a hidden page without one gets 401s and the visitor is sent to sign in.
+  const ready = (PUBLIC_PAGES.includes(pathname) && !(user && SIGN_IN_PAGES.includes(pathname))) || Boolean(checked && user && !(user.role === "admin" && PLANNER_PAGES.includes(pathname)));
   return (
     <AuthContext.Provider value={{ user, refresh }}>
       <div hidden={!ready} className="flex flex-1 flex-col">

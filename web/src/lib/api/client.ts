@@ -145,13 +145,19 @@ export const api = {
     const res = await fetch(`${API_BASE}/auth/me`);
     return res.ok ? ((await res.json()) as AuthUser) : null;
   },
-  login: (username: string, password: string) => send<AuthUser>("/auth/login", "POST", { username, password }),
+  /** portal: the sign-in page used, which admits only its roles (procintel.auth.service.PORTALS) */
+  login: (username: string, password: string, portal?: "planner" | "admin") =>
+    send<AuthUser>("/auth/login", "POST", { username, password, portal }),
+  /** ask for a planner account, enabled later by an admin */
+  signup: (username: string, password: string) => send<{ ok: boolean }>("/auth/signup", "POST", { username, password }),
   logout: () => call<{ ok: boolean }>("/auth/logout", { method: "POST" }),
   users: () => call<{ users: Account[] }>("/auth/users"),
   createUser: (username: string, password: string, role: string) =>
     send<{ users: Account[] }>("/auth/users", "POST", { username, password, role }),
   updateUser: (username: string, change: { role?: string; active?: boolean; password?: string }) =>
     send<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, "PATCH", change),
+  /** decline an access request (never approved) */
+  declineRequest: (username: string) => call<{ users: Account[] }>(`/auth/users/${encodeURIComponent(username)}`, { method: "DELETE" }),
   options: () => call<Options>("/options"),
   /** saved conversations of the signed-in user (kind: the planning chat or Ask) */
   conversations: (kind: "plan" | "ask") => call<{ items: SavedConversation[] }>(`/conversations?kind=${kind}`),

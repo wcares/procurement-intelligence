@@ -55,7 +55,8 @@ export default function DataHandling() {
         <h2 className="font-semibold">Your account</h2>
         <p>
           Passwords are stored only as salted hashes. Sessions end after 12 hours or when you sign out, and repeated
-          failed sign-ins are paused for 15 minutes. Administrators can see the logs and manage accounts.
+          failed sign-ins are paused for 15 minutes. Administrators can see the logs and manage accounts. A request for
+          access keeps the username you chose, your password (as a hash) and when you asked; a declined request is deleted.
         </p>
       </section>
     </article>

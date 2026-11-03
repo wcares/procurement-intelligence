@@ -7,7 +7,8 @@ import { useAuth } from "@/components/auth";
 
 const box = "rounded-md border border-line bg-surface px-2 py-1 text-xs";
 
-/** Accounts and roles (admins). Passwords are set here or with `python -m procintel.auth`, never shown. */
+/** Accounts and roles (admins), and access requests from the sign-up page, approved with a role or declined. Passwords
+ * are set here or with `python -m procintel.auth`, never shown. */
 export function Users() {
   const { user } = useAuth();
   const [list, setList] = useState<Account[] | null>(null);
@@ -27,15 +28,17 @@ export function Users() {
   }
 
   if (user?.mode !== "local" || !list) return null;
+  const requests = list.filter((u) => u.requestedAt && !u.active);
   return (
     <section>
       <h2 className="mb-4 text-xl font-semibold">Accounts</h2>
       <div className="space-y-3 rounded-lg border border-line bg-surface p-5 text-xs">
         <p className="text-ink-muted">Planners use Assess and Ask; admins also see Settings. A change signs the person out.</p>
+        {requests.length > 0 && <Requests requests={requests} apply={apply} />}
         <table className="w-full text-left">
           <thead className="text-ink-muted"><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>
           <tbody>
-            {list.map((u) => (
+            {list.filter((u) => !requests.includes(u)).map((u) => (
               <tr key={u.username} className="border-t border-line">
                 <td className="py-1 font-medium">{u.username}</td>
                 <td>
@@ -78,5 +81,49 @@ export function Users() {
         {msg && <p className="text-ink-muted">{msg}</p>}
       </div>
     </section>
+  );
+}
+
+/** Access requests waiting for approval: approving enables the account with the role chosen here (planner unless
+ * changed), declining removes the request. */
+function Requests({ requests, apply }: { requests: Account[]; apply: (r: { users: Account[] } | { error: string }, ok: string) => Promise<void> }) {
+  const [roles, setRoles] = useState<Record<string, string>>({});
+  async function approve(name: string) {
+    const role = roles[name] ?? "planner";
+    if (role !== "planner") {
+      const r = await api.updateUser(name, { role });
+      if ("error" in r) return apply(r, "");
+    }
+    await apply(await api.updateUser(name, { active: true }), `${name} approved as ${role}.`);
+  }
+  async function decline(name: string) {
+    await apply(await api.declineRequest(name).catch((e: Error) => ({ error: e.message })), `The request from ${name} was declined.`);
+  }
+  return (
+    <div className="space-y-2 rounded-md border border-line bg-risk-medium-soft p-3">
+      <p className="font-medium">Access requests ({requests.length})</p>
+      <table className="w-full text-left">
+        <tbody>
+          {requests.map((u) => (
+            <tr key={u.username} className="border-t border-line first:border-t-0">
+              <td className="py-1 font-medium">{u.username}</td>
+              <td className="text-ink-muted">asked {u.requestedAt ? new Date(u.requestedAt).toLocaleString() : ""}</td>
+              <td>
+                <select className={box} aria-label={`Role for ${u.username}`} value={roles[u.username] ?? "planner"}
+                  onChange={(e) => setRoles({ ...roles, [u.username]: e.target.value })}>
+                  <option value="planner">planner</option>
+                  <option value="reviewer">reviewer</option>
+                  <option value="admin">admin</option>
+                </select>
+              </td>
+              <td className="space-x-3 text-right">
+                <button className="font-medium text-brand underline" onClick={() => void approve(u.username)}>approve</button>
+                <button className="underline" onClick={() => void decline(u.username)}>decline</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
