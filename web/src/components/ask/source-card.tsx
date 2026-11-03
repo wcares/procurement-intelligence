@@ -9,23 +9,19 @@ const ICON: Record<Provenance["basis"][number]["kind"], typeof BookOpen> = {
   conversation: MessageSquare, message: MessageSquare,
 };
 
-/** The one line under an answer saying what it rests on, in a planner's words: report passages (cited), figures
- * computed from past tenders' records (statistics, an assessment, the forecast), the plan; and who wrote it. */
+/** The one line under an answer, in everyday words: what it rests on (quotes from project reports, figures from
+ * past tenders, your plan) and whether AI wrote it. */
 function summary(p: Provenance, citations: Citation[]): string {
   const reports = new Set(citations.map((c) => c.docId)).size;
-  const n = (kind: string) => p.basis.filter((b) => b.kind === kind).length;
+  const has = (kind: string) => p.basis.some((b) => b.kind === kind);
   const parts: string[] = [];
-  if (citations.length) parts.push(`${citations.length} passage${citations.length === 1 ? "" : "s"} from ${reports} report${reports === 1 ? "" : "s"}`);
-  const figures: string[] = [];
-  if (n("statistics")) figures.push(`${n("statistics")} statistic${n("statistics") === 1 ? "" : "s"}`);
-  if (n("assessment")) figures.push(`${n("assessment") === 1 ? "an assessment" : `${n("assessment")} assessments`} of comparable packages`);
-  if (n("forecast")) figures.push("the plan's forecast");
-  if (figures.length) parts.push(`${figures.join(", ")} computed from past tenders' records`);
-  if (!parts.length && n("plan")) parts.push("your plan");
-  const backed = parts.length ? (p.model ? `Based on ${parts.join(" and ")}` : parts.join(" and ").replace(/^\w/, (c) => c.toUpperCase())) : "No source cited";
-  const by = p.model ? "written by the AI assistant" : "no AI model involved";
-  const own = p.kinds.general ? `; ${p.kinds.general} sentence${p.kinds.general === 1 ? "" : "s"} of general guidance` : "";
-  return `${backed} · ${by}${own}`;
+  if (citations.length) parts.push(`${citations.length} quote${citations.length === 1 ? "" : "s"} from ${reports} project report${reports === 1 ? "" : "s"}`);
+  if (has("statistics") || has("assessment") || has("forecast")) parts.push("figures from past tenders");
+  if (!parts.length && has("plan")) parts.push("your plan");
+  const what = parts.length ? `Sources: ${parts.join(" and ")}` : "No sources";
+  const by = p.model ? "written by AI" : "not written by AI";
+  const own = p.kinds.general ? `; ${p.kinds.general} sentence${p.kinds.general === 1 ? "" : "s"} ${p.kinds.general === 1 ? "is" : "are"} general advice` : "";
+  return `${what} · ${by}${own}`;
 }
 
 /** The card under every chat reply, for planners: one line saying whether the answer has sources and who wrote it;
@@ -53,7 +49,7 @@ export function SourceCard({ p, citations = [], steps, children, details, open: 
           {children && <div className="space-y-2">{children}</div>}
           {(p.basis.length > 0 || steps?.length) && (
             <div className="space-y-1.5">
-              <p className="font-medium">What the assistant used</p>
+              <p className="font-medium">What it used</p>
               <ul className="space-y-1 text-ink-muted">
                 {p.basis.map((b, i) => {
                   const Icon = ICON[b.kind] ?? BookOpen;
@@ -66,7 +62,7 @@ export function SourceCard({ p, citations = [], steps, children, details, open: 
                 })}
                 {steps?.map((s, i) => <li key={`s${i}`} className="pl-[18px]">· {s}</li>)}
               </ul>
-              {p.model && <p className="text-ink-muted">Written by {p.model}; every cited sentence was checked against its passage, and every figure against the engine&apos;s data.</p>}
+              {p.model && <p className="text-ink-muted">Written by AI ({p.model}). Each quoted sentence was checked against its source, and each figure against the data.</p>}
             </div>
           )}
           {details && <details className="text-ink-muted"><summary className="cursor-pointer">Technical notes</summary><div className="mt-2">{details}</div></details>}

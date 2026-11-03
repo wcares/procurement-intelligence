@@ -246,7 +246,7 @@ function StatsTable({ data }: { data: RankingResponse }) {
       </div>
       <p className="text-xs text-ink-muted">Greyed rows rest on fewer than 3 projects. {data.measure.note}</p>
       <SourceCard p={{ model: null, kinds: {}, basis: [{ kind: "statistics", label: `${data.measure.label} by ${data.groupLabel.toLowerCase()}`,
-        detail: `${rows.length} ${data.groupLabel.toLowerCase()} groups; each value is computed from the dates in past procurement notices and contract awards, and "based on" says how many tenders it rests on` }] }} />
+        detail: `worked out from the dates of past tenders; "based on" says how many tenders each value rests on` }] }} />
     </div>
   );
 }
@@ -290,7 +290,7 @@ function PlanLink({ r, text }: { r: Extract<Rich, { kind: "plan" }>; text: strin
       <p className="text-[11px] text-ink-muted">The link shows the latest version of this plan until {new Date(r.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.</p>
       <SourceCard p={{ model: null, kinds: {}, basis: [
         { kind: "plan", label: `Your plan, ${r.packages} package${r.packages === 1 ? "" : "s"}` },
-        { kind: "forecast", label: "Forecast by the engine", detail: "days to award from comparable past packages and the prediction model, laid on the plan's dates" }] }} />
+        { kind: "forecast", label: "The forecast", detail: "how long similar past tenders took, laid on your plan's dates" }] }} />
     </div>
   );
 }
