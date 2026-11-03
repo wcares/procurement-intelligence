@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { Background, Controls, Position, ReactFlow, type Edge, type Node } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { AskResponse } from "@/lib/api/types";
@@ -15,6 +16,13 @@ const SIDEWAYS = { sourcePosition: Position.Right, targetPosition: Position.Left
 export function AnswerMap({ r, question, onSource }: { r: AskResponse; question: string; onSource: (index: number) => void }) {
   const countries = useMemo(() => [...new Set(r.citations.map((c) => c.countryCode).filter(Boolean))].sort(), [r]);
   const [country, setCountry] = useState("");
+  const [full, setFull] = useState(false);   // the map over the whole window (the controls' third button only re-centres it)
+  useEffect(() => {
+    if (!full) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setFull(false); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [full]);
 
   const { nodes, edges } = useMemo(() => {
     const visible = r.citations.map((c) => !country || c.countryCode === country);
@@ -44,8 +52,12 @@ export function AnswerMap({ r, question, onSource }: { r: AskResponse; question:
   }, [r, question, country]);
 
   return (
-    <div className="rounded-xl border border-line bg-surface p-3">
+    <div className={full ? "fixed inset-0 z-50 flex flex-col bg-surface p-4" : "rounded-xl border border-line bg-surface p-3"}>
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+        <button type="button" onClick={() => setFull(!full)} aria-label={full ? "Close the full-screen map" : "Show the map full screen"}
+          className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 hover:bg-subtle">
+          {full ? <Minimize2 size={12} aria-hidden /> : <Maximize2 size={12} aria-hidden />} {full ? "Close (Esc)" : "Full screen"}
+        </button>
         <span>Findings and the sources behind them.</span>
         {countries.length > 1 && (
           <select className="rounded-md border border-line bg-surface px-2 py-1" value={country} onChange={(e) => setCountry(e.target.value)} aria-label="Filter sources by country">
@@ -55,8 +67,8 @@ export function AnswerMap({ r, question, onSource }: { r: AskResponse; question:
         )}
         <span>Click a source for its quote.</span>
       </div>
-      <div className="h-[28rem]">
-        <ReactFlow nodes={nodes} edges={edges} fitView colorMode="system" nodesConnectable={false} nodesDraggable proOptions={{ hideAttribution: true }}
+      <div className={full ? "min-h-0 flex-1" : "h-[28rem]"}>
+        <ReactFlow key={full ? "full" : "inline"} nodes={nodes} edges={edges} fitView colorMode="system" nodesConnectable={false} nodesDraggable proOptions={{ hideAttribution: true }}
           onNodeClick={(_, n) => n.id.startsWith("c") && onSource(Number(n.id.slice(1)))}>
           <Background />
           <Controls showInteractive={false} />
