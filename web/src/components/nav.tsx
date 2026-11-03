@@ -8,20 +8,20 @@ import type { Role } from "@/lib/api/types";
 import { ChartNoAxesGantt, ChevronDown, LogOut, Moon, Sun } from "lucide-react";
 import { useAuth } from "./auth";
 
-// Planner pages are for planners (and reviewers, who also read Evaluation); an admin sees only the admin pages.
+// Planner pages are for planners; an admin sees only the admin pages.
 const NAV: { href: string; label: string; roles: Role[] }[] = [
-  { href: "/plan", label: "Planning workspace", roles: ["planner", "reviewer"] },
-  { href: "/insights", label: "Insights", roles: ["planner", "reviewer"] },
-  { href: "/documents", label: "Documents", roles: ["planner", "reviewer"] },
+  { href: "/plan", label: "Planning workspace", roles: ["planner"] },
+  { href: "/insights", label: "Insights", roles: ["planner"] },
+  { href: "/documents", label: "Documents", roles: ["planner"] },
   { href: "/pipeline", label: "Pipeline", roles: ["admin"] },
-  { href: "/evaluation", label: "Quality", roles: ["reviewer", "admin"] },
+  { href: "/evaluation", label: "Quality", roles: ["admin"] },
   { href: "/config", label: "Settings", roles: ["admin"] },
 ];
 
 const on = (path: string, href: string) => path.startsWith(href);
 
 /** The header: the product name on the left, the pages for the signed-in role in the middle (planners see the planner app,
- * reviewers also Evaluation, admins only Pipeline, Evaluation and Settings), the user's menu on the right. */
+ * admins only Pipeline, Quality and Settings), the user's menu on the right. */
 export function HeaderBar() {
   const { user, refresh } = useAuth();
   const path = usePathname();

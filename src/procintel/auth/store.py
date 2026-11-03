@@ -72,6 +72,19 @@ def add_user(username: str, password_hash: str, role: str, requested: bool = Fal
         con.close()
 
 
+def drop_retired_roles() -> int:
+    """At startup: the reviewer role was dropped (2026-11-03); such an account keeps the planner app, the lower of the
+    two roles. Returns how many accounts changed."""
+    con = connect()
+    try:
+        n = con.execute("SELECT count(*) FROM users WHERE role = 'reviewer'").fetchone()[0]
+        if n:
+            con.execute("UPDATE users SET role = 'planner' WHERE role = 'reviewer'")
+        return n
+    finally:
+        con.close()
+
+
 def recent_requests(since: timedelta) -> int:
     con = connect()
     try:

@@ -23,7 +23,7 @@ export function EvaluationView() {
   const [note, setNote] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const { user } = useAuth();
-  const admin = hasRole(user?.role, "admin");   // reviewers label and read; runs, promotions and prompts are admin
+  const admin = hasRole(user?.role, "admin");   // the page is admin-only; kept for a read-only role later
   const load = useCallback(() => api.evaluation().then(setData).catch((e) => setError((e as Error).message)), []);
   useEffect(() => {
     load();

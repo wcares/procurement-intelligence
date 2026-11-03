@@ -1,5 +1,5 @@
 """The Evaluation page (procintel.learning.overview): quality over time, comparisons, prediction models; queueing an
-evaluation run (admins); the labelling queue (procintel.learning.labelling), open to reviewers. Promoting or discarding a shadow and activating a prompt use their own routes (shadows, prompts)."""
+evaluation run (admins); the labelling queue (procintel.learning.labelling). Promoting or discarding a shadow and activating a prompt use their own routes (shadows, prompts)."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request

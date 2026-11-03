@@ -7,10 +7,10 @@
 PROCINTEL_AUTH chooses the identity provider: "local" (username and password, the default) or "off" (no sign-in,
 everyone is an admin: tests and a one-person local install). Single sign-on is a further provider for a pilot.
 """
-ROLES = ("planner", "reviewer", "admin")  # each role can do everything the roles before it can
+ROLES = ("planner", "admin")  # an admin can do everything a planner can (the reviewer role was dropped, 2026-11-03)
 RANK = {r: i for i, r in enumerate(ROLES)}
 
 
 def has_role(role: str | None, needed: str) -> bool:
-    """Whether an account with `role` may use what needs `needed` (planner < reviewer < admin)."""
+    """Whether an account with `role` may use what needs `needed` (planner < admin)."""
     return role in RANK and RANK[role] >= RANK[needed]

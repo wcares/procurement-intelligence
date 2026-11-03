@@ -82,25 +82,22 @@ def test_sign_in_off_means_everyone_is_admin(monkeypatch):
     assert client(app).get("/auth/me").json()["role"] == "admin"
 
 
-def test_reviewer_labels_and_reviews_but_has_no_pipeline_control(local):
-    service.create_user("rae", "reviewer-pass-1", "reviewer")
-    rae = client(local)
-    assert rae.post("/auth/login", json={"username": "rae", "password": "reviewer-pass-1"}).json()["role"] == "reviewer"
-    for path in ["/evaluation/labelling", "/feedback/review"]:
-        assert rae.get(path).status_code != 403, path                                       # reviewer work
-    assert rae.get("/dashboard").status_code != 403                                         # and the planner app
-    assert rae.post("/evaluation/run", json={"answers": False}).status_code == 403          # starting runs: admin
-    for method, path in [("get", "/config"), ("get", "/jobs"), ("get", "/pipeline"), ("get", "/prompts"),
-                         ("get", "/shadows"), ("get", "/auth/users")]:
-        assert getattr(rae, method)(path).status_code == 403, path
-    ana = client(local)
+def test_the_quality_page_is_for_admins(local):
+    ana, root = client(local), client(local)
     ana.post("/auth/login", json={"username": "ana", "password": "planner-pass-1"})
-    assert ana.get("/evaluation/labelling").status_code == 403                              # planner: not a reviewer
-    root = client(local)
+    for path in ["/evaluation/labelling", "/feedback/review"]:
+        assert ana.get(path).status_code == 403, path                                       # planner: not admin
     root.post("/auth/login", json={"username": "root", "password": "admin-pass-12"})
-    assert root.patch("/auth/users/root", json={"role": "reviewer"}).status_code == 400     # not your own admin role
-    r = root.patch("/auth/users/ana", json={"role": "reviewer"})
-    assert r.status_code == 200, r.json()
+    for path in ["/evaluation/labelling", "/feedback/review"]:
+        assert root.get(path).status_code != 403, path
+    assert root.patch("/auth/users/ana", json={"role": "reviewer"}).status_code == 400      # the role was dropped
+    assert root.patch("/auth/users/root", json={"role": "planner"}).status_code == 400      # not your own admin role
+
+
+def test_reviewer_accounts_become_planners(local):
+    store.add_user("rae", passwords.hash_password("reviewer-pass-1"), "reviewer")          # an account from before
+    assert store.drop_retired_roles() == 1 and store.drop_retired_roles() == 0
+    assert store.get_user("rae")["role"] == "planner"
 
 
 def test_sign_up_waits_for_an_admin(local):
@@ -138,9 +135,8 @@ def test_declining_removes_only_requests(local):
 
 
 def test_each_sign_in_page_admits_its_roles(local):
-    service.create_user("rev", "reviewer-pass-1", "reviewer")
     for name, pw, portal, ok in [("ana", "planner-pass-1", "admin", False), ("root", "admin-pass-12", "planner", False),
-                                 ("ana", "planner-pass-1", "planner", True), ("rev", "reviewer-pass-1", "planner", True),
+                                 ("ana", "planner-pass-1", "planner", True),
                                  ("root", "admin-pass-12", "admin", True), ("ana", "planner-pass-1", None, True)]:
         c = client(local)
         r = c.post("/auth/login", json={"username": name, "password": pw, "portal": portal})

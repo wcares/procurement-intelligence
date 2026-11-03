@@ -6,7 +6,7 @@ part replaceable by configuration or registration, nothing hardcoded. Backend pi
 docs/event-pipeline-design.md.
 
 The app now has these pages (role needed): **Overview** (home dashboard), **Assess a package**, **Ask the evidence**,
-**Plan a project**, **Insights** and **Documents** (planner); **Evaluation** (reviewer); **Pipeline** (connectors, event log, rules, upload)
+**Plan a project**, **Insights** and **Documents** (planner); **Evaluation** (admin; the reviewer role was dropped on 2026-11-03); **Pipeline** (connectors, event log, rules, upload)
 and **Settings** (admin). The first version had only Assess, Ask and Settings, with text, cards and one timeline bar.
 
 ## 1. Home dashboard: what went wrong in the past, worst to best
@@ -142,7 +142,7 @@ admin users who run the pipeline ... exactly the role based").
 |---|---|---|
 | **Planner** | World Bank project teams and procurement specialists, borrower implementing agencies | home dashboard, Assess, Ask, interactive visuals; rate answers, flag citations; upload documents to analyse (their own, on the Documents page; a completion report joins the shared evidence once an admin adds it; built 2026-10-26) |
 | **Admin** | the team running the platform | the admin pages only: Pipeline (connectors, rules, event log, upload), Evaluation, Settings (background jobs, users, feedback review, promotions). The planner pages are not shown to an admin account and send it to Pipeline (user, 2026-10-27: "admin shouldn't show what client side sees"); the backend still lets an admin call the planner endpoints |
-| **Reviewer** | domain experts | everything a planner can, plus the Evaluation page to read (quality over time, comparisons, models), the labelling queue and feedback review; no runs, promotions, prompts, pipeline or settings (built 2026-10-26) |
+| ~~Reviewer~~ (dropped 2026-11-03: admins label, review feedback and read Evaluation; reviewer accounts became planners) | domain experts | was: everything a planner can, plus the Evaluation page to read (quality over time, comparisons, models), the labelling queue and feedback review; no runs, promotions, prompts, pipeline or settings (built 2026-10-26) |
 
 - **Login for now: username and password** (user, 2026-10-25). Passwords stored only as salted hashes; an admin creates
   accounts and assigns roles; the first admin comes from an environment setting; sessions in a secure, HTTP-only

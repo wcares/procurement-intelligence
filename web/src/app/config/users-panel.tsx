@@ -46,8 +46,7 @@ export function Users() {
                   <select className={box} value={u.role} disabled={u.username === user.username}
                     onChange={async (e) => apply(await api.updateUser(u.username, { role: e.target.value }), `${u.username} is now ${e.target.value}.`)}>
                     <option value="planner">planner</option>
-                    <option value="reviewer">reviewer</option>
-                    <option value="admin">admin</option>
+                                        <option value="admin">admin</option>
                   </select>
                 </td>
                 <td>{u.active ? "active" : "disabled"}</td>
@@ -74,8 +73,7 @@ export function Users() {
           <input className={box} type="password" autoComplete="new-password" placeholder="password (10+ characters)" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <select className={box} value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="planner">planner</option>
-            <option value="reviewer">reviewer</option>
-            <option value="admin">admin</option>
+                        <option value="admin">admin</option>
           </select>
           <button className={box} type="submit">Add user</button>
         </form>
@@ -123,8 +121,7 @@ function Requests({ requests, apply }: { requests: Account[]; apply: (r: { users
               <select className={box} value={roles[u.username] ?? "planner"} disabled={busy === u.username}
                 onChange={(e) => setRoles({ ...roles, [u.username]: e.target.value })}>
                 <option value="planner">planner</option>
-                <option value="reviewer">reviewer</option>
-                <option value="admin">admin</option>
+                                <option value="admin">admin</option>
               </select>
             </label>
             <button type="button" disabled={busy !== null} onClick={() => void approve(u.username)}

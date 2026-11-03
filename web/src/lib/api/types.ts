@@ -730,7 +730,7 @@ export interface DryRunResponse {
 }
 
 /** Roles, lowest first: each can do everything the ones before it can (procintel.auth.ROLES). */
-export type Role = "planner" | "reviewer" | "admin";
+export type Role = "planner" | "admin";
 
 /** The signed-in user (GET /auth/me). mode "off": sign-in disabled, everyone is an admin. */
 export interface AuthUser {

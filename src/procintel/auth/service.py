@@ -16,7 +16,7 @@ MAX_FAILURES = 5                       # failed logins for a username or from a 
 FAILURE_WINDOW = timedelta(minutes=15)  # ... within this window: further attempts are refused until it passes
 _DUMMY = passwords.hash_password(secrets.token_hex(8))  # checked for unknown names, so timing reveals no usernames
 # Each sign-in page admits only its roles, so an admin account is not used from the planner page or the other way round.
-PORTALS = {"planner": ("planner", "reviewer"), "admin": ("admin",)}
+PORTALS = {"planner": ("planner",), "admin": ("admin",)}
 REQUESTS_PER_CLIENT = 3                 # access requests (sign-up) from one client per hour ...
 REQUESTS_PER_HOUR = 30                  # ... and from everyone, so the page cannot fill the accounts table
 _requests: dict[str, list[float]] = {}

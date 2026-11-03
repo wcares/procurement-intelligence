@@ -17,7 +17,7 @@ const PLANNER_PAGES = ["/", "/assess", "/plan", "/ask", "/insights", "/documents
 export const ADMIN_HOME = "/pipeline";
 
 // What a page needs; a page not listed is open to every signed-in role.
-const PAGE_ROLE: [string, Role][] = [["/pipeline", "admin"], ["/config", "admin"], ["/evaluation", "reviewer"]];
+const PAGE_ROLE: [string, Role][] = [["/pipeline", "admin"], ["/config", "admin"], ["/evaluation", "admin"]];
 
 /** Where to go after signing in: the page asked for when this role may use it, otherwise the role's own home. A session that
  * ended on an admin page must not land a planner on "this page needs the admin role". */
@@ -102,9 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const RANK: Record<Role, number> = { planner: 0, reviewer: 1, admin: 2 };
+const RANK: Record<Role, number> = { planner: 0, admin: 1 };
 
-/** Whether `role` may use what needs `needed` (planner < reviewer < admin), as the backend decides. */
+/** Whether `role` may use what needs `needed` (planner < admin), as the backend decides. */
 export function hasRole(role: Role | undefined, needed: Role): boolean {
   return role !== undefined && RANK[role] >= RANK[needed];
 }

@@ -10,7 +10,7 @@ import { localTime, MEASURES, pct, ratio } from "./measures";
 type Comparisons = EvaluationResponse["comparisons"];
 
 /** Live against an alternative, measure by measure: shadow index builds (build, evaluate, promote, discard), candidate
- * prompt versions (activate) and runs with another model (for reading only). Reviewers see them without the actions. */
+ * prompt versions (activate) and runs with another model (for reading only). */
 export function ComparisonsView({ data, onChanged }: { data: Comparisons; onChanged: () => void }) {
   const [note, setNote] = useState<string | null>(null);
   const { user } = useAuth();
@@ -123,7 +123,7 @@ function Card({ title, status, children }: { title: string; status: string; chil
   );
 }
 
-/** An action button: admins only (reviewers read the comparisons). */
+/** An action button: admins only. */
 function Btn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   const { user } = useAuth();
   if (!hasRole(user?.role, "admin")) return null;

@@ -23,7 +23,7 @@ def current_user(request: Request) -> dict | None:
 
 def require(role: str):
     """A FastAPI dependency: 401 without a session, 403 when the caller's role ranks below `role`
-    (planner < reviewer < admin, procintel.auth.ROLES)."""
+    (planner < admin, procintel.auth.ROLES)."""
     def dependency(request: Request) -> dict:
         user = current_user(request)
         if user is None:

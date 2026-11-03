@@ -55,7 +55,7 @@ export default function Welcome() {
               </Link>
               <Link href="/signup" className="rounded-md border border-line px-4 py-2 text-sm font-medium hover:bg-subtle">Request access</Link>
             </div>
-            <p className="mt-3 text-xs text-ink-muted">Reviewers sign in here too. A new account works once an administrator approves it.</p>
+            <p className="mt-3 text-xs text-ink-muted">A new account works once an administrator approves it.</p>
           </div>
 
           <div className="rounded-xl border border-line bg-subtle p-6">

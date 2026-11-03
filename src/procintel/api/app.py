@@ -22,6 +22,7 @@ from procintel.api import background, config, model_keys, model_profiles, securi
 from procintel.api.routes import ROUTERS
 from procintel.api.state import state
 from procintel.auth import service
+from procintel.auth import store as auth_store
 
 CORS_DEFAULT = "http://localhost:3100,http://127.0.0.1:3100"
 QUIET_PATHS = {("GET", "/health"), ("GET", "/jobs"), ("GET", "/auth/me")}  # do not postpone background jobs
@@ -34,6 +35,8 @@ async def lifespan(_: FastAPI):
     for key, err in config.load_saved().items():  # saved settings from the configuration page
         print(f"config: saved value for {key} ignored: {err}")
     model_profiles.migrate()  # once: model profiles from the general ones, a page key moved to its provider
+    if service.mode() == "local" and (n := auth_store.drop_retired_roles()):
+        print(f"auth: {n} reviewer account(s) are planners now (the reviewer role was dropped)")
     if admin := service.ensure_first_admin():  # no accounts yet: the admin named in the environment
         print(f"auth: created the first admin account {admin!r}")
     state()  # build the index before the first request rather than during it

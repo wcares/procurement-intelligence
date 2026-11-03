@@ -1,4 +1,4 @@
-import { RoleOnly } from "@/components/auth";
+import { AdminOnly } from "@/components/auth";
 import { EvaluationView } from "@/components/evaluation/evaluation-view";
 
 export default function EvaluationPage() {
@@ -9,9 +9,9 @@ export default function EvaluationPage() {
         How well the system works, measured on a fixed set of 80 planner questions with judged answers and on the award times
         of past packages. The numbers update after each refresh, retrain or change.
       </p>
-      <RoleOnly role="reviewer">
+      <AdminOnly>
         <EvaluationView />
-      </RoleOnly>
+      </AdminOnly>
     </div>
   );
 }

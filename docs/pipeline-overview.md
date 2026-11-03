@@ -82,5 +82,5 @@ Both requests read only from stores the event system keeps current; neither wait
 The web app talks only to the API. The API answers requests, receives webhooks and queues work; the worker runs every
 pipeline step, including the connector code that polls external sources. Local today: DuckDB files, the `data/`
 folder and llama.cpp servers. Production, by configuration only: Postgres, Qdrant, object storage and model endpoints
-by URL, in Docker containers (`compose.yaml`). Login is username and password with planner, reviewer and admin roles;
+by URL, in Docker containers (`compose.yaml`). Login is username and password with planner and admin roles;
 alerts are shown in the app.

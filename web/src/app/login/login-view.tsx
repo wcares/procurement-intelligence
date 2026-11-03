@@ -9,7 +9,7 @@ import { landingFor, useAuth } from "@/components/auth";
 export const field = "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand";
 
 const PORTAL = {
-  planner: { title: "Planner sign-in", lead: "For planners and reviewers: Assess, the planning workspace, Ask and Insights." },
+  planner: { title: "Planner sign-in", lead: "For planners: Assess, the planning workspace, Ask and Insights." },
   admin: { title: "Administrator sign-in", lead: "For running the platform: the data pipeline, models, accounts and settings." },
 };
 
