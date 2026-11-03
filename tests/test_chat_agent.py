@@ -102,3 +102,23 @@ def test_every_chat_answer_says_where_it_came_from(monkeypatch):
     sess = tools.Session(state=None, plan={}, results="", today=None)
     sess.used.append(answer.basis("plan", "Your plan"))
     assert [b["kind"] for b in sess.used] == ["plan"] and "detail" not in sess.used[0]
+
+
+def test_a_local_server_is_asked_whether_it_takes_tools(monkeypatch):
+    import io
+    import json
+    from procintel.core import llm
+    llm._server_tools.clear()
+    monkeypatch.setenv("PROCINTEL_LLM_MODEL", "openai/saluki-27b")
+    monkeypatch.setenv("PROCINTEL_LLM_API_BASE", "http://127.0.0.1:9/v1")
+    asked = []
+
+    def fake_open(url, timeout):
+        asked.append(url)
+        return io.BytesIO(json.dumps({"chat_template_caps": {"supports_tools": True}}).encode())
+    monkeypatch.setattr(llm.urllib.request if hasattr(llm, "urllib") else __import__("urllib.request").request, "urlopen", fake_open)
+    assert llm.supports_tools() and asked == ["http://127.0.0.1:9/props"]
+    assert llm.supports_tools() and len(asked) == 1                       # asked once per server
+    llm._server_tools.clear()
+    monkeypatch.setattr(__import__("urllib.request").request, "urlopen", lambda url, timeout: (_ for _ in ()).throw(OSError("down")))
+    assert not llm.supports_tools()                                       # a server that does not answer: no tools

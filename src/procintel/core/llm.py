@@ -107,12 +107,33 @@ def _args(messages: list[dict], temperature: float | None, max_tokens: int | Non
                 api_base=base, api_key=key, **kw)
 
 
+_server_tools: dict[str, bool] = {}   # api_base -> whether that server's chat template handles tools
+
+
+def server_supports_tools(base: str) -> bool:
+    """Whether a llama.cpp server (`base` ending in /v1) can take tool calls: its /props says so when it runs with the
+    Jinja template engine and the model's template handles tools (Saluki does, checked 2026-11-03). Asked once per
+    server; a server that does not answer counts as not able."""
+    root = base.rstrip("/").removesuffix("/v1")
+    if root not in _server_tools:
+        import urllib.request
+        try:
+            with urllib.request.urlopen(f"{root}/props", timeout=5) as r:
+                caps = json.load(r).get("chat_template_caps") or {}
+            _server_tools[root] = bool(caps.get("supports_tools"))
+        except Exception:  # noqa: BLE001 - no server, no /props: no tools
+            _server_tools[root] = False
+    return _server_tools[root]
+
+
 def supports_tools(prefix: str = ANSWER) -> bool:
-    """Whether the model can call tools (function calling), as LiteLLM knows it: hosted models such as Claude can; a
-    llama.cpp server is not known to, and the chat then answers without tools."""
+    """Whether the model can call tools (function calling): a hosted model as LiteLLM knows it (Claude and others
+    can); a server of our own (an address is set) as it reports itself (server_supports_tools)."""
     m = model_name(prefix)
     if not m:
         return False
+    if base := _env(prefix, "API_BASE"):
+        return server_supports_tools(base)
     import litellm
     try:
         return bool(litellm.supports_function_calling(model=m))
