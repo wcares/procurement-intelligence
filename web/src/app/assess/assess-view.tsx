@@ -12,6 +12,7 @@ import { StageTimeline } from "@/components/assess/stage-timeline";
 import { SimilarPackages } from "@/components/assess/similar-packages";
 import { InsightsPanel } from "@/components/insights/insights-panel";
 import { GoalPanel } from "@/components/assess/goal-panel";
+import { AssessChat } from "@/components/assess/assess-chat";
 import { StartedFields, StartedForecast, type Started } from "@/components/monitoring/started-forecast";
 
 const CPIA_LABELS: Record<string, string> = {
@@ -198,6 +199,7 @@ export function AssessView() {
           <StartedForecast procGroup={assessed.procGroup} methodCode={assessed.methodCode} started={startedAssessed} />
         )}
         {result && assessed && <GoalPanel request={assessed} />}
+        {result && assessed && <AssessChat request={assessed} result={result} />}
         {result && assessed && <ExportButtons kind="assessment" body={{ request: assessed, response: result }} />}
         {result && <AssessResults r={result} />}
         {result && <Freshness only={["Notice", "ContractAward", "Document", "SupervisionDoc", "Indicator"]} />}
