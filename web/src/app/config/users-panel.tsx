@@ -34,6 +34,7 @@ export function Users() {
       <h2 className="mb-4 text-xl font-semibold">Accounts</h2>
       <div className="space-y-3 rounded-lg border border-line bg-surface p-5 text-xs">
         <p className="text-ink-muted">Planners use Assess and Ask; admins also see Settings. A change signs the person out.</p>
+        {msg && <p role="status" className="text-sm font-medium">{msg}</p>}
         {requests.length > 0 && <Requests requests={requests} apply={apply} />}
         <table className="w-full text-left">
           <thead className="text-ink-muted"><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th /></tr></thead>
@@ -78,52 +79,65 @@ export function Users() {
           </select>
           <button className={box} type="submit">Add user</button>
         </form>
-        {msg && <p className="text-ink-muted">{msg}</p>}
       </div>
     </section>
   );
 }
 
 /** Access requests waiting for approval: approving enables the account with the role chosen here (planner unless
- * changed), declining removes the request. */
+ * changed), declining removes the request. A failed call shows its error in the panel instead of doing nothing. */
 function Requests({ requests, apply }: { requests: Account[]; apply: (r: { users: Account[] } | { error: string }, ok: string) => Promise<void> }) {
   const [roles, setRoles] = useState<Record<string, string>>({});
-  async function approve(name: string) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const failed = (e: Error) => ({ error: e.message });
+  async function run(name: string, work: () => Promise<void>) {
+    setBusy(name);
+    try {
+      await work();
+    } finally {
+      setBusy(null);
+    }
+  }
+  const approve = (name: string) => run(name, async () => {
     const role = roles[name] ?? "planner";
     if (role !== "planner") {
-      const r = await api.updateUser(name, { role });
+      const r = await api.updateUser(name, { role }).catch(failed);
       if ("error" in r) return apply(r, "");
     }
-    await apply(await api.updateUser(name, { active: true }), `${name} approved as ${role}.`);
-  }
-  async function decline(name: string) {
-    await apply(await api.declineRequest(name).catch((e: Error) => ({ error: e.message })), `The request from ${name} was declined.`);
-  }
+    await apply(await api.updateUser(name, { active: true }).catch(failed), `${name} approved as ${role}.`);
+  });
+  const decline = (name: string) => run(name, async () =>
+    apply(await api.declineRequest(name).catch(failed), `The request from ${name} was declined.`));
   return (
-    <div className="space-y-2 rounded-md border border-line bg-risk-medium-soft p-3">
-      <p className="font-medium">Access requests ({requests.length})</p>
-      <table className="w-full text-left">
-        <tbody>
-          {requests.map((u) => (
-            <tr key={u.username} className="border-t border-line first:border-t-0">
-              <td className="py-1 font-medium">{u.username}</td>
-              <td className="text-ink-muted">asked {u.requestedAt ? new Date(u.requestedAt).toLocaleString() : ""}</td>
-              <td>
-                <select className={box} aria-label={`Role for ${u.username}`} value={roles[u.username] ?? "planner"}
-                  onChange={(e) => setRoles({ ...roles, [u.username]: e.target.value })}>
-                  <option value="planner">planner</option>
-                  <option value="reviewer">reviewer</option>
-                  <option value="admin">admin</option>
-                </select>
-              </td>
-              <td className="space-x-3 text-right">
-                <button className="font-medium text-brand underline" onClick={() => void approve(u.username)}>approve</button>
-                <button className="underline" onClick={() => void decline(u.username)}>decline</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-3 rounded-md border border-brand-2 bg-brand-soft p-4">
+      <p className="text-sm font-semibold">Access requests ({requests.length})</p>
+      <ul className="space-y-2">
+        {requests.map((u) => (
+          <li key={u.username} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md bg-surface px-3 py-2">
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium">{u.username}</span>
+              <span className="text-ink-muted">asked {u.requestedAt ? new Date(u.requestedAt).toLocaleString() : ""}</span>
+            </span>
+            <label className="flex items-center gap-2">
+              Role
+              <select className={box} value={roles[u.username] ?? "planner"} disabled={busy === u.username}
+                onChange={(e) => setRoles({ ...roles, [u.username]: e.target.value })}>
+                <option value="planner">planner</option>
+                <option value="reviewer">reviewer</option>
+                <option value="admin">admin</option>
+              </select>
+            </label>
+            <button type="button" disabled={busy !== null} onClick={() => void approve(u.username)}
+              className="rounded-md bg-brand px-4 py-1.5 text-xs font-medium text-on-brand disabled:opacity-50">
+              {busy === u.username ? "Working…" : "Approve"}
+            </button>
+            <button type="button" disabled={busy !== null} onClick={() => void decline(u.username)}
+              className="rounded-md border border-line bg-surface px-4 py-1.5 text-xs font-medium hover:bg-subtle disabled:opacity-50">
+              Decline
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
